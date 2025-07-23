@@ -36,7 +36,7 @@ export abstract class BaseView extends PIXI.Container {
   protected abstract unbindEvents(): void;
 
   // 更新視圖
-  update(deltaTime?: number): void {
+  update(_deltaTime?: number): void {
     // 子類可以重寫此方法
   }
 
@@ -101,7 +101,7 @@ export abstract class BaseView extends PIXI.Container {
   }
 
   // 調整大小
-  resize(width: number, height: number): void {
+  resize(_width: number, _height: number): void {
     // 子類可以重寫此方法來處理大小調整
   }
 

@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 import { StateMachine, IState, ITransition } from '@core/StateMachine';
-import { SLOT_STATES, SLOT_EVENTS, SlotMachineConfig } from '@core/SlotMachineStates';
+import { SLOT_STATES, SlotMachineConfig } from '@core/SlotMachineStates';
 import { SlotMachineModel } from '@models/SlotMachineModel';
 import { GameLoader, LoaderConfig, GameLoadProgress, LoadingPhase } from '@core/GameLoader';
 import { ResourceManager, ResourceDefinition } from '@core/ResourceManager';
@@ -27,6 +27,7 @@ export class SlotMachineApp {
   private loader: GameLoader;
   private resourceManager: ResourceManager;
   private apiManager?: ApiManager;
+  private updateCallback?: (ticker: PIXI.Ticker) => void;
   
   private config: SlotMachineAppConfig;
   private isInitialized: boolean = false;
@@ -236,7 +237,8 @@ export class SlotMachineApp {
     }
 
     // 啟動遊戲循環
-    this.app.ticker.add((ticker) => this.update(ticker.deltaTime));
+    this.updateCallback = (ticker) => this.update(ticker.deltaTime);
+    this.app.ticker.add(this.updateCallback);
     this.isRunning = true;
     
     console.log('拉霸機應用程式開始運行');
@@ -244,8 +246,8 @@ export class SlotMachineApp {
 
   // 停止應用程式
   stop(): void {
-    if (this.isRunning) {
-      this.app.ticker.removeAll();
+    if (this.isRunning && this.updateCallback) {
+      this.app.ticker.remove(this.updateCallback);
       this.isRunning = false;
       console.log('拉霸機應用程式已停止');
     }
@@ -261,7 +263,7 @@ export class SlotMachineApp {
     // 待機狀態邏輯
   }
 
-  private onIdleUpdate(deltaTime: number): void {
+  private onIdleUpdate(_deltaTime: number): void {
     // 待機狀態更新邏輯
   }
 
@@ -270,7 +272,7 @@ export class SlotMachineApp {
     this.model.startSpin();
   }
 
-  private onSpinningUpdate(deltaTime: number): void {
+  private onSpinningUpdate(_deltaTime: number): void {
     // 轉動狀態更新邏輯
   }
 
@@ -356,5 +358,15 @@ export class SlotMachineApp {
   // 獲取狀態機實例
   getStateMachine(): StateMachine {
     return this.stateMachine;
+  }
+
+  // 獲取資源管理器實例
+  getResourceManager(): ResourceManager {
+    return this.resourceManager;
+  }
+
+  // 獲取 API 管理器實例
+  getApiManager(): ApiManager | undefined {
+    return this.apiManager;
   }
 } 
