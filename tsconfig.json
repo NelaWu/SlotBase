@@ -30,6 +30,6 @@
       "@utils/*": ["src/utils/*"]
     }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "games/**/*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 } 

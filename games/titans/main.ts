@@ -1,0 +1,199 @@
+import { TitansSlotApp, TitansSlotAppConfig } from './TitansSlotApp';
+
+// Titans 拉霸遊戲入口
+async function startTitansSlotGame() {
+  console.log('⚡ 啟動 Titans 拉霸遊戲...');
+
+  // 獲取遊戲容器
+  const container = document.getElementById('game-container');
+  if (!container) {
+    console.error('找不到遊戲容器 #game-container');
+    return;
+  }
+
+  // 配置遊戲
+  const config: TitansSlotAppConfig = {
+    // 基礎配置
+    container,
+    width: 1080,
+    height: 1920,
+    backgroundColor: 0x000000, // 黑色背景
+    resolution: window.devicePixelRatio || 1,
+
+    // API 配置
+    apiConfig: {
+      baseUrl: 'https://your-api-server.com/api',
+      timeout: 10000,
+      retryAttempts: 3,
+      retryDelay: 1000
+    },
+
+    // 資源配置
+    resources: [
+      // 背景圖片
+      { id: 'bg_main', url: '/games/titans/assets/mg_bg.png', type: 'image' },
+      { id: 'frame', url: '/games/titans/assets/mg_frame.png', type: 'image' },
+      
+      // 按鈕圖片
+      { id: 'spin_btn', url: '/games/titans/assets/spin_btn_normal.png', type: 'image' },
+      { id: 'auto_btn', url: '/games/titans/assets/auto_btn_normal.png', type: 'image' },
+      
+      // 符號圖片
+      { id: 'symbol_01', url: '/games/titans/assets/Symbol/symbol_01.png', type: 'image' },
+      { id: 'symbol_02', url: '/games/titans/assets/Symbol/symbol_02.png', type: 'image' },
+      { id: 'symbol_03', url: '/games/titans/assets/Symbol/symbol_03.png', type: 'image' },
+      { id: 'symbol_04', url: '/games/titans/assets/Symbol/symbol_04.png', type: 'image' },
+      { id: 'symbol_05', url: '/games/titans/assets/Symbol/symbol_05.png', type: 'image' },
+      { id: 'symbol_06', url: '/games/titans/assets/Symbol/symbol_06.png', type: 'image' },
+      { id: 'symbol_07', url: '/games/titans/assets/Symbol/symbol_07.png', type: 'image' },
+      { id: 'symbol_08', url: '/games/titans/assets/Symbol/symbol_08.png', type: 'image' },
+      { id: 'symbol_09', url: '/games/titans/assets/Symbol/symbol_09.png', type: 'image' },
+      { id: 'symbol_10', url: '/games/titans/assets/Symbol/symbol_10.png', type: 'image' },
+      { id: 'symbol_11', url: '/games/titans/assets/Symbol/symbol_11.png', type: 'image' },
+    ],
+
+    // 遊戲配置
+    gameConfig: {
+      autoSpinDelay: 2000,
+      spinDuration: 3000,
+      celebrationDuration: 2000,
+      errorRetryDelay: 3000
+    },
+
+    // Titans 拉霸特定配置
+    TitansConfig: {
+      TitansTypes: ['titan1', 'titan2', 'titan3', 'titan4', 'titan5'],
+      bonusThreshold: 3,
+      jackpotMultiplier: 100,
+      autoSpinDelay: 2000,
+      spinDuration: 3000,
+      celebrationDuration: 2000,
+      errorRetryDelay: 3000
+    },
+
+    // 開發時啟用離線模式
+    enableOfflineMode: true
+  };
+
+  try {
+    // 創建遊戲應用程式
+    const app = new TitansSlotApp(config);
+
+    // 初始化
+    await app.initialize();
+
+    // 開始運行
+    app.start();
+
+    // 將 app 實例掛載到 window 供測試使用
+    (window as any).TitansSlotApp = app;
+
+    // 設置測試控制按鈕
+    setupTestControls(app);
+
+  } catch (error) {
+    console.error('❌ 遊戲啟動失敗:', error);
+  }
+}
+
+// 設置測試控制按鈕
+function setupTestControls(app: TitansSlotApp) {
+  // 創建控制面板
+  const controlPanel = document.createElement('div');
+  controlPanel.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    font-family: Arial, sans-serif;
+    z-index: 1000;
+  `;
+
+  controlPanel.innerHTML = `
+    <h3 style="margin: 0 0 15px 0;">🎮 測試控制台</h3>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <button id="test-spin" style="padding: 10px; cursor: pointer;">旋轉</button>
+      <button id="test-add-balance" style="padding: 10px; cursor: pointer;">增加餘額 (+1000)</button>
+      <button id="test-set-bet-10" style="padding: 10px; cursor: pointer;">設置投注 $10</button>
+      <button id="test-set-bet-50" style="padding: 10px; cursor: pointer;">設置投注 $50</button>
+      <button id="test-bonus-free" style="padding: 10px; cursor: pointer;">觸發免費旋轉</button>
+      <button id="test-reset" style="padding: 10px; cursor: pointer;">重設遊戲</button>
+    </div>
+    <div style="margin-top: 15px; font-size: 12px;">
+      <div id="test-info"></div>
+    </div>
+  `;
+
+  document.body.appendChild(controlPanel);
+
+  // 綁定事件
+  document.getElementById('test-spin')?.addEventListener('click', () => {
+    console.log('🎲 測試：旋轉');
+    app.spin();
+  });
+
+  document.getElementById('test-add-balance')?.addEventListener('click', () => {
+    console.log('💰 測試：增加餘額');
+    app.addBalance(1000);
+  });
+
+  document.getElementById('test-set-bet-10')?.addEventListener('click', () => {
+    console.log('💵 測試：設置投注 $10');
+    app.setBet(10);
+  });
+
+  document.getElementById('test-set-bet-50')?.addEventListener('click', () => {
+    console.log('💵 測試：設置投注 $50');
+    app.setBet(50);
+  });
+
+  document.getElementById('test-bonus-free')?.addEventListener('click', () => {
+    console.log('🎁 測試：觸發免費旋轉');
+    app.triggerBonus('freeSpins');
+  });
+
+  document.getElementById('test-reset')?.addEventListener('click', () => {
+    console.log('🔄 測試：重設遊戲');
+    app.resetGame();
+  });
+
+  // 更新資訊顯示
+  const updateInfo = () => {
+    const infoDiv = document.getElementById('test-info');
+    if (infoDiv) {
+      infoDiv.innerHTML = `
+        <strong>狀態:</strong> ${app.getCurrentState()}<br>
+        <strong>餘額:</strong> $${app.getBalance()}<br>
+        <strong>投注:</strong> $${app.getTitansModel().getCurrentBet()}<br>
+        <strong>免費旋轉:</strong> ${app.getFreeSpinsRemaining()}
+      `;
+    }
+  };
+
+  // 定期更新資訊
+  setInterval(updateInfo, 500);
+  updateInfo();
+}
+
+// 啟動遊戲
+startTitansSlotGame().then(() => {
+  // 隱藏載入畫面
+  const loading = document.getElementById('loading');
+  if (loading) {
+    loading.classList.add('hidden');
+  }
+}).catch((error) => {
+  console.error('遊戲啟動失敗:', error);
+  const loading = document.getElementById('loading');
+  if (loading) {
+    loading.innerHTML = `
+      <h2>❌ 載入失敗</h2>
+      <p>${error.message}</p>
+      <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; cursor: pointer;">重新載入</button>
+    `;
+  }
+});
+
