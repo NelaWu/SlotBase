@@ -45,6 +45,8 @@ export class SlotMachineApp {
 
     // 初始化 PIXI 應用程式
     this.app = new PIXI.Application();
+    // 添加 PixiJS DevTools 支持
+    (globalThis as any).__PIXI_APP__ = this.app;
     
     // 初始化組件
     this.stateMachine = new StateMachine();

@@ -1,6 +1,7 @@
 import { ResourceManager } from '@/core/ResourceManager';
 import { BaseView } from '@views/BaseView';
 import * as PIXI from 'pixi.js';
+import { TitansSymbol } from './symbol/TitansSymbol';
 
 // 捲軸配置
 interface ReelConfig {
@@ -20,8 +21,8 @@ export class TitansSlotView extends BaseView {
   private freeSpinsText!: PIXI.Text;
   
   private reelConfig: ReelConfig = {
-    x: 36,
-    y: 715,
+    x: 120,
+    y: 788,
     width: 168,
     height: 147*5
   };
@@ -77,46 +78,47 @@ export class TitansSlotView extends BaseView {
 
   // 創建捲軸
   private createReels(): void {
-    const resourceManager = ResourceManager.getInstance();
     const numberOfReels = 6;
     const spacing = 0;
 
     for (let i = 0; i < numberOfReels; i++) {
       const reel = new PIXI.Container();
-      this.addSymbolsToReel(reel, resourceManager);
+      this.addSymbolsToReel(reel);
 
       // 設置捲軸位置
       reel.x = this.reelConfig.x + i * (this.reelConfig.width + spacing);
       reel.y = this.reelConfig.y;
-      this.reels.push(reel);
       
+      // // 添加遮罩，讓符號只在捲軸區域內可見（創造無縫滾動效果）
+      // const mask = new PIXI.Graphics();
+      // mask.rect(-this.reelConfig.width/2, -this.reelConfig.height/2/5, this.reelConfig.width, this.reelConfig.height);
+      // mask.fill(0xffffff);
+      // reel.addChild(mask);
+      // reel.mask = mask;
+      
+      this.reels.push(reel);
       this.addChild(reel);
     }
   }
 
   // 在捲軸中添加符號
-  private addSymbolsToReel(reel: PIXI.Container, resourceManager: ResourceManager): void {
+  private addSymbolsToReel(reel: PIXI.Container): void {
     const symbolsPerReel = 5;
     const symbolHeight = this.reelConfig.height / symbolsPerReel;
     
     for (let i = 0; i < symbolsPerReel; i++) {
-      // 隨機選擇一個符號（1-11）
       const symbolNumber = Math.floor(Math.random() * 11) + 1;
-      const symbolId = `symbol_${symbolNumber.toString().padStart(2, '0')}`;
+      const symbolSprite = new TitansSymbol();
+      symbolSprite.setSymbol(symbolNumber);
       
-      const symbolResource = resourceManager.getResource(symbolId);
-      if (symbolResource) {
-        const symbolTexture = PIXI.Texture.from(symbolResource);
-        const symbolSprite = new PIXI.Sprite(symbolTexture);
-        
-        // // 設置符號大小和位置
-        // symbolSprite.width = this.reelConfig.width - 20;
-        // symbolSprite.height = symbolHeight - 20;
-        // symbolSprite.x = 10;
-        symbolSprite.y = i * symbolHeight ;
-        
-        reel.addChild(symbolSprite);
+      // 最後一個符號放在頂部外面，用於循環
+      if (i < symbolsPerReel) {
+        symbolSprite.y = i * symbolHeight;
+      } else {
+        symbolSprite.y = -symbolHeight;
       }
+      
+      reel.addChild(symbolSprite);
     }
   }
 
@@ -241,37 +243,107 @@ export class TitansSlotView extends BaseView {
   public startSpinAnimation(): void {
     this.setSpinButtonEnabled(false);
     this.hideWinAmount();
-
+    
     this.reels.forEach((reel) => {
+      // 為每個捲軸創建滾動動畫
+      const symbolHeight = this.reelConfig.height / 5;
+      const spinSpeed = 30; // 滾動速度（每幀移動的像素）
+      
       const animate = () => {
-        reel.y -= 20;
-        if (reel.y < this.reelConfig.y - 100) {
-          reel.y = this.reelConfig.y;
-        }
+        // 移動所有符號
+        reel.children.forEach((symbol) => {
+          symbol.y += spinSpeed;
+          
+          // 如果符號滾出底部，將它移到頂部並替換成隨機符號
+          if (symbol.y >= this.reelConfig.height) {
+            symbol.y -= this.reelConfig.height + symbolHeight;
+            
+            // 隨機更換符號（使用 TitansSymbol 的 setSymbol 方法）
+            if (symbol instanceof TitansSymbol) {
+              const randomSymbolNum = Math.floor(Math.random() * 11) + 1;
+              symbol.setSymbol(randomSymbolNum);
+            }
+          }
+        });
       };
-      (reel as any).animateFunc = setInterval(animate, 50);
+      
+      (reel as any).animateFunc = setInterval(animate, 1000 / 60); // 60 FPS
     });
   }
 
   // 公開方法 - 停止旋轉動畫
   public stopSpinAnimation(results: number[][]): void {
-    // 停止所有捲軸動畫
-    this.reels.forEach((reel, index) => {
-      if ((reel as any).animateFunc) {
-        clearInterval((reel as any).animateFunc);
-        (reel as any).animateFunc = null;
-      }
-      reel.y = this.reelConfig.y;
-      
-      // 更新捲軸顯示結果
+    console.log('stopSpinAnimation', results);
+    // 逐個停止捲軸（從左到右，延遲停止）
+    this.reels.forEach((reel, reelIndex) => {
       setTimeout(() => {
-        this.updateReelSymbols(reel, results[index] || []);
-      }, index * 200);
+        // 停止動畫
+        if ((reel as any).animateFunc) {
+          clearInterval((reel as any).animateFunc);
+          (reel as any).animateFunc = null;
+        }
+        
+        // 平滑停止並對齊到結果位置
+        this.smoothStopReel(reel, results[reelIndex] || [], () => {
+          // 最後一個捲軸停止後，啟用按鈕
+          if (reelIndex === this.reels.length - 1) {
+            setTimeout(() => {
+              this.setSpinButtonEnabled(true);
+            }, 300);
+          }
+        });
+      }, reelIndex * 150); // 每個捲軸延遲 150ms 停止
     });
+  }
 
-    setTimeout(() => {
-      this.setSpinButtonEnabled(true);
-    }, 1000);
+  // 平滑停止捲軸並對齊符號
+  private smoothStopReel(reel: PIXI.Container, symbolNumbers: number[], callback: () => void): void {
+    const symbolHeight = this.reelConfig.height / 5;
+    
+    // 更新符號內容為結果符號（使用 TitansSymbol）
+    symbolNumbers.forEach((symbolNum, i) => {
+      if (reel.children[i] instanceof TitansSymbol) {
+        (reel.children[i] as TitansSymbol).setSymbol(symbolNum);
+      }
+    });
+    
+    // 減速動畫
+    let currentSpeed = 20;
+    const deceleration = 2;
+    
+    const slowDown = () => {
+      if (currentSpeed > 0) {
+        currentSpeed = Math.max(0, currentSpeed - deceleration);
+        
+        reel.children.forEach((symbol) => {
+          symbol.y += currentSpeed;
+          
+          // 循環滾動
+          if (symbol.y >= this.reelConfig.height) {
+            symbol.y -= this.reelConfig.height + symbolHeight;
+          }
+        });
+        
+        requestAnimationFrame(slowDown);
+      } else {
+        // 對齊到整數位置
+        this.alignSymbols(reel);
+        callback();
+      }
+    };
+    
+    slowDown();
+  }
+
+  // 對齊符號到正確位置
+  private alignSymbols(reel: PIXI.Container): void {
+    const symbolHeight = this.reelConfig.height / 5;
+    
+    reel.children.forEach((symbol, i) => {
+      // 將符號對齊到標準位置
+      const targetY = i * symbolHeight;
+      symbol.y = targetY;
+    });
   }
 
   // 更新捲軸符號

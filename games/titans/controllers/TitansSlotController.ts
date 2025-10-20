@@ -148,9 +148,12 @@ export class TitansSlotController extends BaseController {
       const reels: number[][] = [];
       for (let i = 0; i < 5; i++) {
         reels.push([
-          Math.floor(Math.random() * 5),
-          Math.floor(Math.random() * 5),
-          Math.floor(Math.random() * 5)
+          Math.floor(Math.random() * 11) + 1,
+          Math.floor(Math.random() * 11) + 1,
+          Math.floor(Math.random() * 11) + 1,
+          Math.floor(Math.random() * 11) + 1,
+          Math.floor(Math.random() * 11) + 1,
+          Math.floor(Math.random() * 11) + 1
         ]);
       }
 
