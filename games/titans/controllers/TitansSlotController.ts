@@ -183,7 +183,7 @@ export class TitansSlotController extends BaseController {
       };
 
       this.model.setSpinResult(result);
-    }, 2000); // 模擬網路延遲
+    }, 5000); // 模擬網路延遲
   }
 
   // 處理 Bonus 功能

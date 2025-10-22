@@ -207,7 +207,6 @@ export class TitansSlotView extends BaseView {
 
   // 公開方法 - 停止旋轉動畫
   public stopSpinAnimation(results: number[][]): void {
-    console.log('stopSpinAnimation', results);
     
     this.wheel.stopSpin(results, () => {
       // 所有捲軸停止後，啟用按鈕
@@ -219,33 +218,33 @@ export class TitansSlotView extends BaseView {
 
   // 公開方法 - 播放獲勝動畫
   public playWinAnimation(winAmount: number): void {
-    this.winAmountText.text = `贏得 $${winAmount}`;
-    this.winAmountText.visible = true;
-    this.winAmountText.scale.set(0);
+    // this.winAmountText.text = `贏得 $${winAmount}`;
+    // this.winAmountText.visible = true;
+    // this.winAmountText.scale.set(0);
 
-    // 放大動畫
-    const startTime = Date.now();
-    const duration = 500;
+    // // 放大動畫
+    // const startTime = Date.now();
+    // const duration = 500;
     
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
+    // const animate = () => {
+    //   const elapsed = Date.now() - startTime;
+    //   const progress = Math.min(elapsed / duration, 1);
       
-      // 彈性效果
-      const scale = this.easeOutElastic(progress);
-      this.winAmountText.scale.set(scale);
+    //   // 彈性效果
+    //   const scale = this.easeOutElastic(progress);
+    //   this.winAmountText.scale.set(scale);
       
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
-    };
+    //   if (progress < 1) {
+    //     requestAnimationFrame(animate);
+    //   }
+    // };
     
-    animate();
+    // animate();
 
-    // 3 秒後隱藏
-    setTimeout(() => {
-      this.hideWinAmount();
-    }, 3000);
+    // // 3 秒後隱藏
+    // setTimeout(() => {
+    //   this.hideWinAmount();
+    // }, 3000);
   }
 
   // 彈性緩動函數
