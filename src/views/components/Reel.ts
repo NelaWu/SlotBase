@@ -191,52 +191,14 @@ export class Reel<T extends BaseSymbol> extends PIXI.Container {
         
         requestAnimationFrame(slowDown);
       } else {
-        // 對齊到整數位置
-        this.alignSymbols();
-        this.isSpinning = false;
-        this.isStopping = false;
-        callback?.();
+        // ✅ 平滑對齊：繼續以最小速度移動直到對齊
+        this.smoothAlignToPosition(callback);
       }
     };
     
     slowDown();
   }
 
-  /**
-   * 設置所有符號為結果（包括不可見區域）
-   */
-  private setAllSymbolsToResult(resultSymbols: number[]): void {
-    this.symbols.forEach((symbol) => {
-      const symbolY = symbol.y;
-      
-      // 計算這個符號在結果陣列中的對應位置
-      let resultIndex = -1;
-      
-      if (symbolY >= 0 && symbolY < this.config.height) {
-        // 可見區域的符號
-        resultIndex = Math.floor(symbolY / this.symbolHeight);
-      } else if (symbolY < 0) {
-        // 頂部準備區域的符號
-        resultIndex = Math.floor((symbolY + this.config.height) / this.symbolHeight);
-      } else if (symbolY >= this.config.height) {
-        // 底部緩衝區域的符號
-        const totalSymbols = this.config.symbolsPerReel + 2;
-        const cycleHeight = totalSymbols * this.symbolHeight;
-        resultIndex = Math.floor((symbolY - cycleHeight) / this.symbolHeight);
-      }
-      
-      // 設置對應的結果符號
-      if (resultIndex >= 0 && resultIndex < resultSymbols.length) {
-        symbol.setSymbol(resultSymbols[resultIndex]);
-      } else {
-        // 如果計算出的位置超出範圍，使用循環
-        const safeIndex = resultIndex % resultSymbols.length;
-        if (safeIndex >= 0) {
-          symbol.setSymbol(resultSymbols[safeIndex]);
-        }
-      }
-    });
-  }
 
 
   /**
@@ -344,13 +306,61 @@ export class Reel<T extends BaseSymbol> extends PIXI.Container {
   }
 
   /**
-   * 對齊符號到正確位置
+   * 平滑對齊符號到正確位置
    */
   protected alignSymbols(): void {
-    this.symbols.forEach((symbol, i) => {
-      const targetY = (i - 1) * this.symbolHeight;
-      symbol.y = targetY;
-    });
+    this.smoothAlignToPosition();
+  }
+
+  /**
+   * 平滑對齊到正確位置
+   */
+  private smoothAlignToPosition(callback?: () => void): void {
+    let lastAlignTime = performance.now();
+    const alignSpeed = 5; // 對齊速度
+    
+    const align = (currentTime: number = performance.now()): void => {
+      const deltaTime = currentTime - lastAlignTime;
+      lastAlignTime = currentTime;
+      const frameTime = deltaTime / (1000 / 60);
+      
+      let allAligned = true;
+      
+      this.symbols.forEach((symbol, i) => {
+        const targetY = (i - 1) * this.symbolHeight;
+        const currentY = symbol.y;
+        const distance = targetY - currentY;
+        
+        // 如果距離很小，直接對齊
+        if (Math.abs(distance) < 0.5) {
+          symbol.y = targetY;
+        } else {
+          allAligned = false;
+          
+          // ✅ 判斷移動方向
+          if (distance > 0) {
+            // 向下移動：保持原本速度移動到正確位置
+            const moveDistance = Math.min(distance, alignSpeed * frameTime);
+            symbol.y += moveDistance;
+          } else {
+            // 向上移動：直接跳到正確位置
+            symbol.y = targetY;
+          }
+        }
+      });
+      
+      if (allAligned) {
+        // 所有符號都已對齊
+        this.isSpinning = false;
+        this.isStopping = false;
+        callback?.();
+      } else {
+        // 繼續對齊
+        requestAnimationFrame(align);
+      }
+    };
+    
+    align();
   }
 
 
