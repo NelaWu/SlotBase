@@ -1,11 +1,17 @@
 import { ResourceManager } from '@/core/ResourceManager';
 import { BaseView } from '@views/BaseView';
+import { BaseButton } from '@views/components/BaseButton';
 import * as PIXI from 'pixi.js';
 import { TitansWheel } from './wheel/TitansWheel';
 
 export class TitansSlotView extends BaseView {
   private wheel!: TitansWheel;
-  private spinButton!: PIXI.Container;
+  private spinButton!: BaseButton;
+  private settingsButton!: BaseButton;
+  private turboButton!: BaseButton;
+  private autoButton!: BaseButton;
+  private plusButton!: BaseButton;
+  private minusButton!: BaseButton;
   private winAmountText!: PIXI.Text;
   private balanceText!: PIXI.Text;
   private betText!: PIXI.Text;
@@ -26,6 +32,7 @@ export class TitansSlotView extends BaseView {
 
     // 創建按鈕
     this.createSpinButton();
+    this.createControlButtons();
 
     // 創建文字顯示
     this.createTexts();
@@ -84,21 +91,69 @@ export class TitansSlotView extends BaseView {
   // 創建旋轉按鈕
   private createSpinButton(): void {
     const resourceManager = ResourceManager.getInstance();
-    this.spinButton = new PIXI.Container();
-    this.spinButton.zIndex = 15; // 確保在最上層
-    
-    // 嘗試使用按鈕圖片
     const btnResource = resourceManager.getResource('spin_btn');
+    let btnTexture: PIXI.Texture | undefined;
+    
     if (btnResource) {
-      const btnTexture = PIXI.Texture.from(btnResource);
-      const btnSprite = new PIXI.Sprite(btnTexture);
-      btnSprite.anchor.set(0.5);
-      this.spinButton.addChild(btnSprite);
+      btnTexture = PIXI.Texture.from(btnResource);
     }
-
-    this.spinButton.eventMode = 'static';
-    this.spinButton.cursor = 'pointer';
+    
+    this.spinButton = new BaseButton({
+      texture: btnTexture,
+      anchor: 0.5
+    });
+    
     this.addChild(this.spinButton);
+  }
+
+  // 創建控制按鈕
+  private createControlButtons(): void {
+    const resourceManager = ResourceManager.getInstance();
+
+    // 設定按鈕
+    const settingsResource = resourceManager.getResource('option_btn');
+    this.settingsButton = new BaseButton({
+      texture: settingsResource ? PIXI.Texture.from(settingsResource) : undefined,
+      anchor: 0.5
+    });
+    this.settingsButton.zIndex = 15;
+    this.addChild(this.settingsButton);
+
+    // 快速按鈕
+    const turboResource = resourceManager.getResource('turbo_btn');
+    this.turboButton = new BaseButton({
+      texture: turboResource ? PIXI.Texture.from(turboResource) : undefined,
+      anchor: 0.5
+    });
+    this.turboButton.zIndex = 15;
+    this.addChild(this.turboButton);
+
+    // 自動旋轉按鈕
+    const autoResource = resourceManager.getResource('auto_btn');
+    this.autoButton = new BaseButton({
+      texture: autoResource ? PIXI.Texture.from(autoResource) : undefined,
+      anchor: 0.5
+    });
+    this.autoButton.zIndex = 15;
+    this.addChild(this.autoButton);
+
+    // 加注按鈕
+    const plusResource = resourceManager.getResource('plus_btn');
+    this.plusButton = new BaseButton({
+      texture: plusResource ? PIXI.Texture.from(plusResource) : undefined,
+      anchor: 0.5
+    });
+    this.plusButton.zIndex = 15;
+    this.addChild(this.plusButton);
+
+    // 減注按鈕
+    const minusResource = resourceManager.getResource('sub_btn');
+    this.minusButton = new BaseButton({
+      texture: minusResource ? PIXI.Texture.from(minusResource) : undefined,
+      anchor: 0.5
+    });
+    this.minusButton.zIndex = 15;
+    this.addChild(this.minusButton);
   }
 
   // 創建文字顯示
@@ -165,22 +220,45 @@ export class TitansSlotView extends BaseView {
 
   // 設置佈局
   protected setupLayout(): void {
+    // 主旋轉按鈕位置
     this.spinButton.x = 544;
     this.spinButton.y = 1726;
+
+    // 控制按鈕位置
+    this.settingsButton.x = 75;
+    this.settingsButton.y = 1653;
+
+    this.turboButton.x = 918;
+    this.turboButton.y = 1774;
+
+    this.autoButton.x = 341;
+    this.autoButton.y = 1774;
+
+    this.plusButton.x = 750;
+    this.plusButton.y = 1774;
+
+    this.minusButton.x = 174;
+    this.minusButton.y = 1774;
   }
 
   // 綁定事件
   protected bindEvents(): void {
-    this.spinButton.on('pointerdown', this.onSpinButtonClick.bind(this));
-    this.spinButton.on('pointerover', this.onSpinButtonHover.bind(this));
-    this.spinButton.on('pointerout', this.onSpinButtonOut.bind(this));
+    this.spinButton.on('buttonClicked', this.onSpinButtonClick.bind(this));
+    this.settingsButton.on('buttonClicked', this.onSettingsButtonClick.bind(this));
+    this.turboButton.on('buttonClicked', this.onTurboButtonClick.bind(this));
+    this.autoButton.on('buttonClicked', this.onAutoButtonClick.bind(this));
+    this.plusButton.on('buttonClicked', this.onPlusButtonClick.bind(this));
+    this.minusButton.on('buttonClicked', this.onMinusButtonClick.bind(this));
   }
 
   // 解綁事件
   protected unbindEvents(): void {
-    this.spinButton.off('pointerdown', this.onSpinButtonClick.bind(this));
-    this.spinButton.off('pointerover', this.onSpinButtonHover.bind(this));
-    this.spinButton.off('pointerout', this.onSpinButtonOut.bind(this));
+    this.spinButton.off('buttonClicked', this.onSpinButtonClick.bind(this));
+    this.settingsButton.off('buttonClicked', this.onSettingsButtonClick.bind(this));
+    this.turboButton.off('buttonClicked', this.onTurboButtonClick.bind(this));
+    this.autoButton.off('buttonClicked', this.onAutoButtonClick.bind(this));
+    this.plusButton.off('buttonClicked', this.onPlusButtonClick.bind(this));
+    this.minusButton.off('buttonClicked', this.onMinusButtonClick.bind(this));
   }
 
   // 按鈕點擊事件
@@ -188,14 +266,24 @@ export class TitansSlotView extends BaseView {
     this.emit('spinButtonClicked');
   }
 
-  // 按鈕懸停事件
-  private onSpinButtonHover(): void {
-    this.spinButton.scale.set(1.05);
+  private onSettingsButtonClick(): void {
+    this.emit('settingsButtonClicked');
   }
 
-  // 按鈕離開事件
-  private onSpinButtonOut(): void {
-    this.spinButton.scale.set(1);
+  private onTurboButtonClick(): void {
+    this.emit('turboButtonClicked');
+  }
+
+  private onAutoButtonClick(): void {
+    this.emit('autoButtonClicked');
+  }
+
+  private onPlusButtonClick(): void {
+    this.emit('plusButtonClicked');
+  }
+
+  private onMinusButtonClick(): void {
+    this.emit('minusButtonClicked');
   }
 
   // 公開方法 - 開始旋轉動畫
@@ -280,8 +368,38 @@ export class TitansSlotView extends BaseView {
 
   // 設置旋轉按鈕啟用狀態
   public setSpinButtonEnabled(enabled: boolean): void {
-    this.spinButton.eventMode = enabled ? 'static' : 'none';
-    this.spinButton.alpha = enabled ? 1 : 0.5;
+    this.spinButton.setEnabled(enabled);
+  }
+
+  // 設置所有按鈕啟用狀態
+  public setAllButtonsEnabled(enabled: boolean): void {
+    this.spinButton.setEnabled(enabled);
+    this.settingsButton.setEnabled(enabled);
+    this.turboButton.setEnabled(enabled);
+    this.autoButton.setEnabled(enabled);
+    this.plusButton.setEnabled(enabled);
+    this.minusButton.setEnabled(enabled);
+  }
+
+  // 設置特定按鈕啟用狀態
+  public setButtonEnabled(buttonType: 'settings' | 'turbo' | 'auto' | 'plus' | 'minus', enabled: boolean): void {
+    switch (buttonType) {
+      case 'settings':
+        this.settingsButton.setEnabled(enabled);
+        break;
+      case 'turbo':
+        this.turboButton.setEnabled(enabled);
+        break;
+      case 'auto':
+        this.autoButton.setEnabled(enabled);
+        break;
+      case 'plus':
+        this.plusButton.setEnabled(enabled);
+        break;
+      case 'minus':
+        this.minusButton.setEnabled(enabled);
+        break;
+    }
   }
 
   // 顯示 Bonus 提示

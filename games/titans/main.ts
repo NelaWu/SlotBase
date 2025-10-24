@@ -37,6 +37,10 @@ async function startTitansSlotGame() {
       // 按鈕圖片
       { id: 'spin_btn', url: '/games/titans/assets/spin_btn_normal.png', type: 'image' },
       { id: 'auto_btn', url: '/games/titans/assets/auto_btn_normal.png', type: 'image' },
+      { id: 'option_btn', url: '/games/titans/assets/option_btn_normal.png', type: 'image' },
+      { id: 'turbo_btn', url: '/games/titans/assets/turbo_btn_normal .png', type: 'image' },
+      { id: 'plus_btn', url: '/games/titans/assets/plus_btn_normal.png', type: 'image' },
+      { id: 'sub_btn', url: '/games/titans/assets/sub_btn_normal.png', type: 'image' },
       
       // 符號圖片
       { id: 'symbol_01', url: '/games/titans/assets/Symbol/symbol_01.png', type: 'image' },
