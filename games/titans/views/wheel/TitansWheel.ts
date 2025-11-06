@@ -16,17 +16,25 @@ export class TitansWheel extends Wheel<TitansSymbol> {
   constructor(config: TitansWheelConfig) {
     // 設置 Titans 遊戲的默認配置
     const defaultConfig: WheelConfig = {
-      numberOfReels: 6,
-      symbolsPerReel: 5,
+      numberOfReels: 6,      // 6 列
+      symbolsPerReel: 5,     // 5 行
       reelSpacing: 0,
-      spinSpeed: 30,
-      stopDeceleration: 2,
-      stopDelay: 150,
+      speed: {
+        startSpeed: 3,       // 起步速度
+        maxSpeed: 25,        // 滾動速度
+        endSpeed: 10,         // 結束速度
+        acceleration: 40,    // 加速度
+        deceleration: 20     // 減速度（控制減速快慢）
+      },
+      timing: {
+        startInterval: 200,  // 起步間隔
+        stopInterval: 200,    // 停止間隔（每個 reel 之間的停止延遲）
+        minSpinDuration: 1000 // 最少轉 1 秒
+      },
       ...config
-    };
+    }
     
     super(defaultConfig);
-    console.log('config', config);
     const maskGraphics = new PIXI.Graphics();
     maskGraphics.beginFill(0x000000);
     maskGraphics.drawRect(0, 0, config.reelWidth*defaultConfig.numberOfReels, config.reelHeight);

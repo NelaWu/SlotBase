@@ -146,9 +146,8 @@ export class TitansSlotController extends BaseController {
     setTimeout(() => {
       // 生成隨機結果
       const reels: number[][] = [];
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 6; i++) {
         reels.push([
-          Math.floor(Math.random() * 11) + 1,
           Math.floor(Math.random() * 11) + 1,
           Math.floor(Math.random() * 11) + 1,
           Math.floor(Math.random() * 11) + 1,

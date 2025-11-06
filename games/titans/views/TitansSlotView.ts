@@ -3,6 +3,7 @@ import { BaseView } from '@views/BaseView';
 import { BaseButton } from '@views/components/BaseButton';
 import * as PIXI from 'pixi.js';
 import { TitansWheel } from './wheel/TitansWheel';
+import { StopResult } from '@/views/components/Wheel';
 
 export class TitansSlotView extends BaseView {
   private wheel!: TitansWheel;
@@ -231,13 +232,13 @@ export class TitansSlotView extends BaseView {
     this.turboButton.x = 918;
     this.turboButton.y = 1774;
 
-    this.autoButton.x = 341;
+    this.autoButton.x = 174;
     this.autoButton.y = 1774;
 
     this.plusButton.x = 750;
     this.plusButton.y = 1774;
 
-    this.minusButton.x = 174;
+    this.minusButton.x = 341;
     this.minusButton.y = 1774;
   }
 
@@ -295,12 +296,14 @@ export class TitansSlotView extends BaseView {
 
   // 公開方法 - 停止旋轉動畫
   public stopSpinAnimation(results: number[][]): void {
-    
-    this.wheel.stopSpin(results, () => {
-      // 所有捲軸停止後，啟用按鈕
-      setTimeout(() => {
-        this.setSpinButtonEnabled(true);
-      }, 300);
+    this.wheel.stopSpin({
+      symbolIds: results,  // 直接傳入陣列
+      onComplete: () => {
+        // 所有捲軸停止後，啟用按鈕
+        setTimeout(() => {
+          this.setSpinButtonEnabled(true);
+        }, 300);
+      }
     });
   }
 
