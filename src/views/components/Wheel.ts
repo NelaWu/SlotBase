@@ -93,7 +93,7 @@ export abstract class Wheel<T extends BaseSymbol> extends PIXI.Container {
     this.timingConfig = {
       startInterval: 150,
       stopInterval: 200,
-      minSpinDuration: 2000,
+      minSpinDuration: 1000,
       ...config.timing
     };
 

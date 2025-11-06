@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+import { gsap } from 'gsap';
 import { BaseSymbol } from './BaseSymbol';
 
 /**
@@ -339,7 +340,15 @@ export class Reel<T extends BaseSymbol> extends PIXI.Container {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
     }
-    
+
+    this.symbols.forEach((symbol) => {
+      gsap.to(symbol, {
+        y: symbol.y -30,
+        duration: 0.15,
+        yoyo: true,
+        repeat: 1,
+      });
+    });
     this.state = ReelState.IDLE;
     this.currentSpeed = 0;
     

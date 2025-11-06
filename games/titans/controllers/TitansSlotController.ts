@@ -72,6 +72,9 @@ export class TitansSlotController extends BaseController {
     this.log('旋轉完成', result);
     this.view.stopSpinAnimation(result.reels);
 
+    // 更新獲勝金額顯示
+    this.view.updateWinAmount(result.totalWin);
+
     // 如果有獲勝，播放動畫
     if (result.totalWin > 0) {
       setTimeout(() => {
@@ -182,7 +185,7 @@ export class TitansSlotController extends BaseController {
       };
 
       this.model.setSpinResult(result);
-    }, 5000); // 模擬網路延遲
+    }, 1000); // 模擬網路延遲
   }
 
   // 處理 Bonus 功能

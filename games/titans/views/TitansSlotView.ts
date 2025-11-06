@@ -17,6 +17,7 @@ export class TitansSlotView extends BaseView {
   private balanceText!: PIXI.Text;
   private betText!: PIXI.Text;
   private freeSpinsText!: PIXI.Text;
+  private winText!: PIXI.Text; // 獲勝金額顯示（底部）
 
   constructor(app: PIXI.Application) {
     super(app);
@@ -75,10 +76,7 @@ export class TitansSlotView extends BaseView {
       reelHeight: 147 * 5,
       numberOfReels: 6,
       symbolsPerReel: 5,
-      reelSpacing: 0,
-      spinSpeed: 30,
-      stopDeceleration: 2,
-      stopDelay: 150
+      reelSpacing: 0
     });
     
     // 設置輪盤位置
@@ -172,8 +170,8 @@ export class TitansSlotView extends BaseView {
       text: '餘額: $0',
       style: textStyle
     });
-    this.balanceText.x = 40;  // 原本 20px * 2
-    this.balanceText.y = 40;  // 原本 20px * 2
+    this.balanceText.x = 50;  
+    this.balanceText.y = 1540; 
     this.balanceText.zIndex = 20;
     this.addChild(this.balanceText);
 
@@ -182,10 +180,20 @@ export class TitansSlotView extends BaseView {
       text: '投注: $0',
       style: textStyle
     });
-    this.betText.x = 40;   // 原本 20px * 2
-    this.betText.y = 100;  // 原本 50px * 2
+    this.betText.x = 500;   
+    this.betText.y = 1540;  
     this.betText.zIndex = 20;
     this.addChild(this.betText);
+
+    // 獲勝金額顯示（底部）
+    this.winText = new PIXI.Text({
+      text: '獲勝: $0',
+      style: textStyle
+    });
+    this.winText.x = 800;
+    this.winText.y = 1540;
+    this.winText.zIndex = 20;
+    this.addChild(this.winText);
 
     // 獲勝金額顯示
     this.winAmountText = new PIXI.Text({
@@ -291,6 +299,7 @@ export class TitansSlotView extends BaseView {
   public startSpinAnimation(): void {
     this.setSpinButtonEnabled(false);
     this.hideWinAmount();
+    this.updateWinAmount(0);
     this.wheel.startSpin();
   }
 
@@ -357,6 +366,15 @@ export class TitansSlotView extends BaseView {
   // 更新投注顯示
   public updateBet(bet: number): void {
     this.betText.text = `投注: $${bet}`;
+  }
+
+  // 更新獲勝金額顯示（底部）
+  public updateWinAmount(winAmount: number): void {
+    if (winAmount > 0) {
+      this.winText.text = `獲勝: $${winAmount}`;
+    } else {
+      this.winText.text = '獲勝: $0';
+    }
   }
 
   // 更新免費旋轉顯示
