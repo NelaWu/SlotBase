@@ -19,11 +19,11 @@ export interface ReelConfig {
  * Reel 狀態
  */
 enum ReelState {
-  IDLE = 'idle',
-  ACCELERATING = 'accelerating',
-  SPINNING = 'spinning',
-  DECELERATING = 'decelerating',
-  ALIGNING = 'aligning'
+  IDLE = 'idle',//閒置
+  ACCELERATING = 'accelerating',//加速
+  SPINNING = 'spinning',//高速轉動
+  DECELERATING = 'decelerating',//減速
+  ALIGNING = 'aligning'//對齊
 }
 
 /**
@@ -110,7 +110,6 @@ export class Reel<T extends BaseSymbol> extends PIXI.Container {
     
     // 根據狀態更新速度
     this.updateSpeed(deltaSeconds);
-    
     // 移動符號
     this.moveSymbols(deltaSeconds);
     
@@ -311,10 +310,9 @@ export class Reel<T extends BaseSymbol> extends PIXI.Container {
       const distance = Math.abs(symbol.y - targetY);
       
       if (distance > tolerance) {
-        allAligned = false;
-        
         // 微調位置（加快對齊速度）
         if (symbol.y < targetY) {
+          allAligned = false;
           // 增加移動速度，加快對齊
           symbol.y = Math.min(symbol.y + this.currentSpeed * this.symbolHeight * 5, targetY);
         } else {
@@ -337,8 +335,6 @@ export class Reel<T extends BaseSymbol> extends PIXI.Container {
    * 停止動畫
    */
   protected stopAnimation(): void {
-    console.log('reel::stopAnimation');
-    
     if (this.animationId !== null) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;

@@ -22,7 +22,7 @@ export class TitansWheel extends Wheel<TitansSymbol> {
       speed: {
         startSpeed: 3,       // 起步速度
         maxSpeed: 25,        // 滾動速度
-        endSpeed: 10,         // 結束速度
+        endSpeed: 15,         // 結束速度
         acceleration: 40,    // 加速度
         deceleration: 20     // 減速度（控制減速快慢）
       },
