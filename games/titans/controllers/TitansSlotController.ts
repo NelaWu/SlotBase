@@ -86,7 +86,7 @@ export class TitansSlotController extends BaseController {
     if (result.bonusFeature) {
       setTimeout(() => {
         this.handleBonusFeature(result.bonusFeature!);
-      }, 2000);
+      }, 0);
     }
   }
 

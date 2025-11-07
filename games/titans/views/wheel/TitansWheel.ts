@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+import gsap from 'gsap';
 import { TitansSymbol } from '../symbol/TitansSymbol';
 
 /**
@@ -68,10 +69,10 @@ export class TitansWheel extends PIXI.Container {
 
     // 預設動畫配置
     this.animationConfig = {
-      dropSpeed: 500,      // 初始掉落速度
+      dropSpeed: 3000,      // 初始掉落速度
       gravity: 2000,       // 重力加速度
-      bounce: 0.03,         // 彈跳係數
-      columnDelay: 500,     // 每列延遲 50ms
+      bounce: 0.1,         // 彈跳係數
+      columnDelay: 100,     // 每列延遲 50ms
       rowDelay: 0,        // 每行延遲 50ms
       ...config.animation
     };
@@ -138,12 +139,22 @@ export class TitansWheel extends PIXI.Container {
    * 清空所有符號
    */
   private clearSymbols(): void {
+    
     this.symbolStates.forEach(col => {
       col.forEach(state => {
-        state.symbol.destroy();
+        console.log('clear symbol', state);
+        gsap.to(state.symbol, {
+          y: this.config.reelHeight + this.symbolHeight,
+          duration: 0.17*(this.config.symbolsPerReel - state.row),
+          delay: 0.1*state.col,
+          ease: 'power2.inOut',
+          onComplete: () => {
+            state.symbol.destroy();
+          }
+        });
       });
     });
-    this.symbolStates = [];
+    // this.symbolStates = [];
   }
 
   /**
@@ -164,7 +175,6 @@ export class TitansWheel extends PIXI.Container {
    */
   public stopSpin(result: { symbolIds: number[][], onComplete?: () => void }): void {
     const { symbolIds, onComplete } = result;
-    console.log('stopSpin', symbolIds);
     // 驗證結果數量
     if (symbolIds.length !== this.config.numberOfReels) {
       console.error(`Expected ${this.config.numberOfReels} reels, got ${symbolIds.length}`);
@@ -262,7 +272,6 @@ export class TitansWheel extends PIXI.Container {
             const nextState = this.symbolStates[state.col][state.row - 1];
             if (symbol.y >= this.config.reelHeight/this.config.symbolsPerReel) {
               state.hasTriggeredNext = true;
-              console.log('trigger next', state.col, state.row - 1);
               this.startSymbolDrop(state.col, state.row - 1);
             }
           }
