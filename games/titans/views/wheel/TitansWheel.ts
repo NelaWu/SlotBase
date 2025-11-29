@@ -154,7 +154,7 @@ export class TitansWheel extends PIXI.Container {
         });
       });
     });
-    // this.symbolStates = [];
+    this.symbolStates = [];
   }
 
   /**

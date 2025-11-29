@@ -31,7 +31,11 @@ async function startTitansSlotGame() {
     // 資源配置
     resources: [
       // 背景圖片
-      { id: 'bg_main', url: '/games/titans/assets/mg_bg.png', type: 'image' },
+      { id: 'mg_bg_00', url: '/games/titans/assets/mg_bg_00.png', type: 'image' },
+      { id: 'mg_bg_01', url: '/games/titans/assets/mg_bg_01.png', type: 'image' },
+      { id: 'mg_bg_02', url: '/games/titans/assets/mg_bg_02.png', type: 'image' },
+      { id: 'mg_frame_roof', url: '/games/titans/assets/mg_frame_roof.png', type: 'image' },
+      { id: 'game_logo_cnt', url: '/games/titans/assets/game_logo_cnt.png', type: 'image' },
       { id: 'frame', url: '/games/titans/assets/mg_frame.png', type: 'image' },
       
       // 按鈕圖片

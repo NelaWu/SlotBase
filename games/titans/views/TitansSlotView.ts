@@ -43,19 +43,43 @@ export class TitansSlotView extends BaseView {
   // 創建背景
   private createBackground(): void {
     const resourceManager = ResourceManager.getInstance();
-    
+
     // 1. 載入主背景
-    const bgResource = resourceManager.getResource('bg_main');
-    if (bgResource) {
-      const bgTexture = PIXI.Texture.from(bgResource);
-      const bgSprite = new PIXI.Sprite(bgTexture);
-      bgSprite.width = 1080;
-      bgSprite.height = 1920;
-      bgSprite.zIndex = 0;
-      this.addChild(bgSprite);
+    const bgResources: { textureName: string, position: { x: number, y: number } }[] = [
+      { textureName: 'mg_bg_00', position: { x: 0, y: -230 } },
+      { textureName: 'mg_bg_01', position: { x: 0, y: 58 } },
+      { textureName: 'mg_bg_02', position: { x: 0, y: 222 } },
+    ];
+
+    bgResources.forEach(bgResource => {
+      const bgTexture = PIXI.Texture.from(resourceManager.getResource(bgResource.textureName) as string);
+      if (bgTexture) {
+        const bgSprite = new PIXI.Sprite(bgTexture);
+        bgSprite.position.set(bgResource.position.x, bgResource.position.y);
+        this.addChild(bgSprite);
+      }
+    });
+
+    // 2. 載入屋頂圖片
+    const roofTexture = PIXI.Texture.from(resourceManager.getResource('mg_frame_roof') as string);
+    if (roofTexture) {
+      const roofSprite1 = new PIXI.Sprite(roofTexture);
+      roofSprite1.position.set(0, 585);
+      this.addChild(roofSprite1);
+      const roofSprite2 = new PIXI.Sprite(roofTexture);
+      roofSprite2.position.set(1080, 585);
+      roofSprite2.scale.x = -1;
+      this.addChild(roofSprite2);
     }
-    
-    // 2. 載入框架圖片（疊加在背景上）
+    // 3. 載入LOGO
+    const logoResource = resourceManager.getResource('game_logo_cnt');
+    if (logoResource) {
+      const frameTexture = PIXI.Texture.from(logoResource);
+      const frameSprite = new PIXI.Sprite(frameTexture);
+      frameSprite.position.set(426, 582);
+      this.addChild(frameSprite);
+    }
+    // 4. 載入框架圖片（疊加在背景上）
     const frameResource = resourceManager.getResource('frame');
     if (frameResource) {
       const frameTexture = PIXI.Texture.from(frameResource);
