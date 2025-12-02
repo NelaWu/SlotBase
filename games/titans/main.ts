@@ -37,14 +37,40 @@ async function startTitansSlotGame() {
       { id: 'mg_frame_roof', url: '/games/titans/assets/mg_frame_roof.png', type: 'image' },
       { id: 'game_logo_cnt', url: '/games/titans/assets/game_logo_cnt.png', type: 'image' },
       { id: 'frame', url: '/games/titans/assets/mg_frame.png', type: 'image' },
+      { id: 'fg_info_bg', url: '/games/titans/assets/fg_info_bg.png', type: 'image' },
       
-      // 按鈕圖片
-      { id: 'spin_btn', url: '/games/titans/assets/spin_btn_normal.png', type: 'image' },
-      { id: 'auto_btn', url: '/games/titans/assets/auto_btn_normal.png', type: 'image' },
-      { id: 'option_btn', url: '/games/titans/assets/option_btn_normal.png', type: 'image' },
-      { id: 'turbo_btn', url: '/games/titans/assets/turbo_btn_normal .png', type: 'image' },
-      { id: 'plus_btn', url: '/games/titans/assets/plus_btn_normal.png', type: 'image' },
-      { id: 'sub_btn', url: '/games/titans/assets/sub_btn_normal.png', type: 'image' },
+      // 按鈕圖片 - spin_btn 所有狀態
+      { id: 'spin_btn_normal', url: '/games/titans/assets/spin_btn_normal.png', type: 'image' },
+      { id: 'spin_btn_hover', url: '/games/titans/assets/spin_btn_hover.png', type: 'image' },
+      { id: 'spin_btn_pressed', url: '/games/titans/assets/spin_btn_pressed.png', type: 'image' },
+      { id: 'spin_btn_disable', url: '/games/titans/assets/spin_btn_disable.png', type: 'image' },
+      { id: 'spin_btn_logo', url: '/games/titans/assets/spin_btn_logo.png', type: 'image' },
+      { id: 'spin_btn_shadow', url: '/games/titans/assets/spin_btn_shadow.png', type: 'image' },
+      // auto_btn 所有狀態
+      { id: 'auto_btn_normal', url: '/games/titans/assets/auto_btn_normal.png', type: 'image' },
+      { id: 'auto_btn_hover', url: '/games/titans/assets/auto_btn_hover.png', type: 'image' },
+      { id: 'auto_btn_pressed', url: '/games/titans/assets/auto_btn_pressed.png', type: 'image' },
+      { id: 'auto_btn_disable', url: '/games/titans/assets/auto_btn_disable.png', type: 'image' },
+      // option_btn 所有狀態
+      { id: 'option_btn_normal', url: '/games/titans/assets/option_btn_normal.png', type: 'image' },
+      { id: 'option_btn_hover', url: '/games/titans/assets/option_btn_hover.png', type: 'image' },
+      { id: 'option_btn_pressed', url: '/games/titans/assets/option_btn_pressed.png', type: 'image' },
+      { id: 'option_btn_disable', url: '/games/titans/assets/option_btn_disable.png', type: 'image' },
+      // turbo_btn 所有狀態
+      { id: 'turbo_btn_normal', url: '/games/titans/assets/turbo_btn_normal.png', type: 'image' },
+      { id: 'turbo_btn_hover', url: '/games/titans/assets/turbo_btn_hover.png', type: 'image' },
+      { id: 'turbo_btn_pressed', url: '/games/titans/assets/turbo_btn_pressed.png', type: 'image' },
+      { id: 'turbo_btn_disable', url: '/games/titans/assets/turbo_btn_disable.png', type: 'image' },
+      // plus_btn 所有狀態
+      { id: 'plus_btn_normal', url: '/games/titans/assets/plus_btn_normal.png', type: 'image' },
+      { id: 'plus_btn_hover', url: '/games/titans/assets/plus_btn_hover.png', type: 'image' },
+      { id: 'plus_btn_pressed', url: '/games/titans/assets/plus_btn_pressed.png', type: 'image' },
+      { id: 'plus_btn_disable', url: '/games/titans/assets/plus_btn_disable.png', type: 'image' },
+      // sub_btn 所有狀態
+      { id: 'sub_btn_normal', url: '/games/titans/assets/sub_btn_normal.png', type: 'image' },
+      { id: 'sub_btn_hover', url: '/games/titans/assets/sub_btn_hover.png', type: 'image' },
+      { id: 'sub_btn_pressed', url: '/games/titans/assets/sub_btn_pressed.png', type: 'image' },
+      { id: 'sub_btn_disable', url: '/games/titans/assets/sub_btn_disable.png', type: 'image' },
       
       // 符號圖片
       { id: 'symbol_01', url: '/games/titans/assets/Symbol/symbol_01.png', type: 'image' },

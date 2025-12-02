@@ -1,11 +1,11 @@
 import * as PIXI from 'pixi.js';
+import { ResourceManager } from '@/core/ResourceManager';
 
 export interface ButtonOptions {
-  texture?: PIXI.Texture;
+  baseName?: string; // 基礎名稱，會自動載入 baseName_normal, baseName_hover, baseName_pressed, baseName_disable
   width?: number;
   height?: number;
   anchor?: number;
-  disabledTexture?: PIXI.Texture;
   hoverScale?: number;
   clickScale?: number;
 }
@@ -16,7 +16,10 @@ export interface ButtonOptions {
  */
 export class BaseButton extends PIXI.Container {
   private normalSprite!: PIXI.Sprite;
+  private hoverSprite?: PIXI.Sprite;
+  private pressedSprite?: PIXI.Sprite;
   private disabledSprite?: PIXI.Sprite;
+  private currentState: 'normal' | 'hover' | 'pressed' | 'disabled' = 'normal';
   private isEnabled: boolean = true;
   private hoverScale: number;
   private clickScale: number;
@@ -24,7 +27,7 @@ export class BaseButton extends PIXI.Container {
 
   constructor(options: ButtonOptions = {}) {
     super();
-    
+    this.name = options.baseName || '';
     this.hoverScale = options.hoverScale || 1.05;
     this.clickScale = options.clickScale || 0.95;
     
@@ -36,37 +39,101 @@ export class BaseButton extends PIXI.Container {
   }
 
   private createButton(options: ButtonOptions): void {
-    // 創建正常狀態的精靈
-    if (options.texture) {
-      this.normalSprite = new PIXI.Sprite(options.texture);
+    const anchor = options.anchor || 0.5;
+    const resourceManager = ResourceManager.getInstance();
+
+    // 如果提供了 baseName，嘗試載入多種狀態的圖片
+    if (options.baseName) {
+      this.loadStateSprites(options.baseName, anchor, options.width, options.height, resourceManager);
     } else {
       // 創建默認按鈕樣式
       const graphics = new PIXI.Graphics();
       graphics.beginFill(0x4CAF50);
       graphics.drawRoundedRect(0, 0, options.width || 200, options.height || 60, 10);
       graphics.endFill();
-      this.normalSprite = new PIXI.Sprite(graphics.texture);
-    }
-
-    this.normalSprite.anchor.set(options.anchor || 0.5);
-    this.addChild(this.normalSprite);
-
-    // 創建禁用狀態的精靈（如果提供）
-    if (options.disabledTexture) {
-      this.disabledSprite = new PIXI.Sprite(options.disabledTexture);
-      this.disabledSprite.anchor.set(options.anchor || 0.5);
-      this.disabledSprite.visible = false;
-      this.addChild(this.disabledSprite);
+      this.normalSprite = new PIXI.Sprite(graphics.texture as unknown as PIXI.Texture);
+      this.normalSprite.anchor.set(anchor);
+      this.addChild(this.normalSprite);
     }
 
     // 設置大小
     if (options.width && options.height) {
       this.normalSprite.width = options.width;
       this.normalSprite.height = options.height;
+      if (this.hoverSprite) {
+        this.hoverSprite.width = options.width;
+        this.hoverSprite.height = options.height;
+      }
+      if (this.pressedSprite) {
+        this.pressedSprite.width = options.width;
+        this.pressedSprite.height = options.height;
+      }
       if (this.disabledSprite) {
         this.disabledSprite.width = options.width;
         this.disabledSprite.height = options.height;
       }
+    }
+  }
+
+  /**
+   * 載入按鈕各狀態的精靈
+   */
+  private loadStateSprites(
+    baseName: string,
+    anchor: number,
+    width: number | undefined,
+    height: number | undefined,
+    resourceManager: ResourceManager
+  ): void {
+    const states = ['normal', 'hover', 'pressed', 'disable'] as const;
+
+    states.forEach((state) => {
+      const resourceId = `${baseName}_${state}`;
+      const resource = resourceManager.getResource(resourceId);
+
+      if (resource) {
+        const texture = PIXI.Texture.from(resource);
+        const sprite = new PIXI.Sprite(texture);
+        sprite.anchor.set(anchor);
+        sprite.visible = state === 'normal'; // 只有 normal 狀態預設可見
+
+        if (width && height) {
+          sprite.width = width;
+          sprite.height = height;
+        }
+
+        this.addChild(sprite);
+
+        // 根據狀態存儲到對應的屬性
+        switch (state) {
+          case 'normal':
+            this.normalSprite = sprite;
+            console.log(`[BaseButton] 載入 ${baseName} 的 ${state} 狀態，大小: ${sprite.width}x${sprite.height}`);
+            break;
+          case 'hover':
+            this.hoverSprite = sprite;
+            break;
+          case 'pressed':
+            this.pressedSprite = sprite;
+            break;
+          case 'disable':
+            this.disabledSprite = sprite;
+            break;
+        }
+      } else {
+        console.warn(`[BaseButton] 找不到資源: ${resourceId}`);
+      }
+    });
+
+    // 如果沒有載入到 normal 狀態的圖片，創建一個默認的
+    if (!this.normalSprite) {
+      const graphics = new PIXI.Graphics();
+      graphics.beginFill(0x4CAF50);
+      graphics.drawRoundedRect(0, 0, width || 200, height || 60, 10);
+      graphics.endFill();
+      this.normalSprite = new PIXI.Sprite(graphics.texture as unknown as PIXI.Texture);
+      this.normalSprite.anchor.set(anchor);
+      this.addChild(this.normalSprite);
     }
   }
 
@@ -80,12 +147,14 @@ export class BaseButton extends PIXI.Container {
   private onPointerDown(): void {
     if (!this.isEnabled) return;
     
+    this.setState('pressed');
     this.scale.set(this.clickScale);
   }
 
   private onPointerUp(): void {
     if (!this.isEnabled) return;
     
+    this.setState('hover');
     this.scale.set(this.originalScale);
     this.emit('buttonClicked');
   }
@@ -93,13 +162,58 @@ export class BaseButton extends PIXI.Container {
   private onPointerOver(): void {
     if (!this.isEnabled) return;
     
+    this.setState('hover');
     this.scale.set(this.hoverScale);
   }
 
   private onPointerOut(): void {
     if (!this.isEnabled) return;
     
+    this.setState('normal');
     this.scale.set(this.originalScale);
+  }
+
+  /**
+   * 切換按鈕狀態
+   */
+  private setState(state: 'normal' | 'hover' | 'pressed' | 'disabled'): void {
+    if (this.currentState === state) return;
+
+    // 隱藏所有狀態的精靈
+    this.normalSprite.visible = false;
+    if (this.hoverSprite) this.hoverSprite.visible = false;
+    if (this.pressedSprite) this.pressedSprite.visible = false;
+    if (this.disabledSprite) this.disabledSprite.visible = false;
+
+    // 顯示對應狀態的精靈
+    switch (state) {
+      case 'normal':
+        this.normalSprite.visible = true;
+        break;
+      case 'hover':
+        if (this.hoverSprite) {
+          this.hoverSprite.visible = true;
+        } else {
+          this.normalSprite.visible = true;
+        }
+        break;
+      case 'pressed':
+        if (this.pressedSprite) {
+          this.pressedSprite.visible = true;
+        } else {
+          this.normalSprite.visible = true;
+        }
+        break;
+      case 'disabled':
+        if (this.disabledSprite) {
+          this.disabledSprite.visible = true;
+        } else {
+          this.normalSprite.visible = true;
+        }
+        break;
+    }
+
+    this.currentState = state;
   }
 
   /**
@@ -113,19 +227,13 @@ export class BaseButton extends PIXI.Container {
       this.cursor = 'pointer';
       this.alpha = 1;
       this.scale.set(this.originalScale);
-      
-      // 顯示正常狀態，隱藏禁用狀態
-      if (this.normalSprite) this.normalSprite.visible = true;
-      if (this.disabledSprite) this.disabledSprite.visible = false;
+      this.setState('normal');
     } else {
       this.eventMode = 'none';
       this.cursor = 'default';
       this.alpha = 0.5;
       this.scale.set(this.originalScale);
-      
-      // 顯示禁用狀態，隱藏正常狀態
-      if (this.normalSprite) this.normalSprite.visible = false;
-      if (this.disabledSprite) this.disabledSprite.visible = true;
+      this.setState('disabled');
     }
   }
 
@@ -136,28 +244,6 @@ export class BaseButton extends PIXI.Container {
     return this.isEnabled;
   }
 
-  /**
-   * 設置按鈕紋理
-   */
-  public setTexture(texture: PIXI.Texture): void {
-    this.normalSprite.texture = texture;
-  }
-
-  /**
-   * 設置禁用狀態紋理
-   */
-  public setDisabledTexture(texture: PIXI.Texture): void {
-    if (!this.disabledSprite) {
-      this.disabledSprite = new PIXI.Sprite(texture);
-      this.disabledSprite.anchor.copyFrom(this.normalSprite.anchor);
-      this.disabledSprite.width = this.normalSprite.width;
-      this.disabledSprite.height = this.normalSprite.height;
-      this.disabledSprite.visible = false;
-      this.addChild(this.disabledSprite);
-    } else {
-      this.disabledSprite.texture = texture;
-    }
-  }
 
   /**
    * 銷毀按鈕

@@ -3,7 +3,6 @@ import { BaseView } from '@views/BaseView';
 import { BaseButton } from '@views/components/BaseButton';
 import * as PIXI from 'pixi.js';
 import { TitansWheel } from './wheel/TitansWheel';
-import { StopResult } from '@/views/components/Wheel';
 
 export class TitansSlotView extends BaseView {
   private wheel!: TitansWheel;
@@ -91,6 +90,14 @@ export class TitansSlotView extends BaseView {
       frameSpriteRight.scale.x = -1;
       this.addChild(frameSpriteRight);
     }
+    // 5. 載入資訊背景圖片
+    const infoBgResource = resourceManager.getResource('fg_info_bg');
+    if (infoBgResource) {
+      const infoBgTexture = PIXI.Texture.from(infoBgResource);
+      const infoBgSprite = new PIXI.Sprite(infoBgTexture);
+      infoBgSprite.position.set(0, 1606);
+      this.addChild(infoBgSprite);
+    }
   }
 
   // 創建捲軸
@@ -114,65 +121,56 @@ export class TitansSlotView extends BaseView {
   // 創建旋轉按鈕
   private createSpinButton(): void {
     const resourceManager = ResourceManager.getInstance();
-    const btnResource = resourceManager.getResource('spin_btn');
-    let btnTexture: PIXI.Texture | undefined;
-    
-    if (btnResource) {
-      btnTexture = PIXI.Texture.from(btnResource);
-    }
-    
     this.spinButton = new BaseButton({
-      texture: btnTexture,
+      baseName: 'spin_btn',
       anchor: 0.5
     });
-    
+    const spineLogo:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('spin_btn_logo') as string));
+    spineLogo.anchor.set(0.5);
+    this.spinButton.addChild(spineLogo);
+    const spineShadow:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('spin_btn_shadow') as string));
+    spineShadow.anchor.set(0.5);
+    this.spinButton.addChildAt(spineShadow, 0);
     this.addChild(this.spinButton);
   }
 
   // 創建控制按鈕
   private createControlButtons(): void {
-    const resourceManager = ResourceManager.getInstance();
-
     // 設定按鈕
-    const settingsResource = resourceManager.getResource('option_btn');
     this.settingsButton = new BaseButton({
-      texture: settingsResource ? PIXI.Texture.from(settingsResource) : undefined,
+      baseName: 'option_btn',
       anchor: 0.5
     });
     this.settingsButton.zIndex = 15;
     this.addChild(this.settingsButton);
 
     // 快速按鈕
-    const turboResource = resourceManager.getResource('turbo_btn');
     this.turboButton = new BaseButton({
-      texture: turboResource ? PIXI.Texture.from(turboResource) : undefined,
+      baseName: 'turbo_btn',
       anchor: 0.5
     });
     this.turboButton.zIndex = 15;
     this.addChild(this.turboButton);
 
     // 自動旋轉按鈕
-    const autoResource = resourceManager.getResource('auto_btn');
     this.autoButton = new BaseButton({
-      texture: autoResource ? PIXI.Texture.from(autoResource) : undefined,
+      baseName: 'auto_btn',
       anchor: 0.5
     });
     this.autoButton.zIndex = 15;
     this.addChild(this.autoButton);
 
     // 加注按鈕
-    const plusResource = resourceManager.getResource('plus_btn');
     this.plusButton = new BaseButton({
-      texture: plusResource ? PIXI.Texture.from(plusResource) : undefined,
+      baseName: 'plus_btn',
       anchor: 0.5
     });
     this.plusButton.zIndex = 15;
     this.addChild(this.plusButton);
 
     // 減注按鈕
-    const minusResource = resourceManager.getResource('sub_btn');
     this.minusButton = new BaseButton({
-      texture: minusResource ? PIXI.Texture.from(minusResource) : undefined,
+      baseName: 'sub_btn',
       anchor: 0.5
     });
     this.minusButton.zIndex = 15;
