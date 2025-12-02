@@ -12,6 +12,7 @@ export class TitansSlotView extends BaseView {
   private autoButton!: BaseButton;
   private plusButton!: BaseButton;
   private minusButton!: BaseButton;
+  private buyFreeSpinsButton!: BaseButton;
   private winAmountText!: PIXI.Text;
   private balanceText!: PIXI.Text;
   private betText!: PIXI.Text;
@@ -175,10 +176,19 @@ export class TitansSlotView extends BaseView {
     });
     this.minusButton.zIndex = 15;
     this.addChild(this.minusButton);
+
+    // 購買免費旋轉按鈕
+    this.buyFreeSpinsButton = new BaseButton({
+      baseName: 'fg_btn_cnt',
+      anchor: 0
+    });
+    this.buyFreeSpinsButton.zIndex = 15;
+    this.addChild(this.buyFreeSpinsButton);
   }
 
-  // 創建文字顯示
+  // 創建金額相關
   private createTexts(): void {
+    const resourceManager = ResourceManager.getInstance();
     const textStyle = {
       fontFamily: 'Arial',
       fontSize: 36, // 原本 18px * 2
@@ -188,33 +198,39 @@ export class TitansSlotView extends BaseView {
     };
 
     // 餘額顯示
+    const balanceIcon:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('wallet_ui') as string));
+    balanceIcon.position.set(15,1536);
+    this.addChild(balanceIcon);
     this.balanceText = new PIXI.Text({
-      text: '餘額: $0',
+      text: '0',
       style: textStyle
     });
-    this.balanceText.x = 50;  
-    this.balanceText.y = 1540; 
-    this.balanceText.zIndex = 20;
+    this.balanceText.x = 75;  
+    this.balanceText.y = 1540;
     this.addChild(this.balanceText);
 
     // 投注顯示
+    const betIcon:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('trophy_ui') as string));
+    betIcon.position.set(376,1539);
+    this.addChild(betIcon);
     this.betText = new PIXI.Text({
-      text: '投注: $0',
+      text: '0',
       style: textStyle
     });
-    this.betText.x = 500;   
-    this.betText.y = 1540;  
-    this.betText.zIndex = 20;
+    this.betText.x = 432;   
+    this.betText.y = 1540;
     this.addChild(this.betText);
 
     // 獲勝金額顯示（底部）
+    const winIcon:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('trophy_ui') as string));
+    winIcon.position.set(723,1539);
+    this.addChild(winIcon);
     this.winText = new PIXI.Text({
-      text: '獲勝: $0',
+      text: '0',
       style: textStyle
     });
-    this.winText.x = 800;
+    this.winText.x = 784;
     this.winText.y = 1540;
-    this.winText.zIndex = 20;
     this.addChild(this.winText);
 
     // 獲勝金額顯示
@@ -270,6 +286,9 @@ export class TitansSlotView extends BaseView {
 
     this.minusButton.x = 341;
     this.minusButton.y = 1774;
+
+    this.buyFreeSpinsButton.x = 961;
+    this.buyFreeSpinsButton.y = 1492;
   }
 
   // 綁定事件
@@ -382,20 +401,20 @@ export class TitansSlotView extends BaseView {
 
   // 更新餘額顯示
   public updateBalance(balance: number): void {
-    this.balanceText.text = `餘額: $${balance}`;
+    this.balanceText.text = `${balance}`;
   }
 
   // 更新投注顯示
   public updateBet(bet: number): void {
-    this.betText.text = `投注: $${bet}`;
+    this.betText.text = `${bet}`;
   }
 
   // 更新獲勝金額顯示（底部）
   public updateWinAmount(winAmount: number): void {
     if (winAmount > 0) {
-      this.winText.text = `獲勝: $${winAmount}`;
+      this.winText.text = `${winAmount}`;
     } else {
-      this.winText.text = '獲勝: $0';
+      this.winText.text = '0';
     }
   }
 
