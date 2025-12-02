@@ -28,8 +28,8 @@ export class BaseButton extends PIXI.Container {
   constructor(options: ButtonOptions = {}) {
     super();
     this.name = options.baseName || '';
-    this.hoverScale = options.hoverScale || 1.05;
-    this.clickScale = options.clickScale || 0.95;
+    this.hoverScale = options.hoverScale || 1;
+    this.clickScale = options.clickScale || 1;
     
     this.eventMode = 'static';
     this.cursor = 'pointer';

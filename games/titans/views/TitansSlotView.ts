@@ -8,16 +8,22 @@ export class TitansSlotView extends BaseView {
   private wheel!: TitansWheel;
   private spinButton!: BaseButton;
   private settingsButton!: BaseButton;
+  private settingsBackButton!: BaseButton;
   private turboButton!: BaseButton;
   private autoButton!: BaseButton;
   private plusButton!: BaseButton;
   private minusButton!: BaseButton;
   private buyFreeSpinsButton!: BaseButton;
+  private logoutButton!: BaseButton;
+  private recordButton!: BaseButton;
+  private infoButton!: BaseButton;
   private winAmountText!: PIXI.Text;
   private balanceText!: PIXI.Text;
   private betText!: PIXI.Text;
   private freeSpinsText!: PIXI.Text;
   private winText!: PIXI.Text; // 獲勝金額顯示（底部）
+  private betButtonContainer!: PIXI.Container;
+  private settingsButtonContainer!: PIXI.Container;
 
   constructor(app: PIXI.Application) {
     super(app);
@@ -35,6 +41,7 @@ export class TitansSlotView extends BaseView {
     // 創建按鈕
     this.createSpinButton();
     this.createControlButtons();
+    this.createSettingsButton();
 
     // 創建文字顯示
     this.createTexts();
@@ -99,6 +106,12 @@ export class TitansSlotView extends BaseView {
       infoBgSprite.position.set(0, 1606);
       this.addChild(infoBgSprite);
     }
+
+    this.settingsButtonContainer = new PIXI.Container();
+    this.betButtonContainer = new PIXI.Container();
+    this.addChild(this.settingsButtonContainer);
+    this.addChild(this.betButtonContainer);
+    this.settingsButtonContainer.visible = false;
   }
 
   // 創建捲軸
@@ -132,7 +145,7 @@ export class TitansSlotView extends BaseView {
     const spineShadow:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('spin_btn_shadow') as string));
     spineShadow.anchor.set(0.5);
     this.spinButton.addChildAt(spineShadow, 0);
-    this.addChild(this.spinButton);
+    this.betButtonContainer.addChild(this.spinButton);
   }
 
   // 創建控制按鈕
@@ -145,13 +158,22 @@ export class TitansSlotView extends BaseView {
     this.settingsButton.zIndex = 15;
     this.addChild(this.settingsButton);
 
+    // 設定返回按鈕
+    this.settingsBackButton = new BaseButton({
+      baseName: 'option_back_btn',
+      anchor: 0.5
+    });
+    this.settingsBackButton.zIndex = 15;
+    this.addChild(this.settingsBackButton);
+    this.settingsBackButton.visible = false;
+
     // 快速按鈕
     this.turboButton = new BaseButton({
       baseName: 'turbo_btn',
       anchor: 0.5
     });
     this.turboButton.zIndex = 15;
-    this.addChild(this.turboButton);
+    this.betButtonContainer.addChild(this.turboButton);
 
     // 自動旋轉按鈕
     this.autoButton = new BaseButton({
@@ -159,7 +181,7 @@ export class TitansSlotView extends BaseView {
       anchor: 0.5
     });
     this.autoButton.zIndex = 15;
-    this.addChild(this.autoButton);
+    this.betButtonContainer.addChild(this.autoButton);
 
     // 加注按鈕
     this.plusButton = new BaseButton({
@@ -167,7 +189,7 @@ export class TitansSlotView extends BaseView {
       anchor: 0.5
     });
     this.plusButton.zIndex = 15;
-    this.addChild(this.plusButton);
+    this.betButtonContainer.addChild(this.plusButton);
 
     // 減注按鈕
     this.minusButton = new BaseButton({
@@ -175,7 +197,7 @@ export class TitansSlotView extends BaseView {
       anchor: 0.5
     });
     this.minusButton.zIndex = 15;
-    this.addChild(this.minusButton);
+    this.betButtonContainer.addChild(this.minusButton);
 
     // 購買免費旋轉按鈕
     this.buyFreeSpinsButton = new BaseButton({
@@ -184,6 +206,28 @@ export class TitansSlotView extends BaseView {
     });
     this.buyFreeSpinsButton.zIndex = 15;
     this.addChild(this.buyFreeSpinsButton);
+  }
+
+  private createSettingsButton(): void {
+    const resourceManager = ResourceManager.getInstance();
+    this.logoutButton = new BaseButton({
+      baseName: 'logout_btn',
+      anchor: 0.5
+    });
+    this.logoutButton.zIndex = 15;
+    this.settingsButtonContainer.addChild(this.logoutButton);
+    this.recordButton = new BaseButton({
+      baseName: 'record_btn',
+      anchor: 0.5
+    });
+    this.recordButton.zIndex = 15;
+    this.settingsButtonContainer.addChild(this.recordButton);
+    this.infoButton = new BaseButton({
+      baseName: 'info_btn',
+      anchor: 0.5
+    });
+    this.infoButton.zIndex = 15;
+    this.settingsButtonContainer.addChild(this.infoButton);
   }
 
   // 創建金額相關
@@ -274,6 +318,8 @@ export class TitansSlotView extends BaseView {
     // 控制按鈕位置
     this.settingsButton.x = 75;
     this.settingsButton.y = 1653;
+    this.settingsBackButton.x = 75;
+    this.settingsBackButton.y = 1653;
 
     this.turboButton.x = 918;
     this.turboButton.y = 1774;
@@ -289,12 +335,21 @@ export class TitansSlotView extends BaseView {
 
     this.buyFreeSpinsButton.x = 961;
     this.buyFreeSpinsButton.y = 1492;
+
+    //settings_btn位置
+    this.logoutButton.x = 309;
+    this.logoutButton.y = 1775;
+    this.recordButton.x = 550;
+    this.recordButton.y = 1775;
+    this.infoButton.x = 792;
+    this.infoButton.y = 1775;
   }
 
   // 綁定事件
   protected bindEvents(): void {
     this.spinButton.on('buttonClicked', this.onSpinButtonClick.bind(this));
     this.settingsButton.on('buttonClicked', this.onSettingsButtonClick.bind(this));
+    this.settingsBackButton.on('buttonClicked', this.onSettingsButtonClick.bind(this));
     this.turboButton.on('buttonClicked', this.onTurboButtonClick.bind(this));
     this.autoButton.on('buttonClicked', this.onAutoButtonClick.bind(this));
     this.plusButton.on('buttonClicked', this.onPlusButtonClick.bind(this));
@@ -305,6 +360,7 @@ export class TitansSlotView extends BaseView {
   protected unbindEvents(): void {
     this.spinButton.off('buttonClicked', this.onSpinButtonClick.bind(this));
     this.settingsButton.off('buttonClicked', this.onSettingsButtonClick.bind(this));
+    this.settingsBackButton.off('buttonClicked', this.onSettingsButtonClick.bind(this));
     this.turboButton.off('buttonClicked', this.onTurboButtonClick.bind(this));
     this.autoButton.off('buttonClicked', this.onAutoButtonClick.bind(this));
     this.plusButton.off('buttonClicked', this.onPlusButtonClick.bind(this));
@@ -317,7 +373,17 @@ export class TitansSlotView extends BaseView {
   }
 
   private onSettingsButtonClick(): void {
-    this.emit('settingsButtonClicked');
+    if (this.settingsButton.visible==true) {
+      this.settingsButton.visible = false;
+      this.settingsBackButton.visible = true;
+      this.settingsButtonContainer.visible = true;
+      this.betButtonContainer.visible = false;
+    } else {
+      this.settingsButton.visible = true;
+      this.settingsBackButton.visible = false;
+      this.settingsButtonContainer.visible = false;
+      this.betButtonContainer.visible = true;
+    }
   }
 
   private onTurboButtonClick(): void {
