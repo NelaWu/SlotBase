@@ -1,0 +1,309 @@
+{
+"skeleton": { "hash": "SxVHAfcIkNc5s111g+lJH+LuP0U", "spine": "3.7.94", "width": 1100, "height": 1090, "images": "./images/", "audio": "C:/Users/user/OneDrive/Desktop/戰神外包文件/製作檔案/Spine/Bg" },
+"bones": [
+	{ "name": "root" },
+	{ "name": "BG_01", "parent": "root", "x": -538.49, "y": 248.45, "scaleX": 2, "scaleY": 2 },
+	{ "name": "BG_02", "parent": "root", "x": 539.74, "y": 243.5, "scaleX": 2, "scaleY": 2 },
+	{ "name": "BG_03", "parent": "root", "y": 247.07, "scaleX": 2, "scaleY": 2 },
+	{ "name": "Vfx_All", "parent": "root" },
+	{ "name": "VFX_01", "parent": "Vfx_All", "x": -550.54, "y": 1196.29, "scaleX": 2.312, "scaleY": 2.312 },
+	{
+		"name": "VFX_02",
+		"parent": "VFX_01",
+		"rotation": 131.7,
+		"x": 107.81,
+		"y": -113.14,
+		"scaleX": 2.296,
+		"scaleY": 2.296
+	},
+	{
+		"name": "Cloud_1_All",
+		"parent": "Vfx_All",
+		"rotation": -11.07,
+		"x": -154.24,
+		"y": 665.16,
+		"scaleX": 0.864,
+		"scaleY": 1.196,
+		"color": "ff0000ff"
+	},
+	{
+		"name": "Cloud_1_1",
+		"parent": "Cloud_1_All",
+		"x": -302.67,
+		"y": 57.13,
+		"scaleX": 2.024,
+		"scaleY": 2.024,
+		"color": "ff0000ff"
+	},
+	{
+		"name": "Cloud_1_2",
+		"parent": "Cloud_1_All",
+		"x": -302.67,
+		"y": 57.13,
+		"scaleX": 2.024,
+		"scaleY": 2.024,
+		"color": "ff0000ff"
+	},
+	{
+		"name": "Cloud_1_All2",
+		"parent": "Vfx_All",
+		"rotation": 17.55,
+		"x": 200.51,
+		"y": 663.23,
+		"scaleX": -0.862,
+		"scaleY": 0.774,
+		"color": "ff0000ff"
+	},
+	{
+		"name": "Cloud_1_3",
+		"parent": "Cloud_1_All2",
+		"x": -302.67,
+		"y": 57.13,
+		"scaleX": 2.024,
+		"scaleY": 2.024,
+		"color": "ff0000ff"
+	},
+	{
+		"name": "Cloud_1_4",
+		"parent": "Cloud_1_All2",
+		"x": -302.67,
+		"y": 57.13,
+		"scaleX": 2.024,
+		"scaleY": 2.024,
+		"color": "ff0000ff"
+	},
+	{
+		"name": "Cloud_3_All",
+		"parent": "Vfx_All",
+		"rotation": 0.52,
+		"x": -19.28,
+		"y": 701.79,
+		"scaleX": 1.138,
+		"scaleY": 1.254,
+		"color": "ff0000ff"
+	},
+	{ "name": "Cloud_3", "parent": "Cloud_3_All", "y": 102.18, "color": "ff0000ff" },
+	{ "name": "Cloud_4", "parent": "Cloud_3_All", "y": 102.18, "color": "ff0000ff" },
+	{ "name": "BG_Light", "parent": "Vfx_All", "y": 210.89, "scaleX": 10.821, "scaleY": 5.179 }
+],
+"slots": [
+	{ "name": "Backgroud", "bone": "root", "attachment": "Backgroud" },
+	{ "name": "Cloud_1_1", "bone": "Cloud_1_1", "color": "ffffffbb" },
+	{ "name": "Cloud_1_2", "bone": "Cloud_1_2", "color": "ffffffbb" },
+	{ "name": "Cloud_3", "bone": "Cloud_3", "attachment": "Cloud_3" },
+	{ "name": "Cloud_4", "bone": "Cloud_4", "attachment": "Cloud_3" },
+	{ "name": "BG_03", "bone": "BG_03", "attachment": "BG_03" },
+	{ "name": "BG_02", "bone": "BG_02", "attachment": "BG_02" },
+	{ "name": "Cloud_1_3", "bone": "Cloud_1_3", "color": "ffffffbb" },
+	{ "name": "Cloud_1_4", "bone": "Cloud_1_4", "color": "ffffffbb" },
+	{ "name": "BG_01", "bone": "BG_01", "attachment": "BG_01" },
+	{ "name": "VFX_01", "bone": "VFX_01", "blend": "additive" },
+	{ "name": "VFX_02", "bone": "VFX_02", "color": "ffffff64", "blend": "additive" },
+	{ "name": "BG_Light", "bone": "BG_Light", "blend": "additive" }
+],
+"skins": {
+	"default": {
+		"BG_01": {
+			"BG_01": { "x": 96, "y": 123.75, "width": 195, "height": 250 }
+		},
+		"BG_02": {
+			"BG_02": { "x": -80.29, "y": 106.3, "width": 162, "height": 216 }
+		},
+		"BG_03": {
+			"BG_03": { "y": 161.3, "width": 542, "height": 333 }
+		},
+		"BG_Light": {
+			"BG_Light": { "y": 29.02, "width": 100, "height": 57 }
+		},
+		"Backgroud": {
+			"Backgroud": { "y": 754.5, "scaleX": 10, "scaleY": 10, "width": 110, "height": 109 }
+		},
+		"Cloud_1_1": {
+			"Cloud_1": { "width": 249, "height": 152 }
+		},
+		"Cloud_1_2": {
+			"Cloud_1": { "width": 249, "height": 152 }
+		},
+		"Cloud_1_3": {
+			"Cloud_2": { "width": 249, "height": 144 }
+		},
+		"Cloud_1_4": {
+			"Cloud_2": { "width": 249, "height": 144 }
+		},
+		"Cloud_3": {
+			"Cloud_3": { "width": 302, "height": 194 }
+		},
+		"Cloud_4": {
+			"Cloud_3": { "width": 302, "height": 194 }
+		},
+		"VFX_01": {
+			"VFX_01": { "x": 58.09, "y": -65.21, "width": 268, "height": 272 }
+		},
+		"VFX_02": {
+			"VFX_02": { "x": -26.95, "y": -1.01, "width": 64, "height": 128 }
+		}
+	}
+},
+"animations": {
+	"Idle": {
+		"slots": {
+			"BG_Light": {
+				"color": [
+					{
+						"time": 0.6667,
+						"color": "ffffff00",
+						"curve": [ 0.25, 0, 0.75, 1 ]
+					},
+					{
+						"time": 2.3333,
+						"color": "ffffff95",
+						"curve": [ 0.25, 0, 0.75, 1 ]
+					},
+					{ "time": 5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 0.6667, "name": "BG_Light" }
+				]
+			},
+			"Cloud_3": {
+				"color": [
+					{
+						"time": 0,
+						"color": "ffffff95",
+						"curve": [ 0.25, 0, 0.75, 1 ]
+					},
+					{ "time": 10, "color": "ffffff00" }
+				]
+			},
+			"Cloud_4": {
+				"color": [
+					{
+						"time": 0,
+						"color": "ffffff00",
+						"curve": [ 0.25, 0, 0.75, 1 ]
+					},
+					{ "time": 10, "color": "ffffff95" }
+				]
+			},
+			"Cloud_1_1": {
+				"attachment": [
+					{ "time": 0, "name": "Cloud_1" }
+				]
+			},
+			"Cloud_1_2": {
+				"color": [
+					{ "time": 0, "color": "ffffff00" },
+					{ "time": 10, "color": "ffffffbb" }
+				],
+				"attachment": [
+					{ "time": 0, "name": "Cloud_1" }
+				]
+			},
+			"Cloud_1_3": {
+				"attachment": [
+					{ "time": 0, "name": "Cloud_2" }
+				]
+			},
+			"Cloud_1_4": {
+				"color": [
+					{ "time": 0, "color": "ffffff00" },
+					{ "time": 10, "color": "ffffffbb" }
+				],
+				"attachment": [
+					{ "time": 0, "name": "Cloud_2" }
+				]
+			},
+			"VFX_01": {
+				"color": [
+					{ "time": 1, "color": "ffffff00" },
+					{
+						"time": 2.3333,
+						"color": "ffffffc7",
+						"curve": [ 0.25, 0, 0.75, 1 ]
+					},
+					{ "time": 4, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 1, "name": "VFX_01" }
+				]
+			},
+			"VFX_02": {
+				"color": [
+					{ "time": 2, "color": "ffffff00" },
+					{ "time": 3.5333, "color": "ffffff64" },
+					{ "time": 5, "color": "ffffff00" }
+				],
+				"attachment": [
+					{ "time": 2, "name": "VFX_02" }
+				]
+			}
+		},
+		"bones": {
+			"Cloud_1_1": {
+				"translate": [
+					{ "time": 0, "x": 2.67, "y": 0 },
+					{ "time": 10, "x": -497.33, "y": 0 }
+				]
+			},
+			"Cloud_1_2": {
+				"translate": [
+					{ "time": 0, "x": 502.67, "y": 0 },
+					{ "time": 10, "x": 2.67, "y": 0 }
+				]
+			},
+			"Cloud_1_3": {
+				"translate": [
+					{ "time": 0, "x": 2.67, "y": 0 },
+					{ "time": 10, "x": -497.33, "y": 0 }
+				]
+			},
+			"Cloud_1_4": {
+				"translate": [
+					{ "time": 0, "x": 502.67, "y": 0 },
+					{ "time": 10, "x": 2.67, "y": 0 }
+				]
+			},
+			"Cloud_3": {
+				"scale": [
+					{
+						"time": 0,
+						"x": 2.4,
+						"y": 2.4,
+						"curve": [ 0.25, 0, 0.75, 1 ]
+					},
+					{ "time": 10, "x": 3.803, "y": 3.803 }
+				]
+			},
+			"Cloud_4": {
+				"scale": [
+					{ "time": 0, "x": 0.658, "y": 0.658 },
+					{ "time": 10, "x": 2.4, "y": 2.4 }
+				]
+			},
+			"VFX_01": {
+				"scale": [
+					{
+						"time": 1,
+						"x": 0.865,
+						"y": 0.865,
+						"curve": [ 0.25, 0, 0.75, 1 ]
+					},
+					{ "time": 4, "x": 1.125, "y": 1.125 }
+				]
+			},
+			"VFX_02": {
+				"scale": [
+					{ "time": 2, "x": 0.714, "y": 0.714 },
+					{ "time": 4.3, "x": 1.238, "y": 1.238 }
+				]
+			},
+			"BG_Light": {
+				"scale": [
+					{ "time": 0.6667, "x": 1, "y": 1 },
+					{ "time": 5.6667, "x": 1, "y": 1.585 }
+				]
+			}
+		}
+	}
+}
+}

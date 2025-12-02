@@ -1,0 +1,69 @@
+
+BG_Multi_Ball.png
+size: 1820,408
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Bar_Glow
+  rotate: true
+  xy: 1606, 109
+  size: 295, 50
+  orig: 300, 50
+  offset: 2, 0
+  index: -1
+VFX_Point_Lv1
+  rotate: true
+  xy: 1606, 2
+  size: 105, 104
+  orig: 128, 128
+  offset: 11, 12
+  index: -1
+VFX_Point_Lv2
+  rotate: false
+  xy: 1712, 300
+  size: 105, 104
+  orig: 128, 128
+  offset: 11, 12
+  index: -1
+VFX_Point_Lv3
+  rotate: false
+  xy: 1658, 194
+  size: 105, 104
+  orig: 128, 128
+  offset: 11, 12
+  index: -1
+VFX_Point_Lv4
+  rotate: false
+  xy: 1712, 88
+  size: 105, 104
+  orig: 128, 128
+  offset: 11, 12
+  index: -1
+Vfx_Fire_1_Lv1
+  rotate: true
+  xy: 2, 204
+  size: 200, 800
+  orig: 200, 800
+  offset: 0, 0
+  index: -1
+Vfx_Fire_1_Lv2
+  rotate: true
+  xy: 2, 2
+  size: 200, 800
+  orig: 200, 800
+  offset: 0, 0
+  index: -1
+Vfx_Fire_1_Lv3
+  rotate: true
+  xy: 804, 204
+  size: 200, 800
+  orig: 200, 800
+  offset: 0, 0
+  index: -1
+Vfx_Fire_1_Lv4
+  rotate: true
+  xy: 804, 2
+  size: 200, 800
+  orig: 200, 800
+  offset: 0, 0
+  index: -1

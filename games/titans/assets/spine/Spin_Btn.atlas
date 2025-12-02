@@ -1,0 +1,76 @@
+
+Spin_Btn.png
+size: 1232,288
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Spin_Btn
+  rotate: false
+  xy: 288, 55
+  size: 231, 231
+  orig: 286, 285
+  offset: 28, 33
+  index: -1
+Spin_Btn_Shadow
+  rotate: false
+  xy: 2, 2
+  size: 284, 284
+  orig: 286, 285
+  offset: 2, 0
+  index: -1
+Spin_Icon
+  rotate: false
+  xy: 754, 120
+  size: 166, 166
+  orig: 286, 285
+  offset: 61, 62
+  index: -1
+Spin_Press
+  rotate: false
+  xy: 521, 55
+  size: 231, 231
+  orig: 286, 285
+  offset: 27, 33
+  index: -1
+VFX_Particle
+  rotate: false
+  xy: 922, 153
+  size: 128, 133
+  orig: 128, 133
+  offset: 0, 0
+  index: -1
+VFX_Point_W
+  rotate: true
+  xy: 1126, 54
+  size: 105, 104
+  orig: 128, 128
+  offset: 11, 12
+  index: -1
+Vfx_1
+  rotate: false
+  xy: 876, 8
+  size: 120, 110
+  orig: 128, 128
+  offset: 4, 9
+  index: -1
+Vfx_2
+  rotate: true
+  xy: 754, 5
+  size: 113, 120
+  orig: 128, 128
+  offset: 7, 5
+  index: -1
+Vfx_3
+  rotate: true
+  xy: 1052, 161
+  size: 125, 123
+  orig: 128, 128
+  offset: 2, 4
+  index: -1
+Vfx_6
+  rotate: false
+  xy: 998, 25
+  size: 126, 126
+  orig: 128, 128
+  offset: 1, 0
+  index: -1
