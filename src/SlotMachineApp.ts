@@ -43,8 +43,16 @@ export class SlotMachineApp {
       ...config
     };
 
-    // 初始化 PIXI 應用程式
-    this.app = new PIXI.Application();
+    // 初始化 PIXI 應用程式（PixiJS v5：構造函數直接接受配置）
+    // 注意：在 v5 中，Application 會在構造函數中初始化，但渲染器需要等待資源載入
+    this.app = new PIXI.Application({
+      width: this.config.width,
+      height: this.config.height,
+      backgroundColor: this.config.backgroundColor,
+      resolution: this.config.resolution,
+      autoDensity: true,
+      antialias: true
+    });
     // 添加 PixiJS DevTools 支持
     (globalThis as any).__PIXI_APP__ = this.app;
     
@@ -102,18 +110,12 @@ export class SlotMachineApp {
     }
   }
 
-  // 初始化 PIXI
+  // 初始化 PIXI（PixiJS v5 版本）
   private async initializePixi(): Promise<void> {
-    await this.app.init({
-      width: this.config.width,
-      height: this.config.height,
-      backgroundColor: this.config.backgroundColor,
-      resolution: this.config.resolution,
-      autoDensity: true
-    });
-
-    // 將 PIXI canvas 添加到容器
-    this.config.container.appendChild(this.app.canvas);
+    // 在 PixiJS v5 中，Application 構造函數已經接受配置並初始化
+    // 將 PIXI view（canvas）添加到容器
+    // 在 PixiJS v5 中，使用 view 屬性而不是 canvas
+    this.config.container.appendChild(this.app.view);
     
     // 設置響應式
     this.setupResize();
@@ -219,9 +221,9 @@ export class SlotMachineApp {
       const scaleY = containerHeight / this.config.height!;
       const scale = Math.min(scaleX, scaleY);
       
-      // 設置 canvas 樣式
-      this.app.canvas.style.width = `${this.config.width! * scale}px`;
-      this.app.canvas.style.height = `${this.config.height! * scale}px`;
+      // 設置 canvas 樣式（PixiJS v5 使用 view 屬性）
+      this.app.view.style.width = `${this.config.width! * scale}px`;
+      this.app.view.style.height = `${this.config.height! * scale}px`;
     };
 
     window.addEventListener('resize', resize);

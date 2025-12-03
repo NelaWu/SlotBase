@@ -245,8 +245,7 @@ export class TitansSlotView extends BaseView {
     const balanceIcon:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('wallet_ui') as string));
     balanceIcon.position.set(15,1536);
     this.addChild(balanceIcon);
-    this.balanceText = new PIXI.Text({
-      text: '0',
+    this.balanceText = new PIXI.Text('0',{
       style: textStyle
     });
     this.balanceText.x = 75;  
@@ -257,8 +256,7 @@ export class TitansSlotView extends BaseView {
     const betIcon:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('trophy_ui') as string));
     betIcon.position.set(376,1539);
     this.addChild(betIcon);
-    this.betText = new PIXI.Text({
-      text: '0',
+    this.betText = new PIXI.Text('0',{
       style: textStyle
     });
     this.betText.x = 432;   
@@ -269,8 +267,7 @@ export class TitansSlotView extends BaseView {
     const winIcon:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('trophy_ui') as string));
     winIcon.position.set(723,1539);
     this.addChild(winIcon);
-    this.winText = new PIXI.Text({
-      text: '0',
+    this.winText = new PIXI.Text('0',{
       style: textStyle
     });
     this.winText.x = 784;
@@ -278,8 +275,7 @@ export class TitansSlotView extends BaseView {
     this.addChild(this.winText);
 
     // 獲勝金額顯示
-    this.winAmountText = new PIXI.Text({
-      text: '',
+    this.winAmountText = new PIXI.Text('0',{
       style: {
         ...textStyle,
         fontSize: 72, // 原本 36px * 2
@@ -369,6 +365,7 @@ export class TitansSlotView extends BaseView {
 
   // 按鈕點擊事件
   private onSpinButtonClick(): void {
+    console.log('onSpinButtonClick');
     this.emit('spinButtonClicked');
   }
 

@@ -24,6 +24,7 @@ export class BaseButton extends PIXI.Container {
   private hoverScale: number;
   private clickScale: number;
   private originalScale: number = 1;
+  private eventsBound: boolean = false; // 追蹤事件是否已綁定
 
   constructor(options: ButtonOptions = {}) {
     super();
@@ -31,11 +32,17 @@ export class BaseButton extends PIXI.Container {
     this.hoverScale = options.hoverScale || 1;
     this.clickScale = options.clickScale || 1;
     
-    this.eventMode = 'static';
-    this.cursor = 'pointer';
+    // PixiJS v5 使用 interactive 和 buttonMode
+    this.interactive = true;
+    this.buttonMode = true;
     
     this.createButton(options);
-    this.bindEvents();
+    
+    // 在按鈕創建完成後綁定事件
+    // 使用 nextTick 確保所有子元素都已添加
+    setTimeout(() => {
+      this.bindEvents();
+    }, 0);
   }
 
   private createButton(options: ButtonOptions): void {
@@ -47,12 +54,18 @@ export class BaseButton extends PIXI.Container {
       this.loadStateSprites(options.baseName, anchor, options.width, options.height, resourceManager);
     } else {
       // 創建默認按鈕樣式
+      // 創建默認按鈕樣式（使用 Graphics 直接作為按鈕）
       const graphics = new PIXI.Graphics();
       graphics.beginFill(0x4CAF50);
       graphics.drawRoundedRect(0, 0, options.width || 200, options.height || 60, 10);
       graphics.endFill();
-      this.normalSprite = new PIXI.Sprite(graphics.texture as unknown as PIXI.Texture);
+      // 將 Graphics 轉換為 Sprite（PixiJS v5 方式）
+      const texture = graphics.generateCanvasTexture();
+      this.normalSprite = new PIXI.Sprite(texture);
       this.normalSprite.anchor.set(anchor);
+      // 確保子元素不會阻擋事件
+      this.normalSprite.interactive = false;
+      this.normalSprite.buttonMode = false;
       this.addChild(this.normalSprite);
     }
 
@@ -72,6 +85,23 @@ export class BaseButton extends PIXI.Container {
         this.disabledSprite.width = options.width;
         this.disabledSprite.height = options.height;
       }
+      
+      // 設置 hitArea（可點擊區域）以確保事件能正確觸發
+      const anchor = options.anchor || 0.5;
+      const hitAreaX = -options.width * anchor;
+      const hitAreaY = -options.height * anchor;
+      this.hitArea = new PIXI.Rectangle(
+        hitAreaX,
+        hitAreaY,
+        options.width,
+        options.height
+      );
+      console.log(`[BaseButton] 設置 hitArea:`, { x: hitAreaX, y: hitAreaY, width: options.width, height: options.height });
+    } else if (this.normalSprite) {
+      // 如果沒有指定寬高，使用 sprite 的實際大小
+      const bounds = this.normalSprite.getBounds();
+      this.hitArea = new PIXI.Rectangle(bounds.x, bounds.y, bounds.width, bounds.height);
+      console.log(`[BaseButton] 使用 sprite 邊界作為 hitArea:`, bounds);
     }
   }
 
@@ -96,6 +126,10 @@ export class BaseButton extends PIXI.Container {
         const sprite = new PIXI.Sprite(texture);
         sprite.anchor.set(anchor);
         sprite.visible = state === 'normal'; // 只有 normal 狀態預設可見
+        
+        // 確保子元素不會阻擋事件
+        sprite.interactive = false;
+        sprite.buttonMode = false;
 
         if (width && height) {
           sprite.width = width;
@@ -138,10 +172,50 @@ export class BaseButton extends PIXI.Container {
   }
 
   private bindEvents(): void {
-    this.on('pointerdown', this.onPointerDown.bind(this));
-    this.on('pointerup', this.onPointerUp.bind(this));
-    this.on('pointerover', this.onPointerOver.bind(this));
-    this.on('pointerout', this.onPointerOut.bind(this));
+    // 如果已經綁定過事件，不要重複綁定
+    if (this.eventsBound) {
+      console.log('[BaseButton] 事件已經綁定，跳過');
+      return;
+    }
+    
+    console.log('[BaseButton] 綁定事件監聽器');
+    
+    // PixiJS v5 事件監聽
+    // 注意：不要使用 removeAllListeners()，因為會移除外部綁定的事件（如 buttonClicked）
+    
+    // 使用 pointerdown/up 事件（PixiJS v5 支持）
+    this.on('pointerdown', (event: PIXI.InteractionEvent) => {
+      console.log('[BaseButton] pointerdown 觸發');
+      this.onPointerDown();
+      event.stopPropagation();
+    });
+    
+    this.on('pointerup', (event: PIXI.InteractionEvent) => {
+      console.log('[BaseButton] pointerup 觸發');
+      this.onPointerUp();
+      event.stopPropagation();
+    });
+    
+    this.on('pointerupoutside', (event: PIXI.InteractionEvent) => {
+      console.log('[BaseButton] pointerupoutside 觸發');
+      this.onPointerOut();
+      event.stopPropagation();
+    });
+    
+    this.on('pointerover', (event: PIXI.InteractionEvent) => {
+      console.log('[BaseButton] pointerover 觸發');
+      this.onPointerOver();
+      event.stopPropagation();
+    });
+    
+    this.on('pointerout', (event: PIXI.InteractionEvent) => {
+      console.log('[BaseButton] pointerout 觸發');
+      this.onPointerOut();
+      event.stopPropagation();
+    });
+    
+    this.eventsBound = true;
+    console.log('[BaseButton] 事件監聽器綁定完成，interactive:', this.interactive, 'buttonMode:', this.buttonMode);
   }
 
   private onPointerDown(): void {
@@ -152,7 +226,9 @@ export class BaseButton extends PIXI.Container {
   }
 
   private onPointerUp(): void {
-    if (!this.isEnabled) return;
+    if (!this.isEnabled) {
+      return;
+    }
     
     this.setState('hover');
     this.scale.set(this.originalScale);
@@ -223,14 +299,14 @@ export class BaseButton extends PIXI.Container {
     this.isEnabled = enabled;
     
     if (enabled) {
-      this.eventMode = 'static';
-      this.cursor = 'pointer';
+      this.interactive = true;
+      this.buttonMode = true;
       this.alpha = 1;
       this.scale.set(this.originalScale);
       this.setState('normal');
     } else {
-      this.eventMode = 'none';
-      this.cursor = 'default';
+      this.interactive = false;
+      this.buttonMode = false;
       this.alpha = 0.5;
       this.scale.set(this.originalScale);
       this.setState('disabled');
