@@ -1,0 +1,324 @@
+import { ResourceManager } from '@/core/ResourceManager';
+import { BaseButton } from '@views/components/BaseButton';
+import * as PIXI from 'pixi.js';
+import { TitansWheel } from './wheel/TitansWheel';
+import { Spine } from '@pixi-spine/all-4.1';
+import { GameScene } from './GameScene';
+
+export class MainGame extends PIXI.Container {
+  public mainScene!: GameScene;
+  public wheel!: TitansWheel;
+  public spinButton!: BaseButton;
+  public settingsButton!: BaseButton;
+  public settingsBackButton!: BaseButton;
+  public turboButton!: BaseButton;
+  public autoButton!: BaseButton;
+  public plusButton!: BaseButton;
+  public minusButton!: BaseButton;
+  public buyFreeSpinsButton!: BaseButton;
+  public logoutButton!: BaseButton;
+  public recordButton!: BaseButton;
+  public infoButton!: BaseButton;
+  public winAmountText!: PIXI.Text;
+  public balanceText!: PIXI.Text;
+  public betText!: PIXI.Text;
+  public freeSpinsText!: PIXI.Text;
+  public winText!: PIXI.Text; // 獲勝金額顯示（底部）
+  public betButtonContainer!: PIXI.Container;
+  public settingsButtonContainer!: PIXI.Container;
+
+  constructor() {
+    super();
+    this.sortableChildren = true; // 啟用 z-index 排序
+  }
+
+  // 初始化所有組件
+  async initialize(): Promise<void> {
+    // 創建背景
+    this.createBackground();
+
+    // 創建捲軸
+    this.createReels();
+
+    // 創建按鈕
+    this.createSpinButton();
+    this.createControlButtons();
+    this.createSettingsButton();
+
+    // 創建文字顯示
+    this.createTexts();
+    this.createSpine();
+
+    // 設置佈局
+    this.setupLayout();
+  }
+
+  private createSpine(): void {
+    const resourceManager = ResourceManager.getInstance();
+    
+    // 從 ResourceManager 獲取載入的 Spine 資源
+    const spineResource = resourceManager.getResource('Transition');
+    
+    if (!spineResource) {
+      console.warn('[MainGame] Transition Spine 資源尚未載入');
+      return;
+    }
+
+    // 獲取 spineData（可能是直接返回的 spineData 或包含在對象中）
+    let spineData: any;
+    if (spineResource.spineData) {
+      spineData = spineResource.spineData;
+    } else if (spineResource.skeleton) {
+      // 如果資源本身就是 spineData
+      spineData = spineResource;
+    } else {
+      console.error('[MainGame] 無法從 Transition 資源中獲取 spineData', spineResource);
+      return;
+    }
+
+    // 創建 Spine 實例
+    const animation = new Spine(spineData);
+    console.log('[MainGame] Transition Spine 已創建', animation);
+    // this.addChild(animation);
+  }
+
+  // 創建背景
+  private createBackground(): void {
+    this.mainScene = new GameScene();
+    this.addChild(this.mainScene);
+    this.settingsButtonContainer = new PIXI.Container();
+    this.betButtonContainer = new PIXI.Container();
+    this.addChild(this.settingsButtonContainer);
+    this.addChild(this.betButtonContainer);
+    this.settingsButtonContainer.visible = false;
+  }
+
+  // 創建捲軸
+  private createReels(): void {
+    this.wheel = new TitansWheel({
+      reelWidth: 168,
+      reelHeight: 147 * 5,
+      numberOfReels: 6,
+      symbolsPerReel: 5
+    });
+    
+    // 設置輪盤位置
+    this.wheel.x = 36;
+    this.wheel.y = 715;
+    
+    this.addChild(this.wheel);
+  }
+
+  // 創建旋轉按鈕
+  private createSpinButton(): void {
+    const resourceManager = ResourceManager.getInstance();
+    this.spinButton = new BaseButton({
+      baseName: 'spin_btn',
+      anchor: 0.5
+    });
+    const spineLogo:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('spin_btn_logo') as string));
+    spineLogo.anchor.set(0.5);
+    this.spinButton.addChild(spineLogo);
+    const spineShadow:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('spin_btn_shadow') as string));
+    spineShadow.anchor.set(0.5);
+    this.spinButton.addChildAt(spineShadow, 0);
+    this.betButtonContainer.addChild(this.spinButton);
+  }
+
+  // 創建控制按鈕
+  private createControlButtons(): void {
+    // 設定按鈕
+    this.settingsButton = new BaseButton({
+      baseName: 'option_btn',
+      anchor: 0.5
+    });
+    this.settingsButton.zIndex = 15;
+    this.addChild(this.settingsButton);
+
+    // 設定返回按鈕
+    this.settingsBackButton = new BaseButton({
+      baseName: 'option_back_btn',
+      anchor: 0.5
+    });
+    this.settingsBackButton.zIndex = 15;
+    this.addChild(this.settingsBackButton);
+    this.settingsBackButton.visible = false;
+
+    // 快速按鈕
+    this.turboButton = new BaseButton({
+      baseName: 'turbo_btn',
+      anchor: 0.5
+    });
+    this.turboButton.zIndex = 15;
+    this.betButtonContainer.addChild(this.turboButton);
+
+    // 自動旋轉按鈕
+    this.autoButton = new BaseButton({
+      baseName: 'auto_btn',
+      anchor: 0.5
+    });
+    this.autoButton.zIndex = 15;
+    this.betButtonContainer.addChild(this.autoButton);
+
+    // 加注按鈕
+    this.plusButton = new BaseButton({
+      baseName: 'plus_btn',
+      anchor: 0.5
+    });
+    this.plusButton.zIndex = 15;
+    this.betButtonContainer.addChild(this.plusButton);
+
+    // 減注按鈕
+    this.minusButton = new BaseButton({
+      baseName: 'sub_btn',
+      anchor: 0.5
+    });
+    this.minusButton.zIndex = 15;
+    this.betButtonContainer.addChild(this.minusButton);
+
+    // 購買免費旋轉按鈕
+    this.buyFreeSpinsButton = new BaseButton({
+      baseName: 'fg_btn_cnt',
+      anchor: 0
+    });
+    this.buyFreeSpinsButton.zIndex = 15;
+    this.addChild(this.buyFreeSpinsButton);
+  }
+
+  private createSettingsButton(): void {
+    this.logoutButton = new BaseButton({
+      baseName: 'logout_btn',
+      anchor: 0.5
+    });
+    this.logoutButton.zIndex = 15;
+    this.settingsButtonContainer.addChild(this.logoutButton);
+    this.recordButton = new BaseButton({
+      baseName: 'record_btn',
+      anchor: 0.5
+    });
+    this.recordButton.zIndex = 15;
+    this.settingsButtonContainer.addChild(this.recordButton);
+    this.infoButton = new BaseButton({
+      baseName: 'info_btn',
+      anchor: 0.5
+    });
+    this.infoButton.zIndex = 15;
+    this.settingsButtonContainer.addChild(this.infoButton);
+  }
+
+  // 創建金額相關
+  private createTexts(): void {
+    const resourceManager = ResourceManager.getInstance();
+    const textStyle = {
+      fontFamily: 'Arial',
+      fontSize: 36, // 原本 18px * 2
+      fill: 0xffffff,
+      fontWeight: 'bold' as const,
+      stroke: { color: 0x000000, width: 6 } // 原本 3px * 2
+    };
+
+    // 餘額顯示
+    const balanceIcon:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('wallet_ui') as string));
+    balanceIcon.position.set(15,1536);
+    this.addChild(balanceIcon);
+    this.balanceText = new PIXI.Text({
+      text: '0',
+      style: textStyle
+    });
+    this.balanceText.x = 75;  
+    this.balanceText.y = 1540;
+    this.addChild(this.balanceText);
+
+    // 投注顯示
+    const betIcon:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('trophy_ui') as string));
+    betIcon.position.set(376,1539);
+    this.addChild(betIcon);
+    this.betText = new PIXI.Text({
+      text: '0',
+      style: textStyle
+    });
+    this.betText.x = 432;   
+    this.betText.y = 1540;
+    this.addChild(this.betText);
+
+    // 獲勝金額顯示（底部）
+    const winIcon:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('trophy_ui') as string));
+    winIcon.position.set(723,1539);
+    this.addChild(winIcon);
+    this.winText = new PIXI.Text({
+      text: '0',
+      style: textStyle
+    });
+    this.winText.x = 784;
+    this.winText.y = 1540;
+    this.addChild(this.winText);
+
+    // 獲勝金額顯示
+    this.winAmountText = new PIXI.Text({
+      text: '',
+      style: {
+        ...textStyle,
+        fontSize: 72, // 原本 36px * 2
+        fill: 0xffff00
+      }
+    });
+    this.winAmountText.anchor.set(0.5);
+    this.winAmountText.x = 540;  // 原本 270px * 2
+    this.winAmountText.y = 800;  // 原本 400px * 2
+    this.winAmountText.visible = false;
+    this.winAmountText.zIndex = 20;
+    this.addChild(this.winAmountText);
+
+    // 免費旋轉顯示
+    this.freeSpinsText = new PIXI.Text({
+      text: '',
+      style: {
+        ...textStyle,
+        fontSize: 44, // 原本 22px * 2
+        fill: 0xff00ff
+      }
+    });
+    this.freeSpinsText.x = 40;   // 原本 20px * 2
+    this.freeSpinsText.y = 160;  // 原本 80px * 2
+    this.freeSpinsText.visible = false;
+    this.freeSpinsText.zIndex = 20;
+    this.addChild(this.freeSpinsText);
+  }
+
+  // 設置佈局
+  private setupLayout(): void {
+    // 主旋轉按鈕位置
+    this.spinButton.x = 544;
+    this.spinButton.y = 1726;
+
+    // 控制按鈕位置
+    this.settingsButton.x = 75;
+    this.settingsButton.y = 1653;
+    this.settingsBackButton.x = 75;
+    this.settingsBackButton.y = 1653;
+
+    this.turboButton.x = 918;
+    this.turboButton.y = 1774;
+
+    this.autoButton.x = 174;
+    this.autoButton.y = 1774;
+
+    this.plusButton.x = 750;
+    this.plusButton.y = 1774;
+
+    this.minusButton.x = 341;
+    this.minusButton.y = 1774;
+
+    this.buyFreeSpinsButton.x = 961;
+    this.buyFreeSpinsButton.y = 1492;
+
+    //settings_btn位置
+    this.logoutButton.x = 309;
+    this.logoutButton.y = 1775;
+    this.recordButton.x = 550;
+    this.recordButton.y = 1775;
+    this.infoButton.x = 792;
+    this.infoButton.y = 1775;
+  }
+}
+
