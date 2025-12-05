@@ -1,4 +1,6 @@
 import { TitansSlotApp, TitansSlotAppConfig } from './TitansSlotApp';
+// 導入 @esotericsoftware/spine-pixi-v8 以註冊 Spine 資源載入器
+import '@esotericsoftware/spine-pixi-v8';
 
 // Titans 拉霸遊戲入口
 async function startTitansSlotGame() {
@@ -111,6 +113,10 @@ async function startTitansSlotGame() {
       { id: 'symbol_09', url: '/games/titans/assets/Symbol/symbol_09.png', type: 'image' },
       { id: 'symbol_10', url: '/games/titans/assets/Symbol/symbol_10.png', type: 'image' },
       { id: 'symbol_11', url: '/games/titans/assets/Symbol/symbol_11.png', type: 'image' },
+      // spine 動畫資源 - @esotericsoftware/spine-pixi-v8 需要分別載入 atlas 和 skeleton
+      { id: 'Spin_Btn_skel', url: '/games/titans/assets/spine/Spin_Btn.skel', type: 'skel' },
+      { id: 'Spin_Btn_atlas', url: '/games/titans/assets/spine/Spin_Btn.atlas', type: 'atlas' },
+      
     ],
 
     // 遊戲配置

@@ -48,6 +48,7 @@ export class TitansSlotView extends BaseView {
 
   // 按鈕點擊事件
   private onSpinButtonClick(): void {
+    this.mainGame.playSpinAnimation();
     this.emit('spinButtonClicked');
   }
 

@@ -1,8 +1,10 @@
+import * as PIXI from 'pixi.js';
+
 // 資源類型定義
 export interface ResourceDefinition {
   id: string;
   url: string;
-  type: 'image' | 'audio' | 'json' | 'font';
+  type: 'image' | 'audio' | 'json' | 'font' | 'spine' | 'atlas' | 'skel';
   preload?: boolean;
 }
 
@@ -48,6 +50,7 @@ export class ResourceManager {
     this.onComplete = onComplete;
     this.onError = onError;
   }
+
 
   // 載入單一資源
   async loadResource(definition: ResourceDefinition): Promise<any> {
@@ -124,6 +127,14 @@ export class ResourceManager {
         return this.loadJson(definition.url);
       case 'font':
         return this.loadFont(definition.url);
+      case 'spine':
+        return this.loadSpine(definition.id, definition.url);
+      case 'atlas':
+        // Atlas 文件需要載入到 PIXI.Assets 以供 spine-pixi-v8 使用
+        return this.loadAtlas(definition.id, definition.url);
+      case 'skel':
+        // Skeleton 文件（.skel）需要載入到 PIXI.Assets 以供 spine-pixi-v8 使用
+        return this.loadSkel(definition.id, definition.url);
       default:
         throw new Error(`不支援的資源類型: ${definition.type}`);
     }
@@ -172,6 +183,88 @@ export class ResourceManager {
       return fontFace;
     } catch (error) {
       throw new Error(`無法載入字體: ${url} - ${error}`);
+    }
+  }
+
+  // 載入 Atlas 資源（用於 spine-pixi-v8）
+  private async loadAtlas(id: string, url: string): Promise<any> {
+    try {
+      // 使用 PIXI.Assets.add() 添加資源定義
+      // @esotericsoftware/spine-pixi-v8 會自動註冊 .atlas 文件的載入器
+      PIXI.Assets.add({
+        alias: id,
+        src: url
+      });
+      
+      // 載入資源
+      const resource = await PIXI.Assets.load(id);
+      return resource;
+    } catch (error) {
+      throw new Error(`Atlas 資源載入失敗: ${id} - ${error}`);
+    }
+  }
+
+  // 載入 Skeleton 資源（.skel 文件，用於 spine-pixi-v8）
+  private async loadSkel(id: string, url: string): Promise<any> {
+    try {
+      // 使用 PIXI.Assets.add() 添加資源定義
+      // @esotericsoftware/spine-pixi-v8 會自動註冊 .skel 文件的載入器
+      PIXI.Assets.add({
+        alias: id,
+        src: url
+      });
+      
+      // 載入資源
+      const resource = await PIXI.Assets.load(id);
+      return resource;
+    } catch (error) {
+      throw new Error(`Skeleton 資源載入失敗: ${id} - ${error}`);
+    }
+  }
+
+  // 載入 Spine 資源（使用 PIXI.Assets API，適用於 PixiJS v8）
+  private async loadSpine(id: string, url: string): Promise<any> {
+    try {
+      // 在 PixiJS v8 中，使用 Assets API 載入資源
+      // @pixi-spine/all-4.1 會自動註冊 Spine 資源載入器
+      // 使用 alias 來標識資源
+      const resource = await PIXI.Assets.load({
+        alias: id,
+        src: url
+      });
+
+      // 在 @pixi-spine/all-4.1 中，PIXI.Assets.load() 返回的資源可能直接是 spineData
+      // 或者包含在一個對象中，需要檢查不同的格式
+      
+      // 情況 1: 資源直接是 spineData（包含 skeleton 屬性）
+      if (resource && typeof resource === 'object' && 'skeleton' in resource) {
+        return {
+          spineData: resource,
+          resource: resource
+        };
+      }
+
+      // 情況 2: 資源包含 spineData 屬性
+      if (resource && (resource as any).spineData) {
+        return {
+          spineData: (resource as any).spineData,
+          resource: resource
+        };
+      }
+
+      // 情況 3: 資源本身就是 spineData（直接返回）
+      // 如果以上都不匹配，嘗試直接使用資源
+      if (resource) {
+        console.warn(`[ResourceManager] Spine 資源 ${id} 的格式可能不標準，嘗試直接使用資源`, resource);
+        return {
+          spineData: resource,
+          resource: resource
+        };
+      }
+
+      throw new Error(`Spine 資源載入失敗: ${id} - 無法獲取 spineData`);
+    } catch (error) {
+      throw new Error(`Spine 資源載入失敗: ${id} - ${error}`);
     }
   }
 

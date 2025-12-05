@@ -1,76 +1,33 @@
-
 Spin_Btn.png
-size: 1232,288
-format: RGBA8888
-filter: Linear,Linear
-repeat: none
+size:640,536
+filter:Linear,Linear
 Spin_Btn
-  rotate: false
-  xy: 288, 55
-  size: 231, 231
-  orig: 286, 285
-  offset: 28, 33
-  index: -1
+bounds:2,16,231,231
+offsets:28,33,286,285
 Spin_Btn_Shadow
-  rotate: false
-  xy: 2, 2
-  size: 284, 284
-  orig: 286, 285
-  offset: 2, 0
-  index: -1
+bounds:2,249,284,284
+offsets:2,0,286,285
 Spin_Icon
-  rotate: false
-  xy: 754, 120
-  size: 166, 166
-  orig: 286, 285
-  offset: 61, 62
-  index: -1
+bounds:288,367,166,166
+offsets:61,62,286,285
 Spin_Press
-  rotate: false
-  xy: 521, 55
-  size: 231, 231
-  orig: 286, 285
-  offset: 27, 33
-  index: -1
+bounds:235,16,231,231
+offsets:27,33,286,285
 VFX_Particle
-  rotate: false
-  xy: 922, 153
-  size: 128, 133
-  orig: 128, 133
-  offset: 0, 0
-  index: -1
+bounds:456,400,128,133
 VFX_Point_W
-  rotate: true
-  xy: 1126, 54
-  size: 105, 104
-  orig: 128, 128
-  offset: 11, 12
-  index: -1
+bounds:532,294,105,104
+offsets:11,12,128,128
 Vfx_1
-  rotate: false
-  xy: 876, 8
-  size: 120, 110
-  orig: 128, 128
-  offset: 4, 9
-  index: -1
+bounds:410,255,120,110
+offsets:4,9,128,128
 Vfx_2
-  rotate: true
-  xy: 754, 5
-  size: 113, 120
-  orig: 128, 128
-  offset: 7, 5
-  index: -1
+bounds:288,252,113,120
+offsets:7,5,128,128
+rotate:90
 Vfx_3
-  rotate: true
-  xy: 1052, 161
-  size: 125, 123
-  orig: 128, 128
-  offset: 2, 4
-  index: -1
+bounds:468,2,125,123
+offsets:2,4,128,128
 Vfx_6
-  rotate: false
-  xy: 998, 25
-  size: 126, 126
-  orig: 128, 128
-  offset: 1, 0
-  index: -1
+bounds:468,127,126,126
+offsets:1,0,128,128

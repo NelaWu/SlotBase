@@ -2,11 +2,11 @@ import { ResourceManager } from '@/core/ResourceManager';
 import { BaseButton } from '@views/components/BaseButton';
 import * as PIXI from 'pixi.js';
 import { TitansWheel } from './wheel/TitansWheel';
-import { Spine } from '@pixi-spine/all-4.1';
+import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { GameScene } from './GameScene';
 
 export class MainGame extends PIXI.Container {
-  public mainScene!: GameScene;
+  public gameScene!: GameScene;
   public wheel!: TitansWheel;
   public spinButton!: BaseButton;
   public settingsButton!: BaseButton;
@@ -47,45 +47,33 @@ export class MainGame extends PIXI.Container {
 
     // 創建文字顯示
     this.createTexts();
-    this.createSpine();
 
     // 設置佈局
     this.setupLayout();
   }
 
-  private createSpine(): void {
-    const resourceManager = ResourceManager.getInstance();
-    
-    // 從 ResourceManager 獲取載入的 Spine 資源
-    const spineResource = resourceManager.getResource('Transition');
-    
-    if (!spineResource) {
-      console.warn('[MainGame] Transition Spine 資源尚未載入');
-      return;
-    }
+  public playSpinAnimation(): void {
+    const spinSpine = this.spinButton.getChildByLabel?.('spinSpine');
+    if (spinSpine && 'state' in spinSpine && typeof (spinSpine as any).state.setAnimation === 'function') {
+      const spineState = (spinSpine as any).state;
+      console.log('playSpinAnimation', spinSpine);
+      spineState.setAnimation(0, "Spin", false);
+      const onComplete = () => {
+        spineState.setAnimation(0, "Idle", true);
+      };
+      spineState.addListener({
+        complete: onComplete
+      });
 
-    // 獲取 spineData（可能是直接返回的 spineData 或包含在對象中）
-    let spineData: any;
-    if (spineResource.spineData) {
-      spineData = spineResource.spineData;
-    } else if (spineResource.skeleton) {
-      // 如果資源本身就是 spineData
-      spineData = spineResource;
-    } else {
-      console.error('[MainGame] 無法從 Transition 資源中獲取 spineData', spineResource);
-      return;
     }
-
-    // 創建 Spine 實例
-    const animation = new Spine(spineData);
-    console.log('[MainGame] Transition Spine 已創建', animation);
-    // this.addChild(animation);
   }
 
   // 創建背景
   private createBackground(): void {
-    this.mainScene = new GameScene();
-    this.addChild(this.mainScene);
+    //遊戲背景，main/free
+    this.gameScene = new GameScene();
+    this.addChild(this.gameScene);
+    //下方按鈕
     this.settingsButtonContainer = new PIXI.Container();
     this.betButtonContainer = new PIXI.Container();
     this.addChild(this.settingsButtonContainer);
@@ -116,6 +104,15 @@ export class MainGame extends PIXI.Container {
       baseName: 'spin_btn',
       anchor: 0.5
     });
+    
+    const spinSpine = Spine.from({
+      atlas: 'Spin_Btn_atlas',
+      skeleton: 'Spin_Btn_skel',
+    });
+    spinSpine.label = 'spinSpine';
+    this.spinButton.addChild(spinSpine);
+    spinSpine.state.setAnimation(0, "Idle", true);
+
     const spineLogo:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('spin_btn_logo') as string));
     spineLogo.anchor.set(0.5);
     this.spinButton.addChild(spineLogo);
