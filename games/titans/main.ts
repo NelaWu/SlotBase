@@ -43,7 +43,6 @@ async function startTitansSlotGame() {
       { id: 'fg_bg', url: '/games/titans/assets/fg_bg.png', type: 'image' },
       { id: 'fg_frame_roof', url: '/games/titans/assets/fg_frame_roof.png', type: 'image' },
       { id: 'fg_frame', url: '/games/titans/assets/fg_frame.png', type: 'image' },
-      
       // 按鈕圖片 - spin_btn 所有狀態
       { id: 'spin_btn_normal', url: '/games/titans/assets/spin_btn_normal.png', type: 'image' },
       { id: 'spin_btn_hover', url: '/games/titans/assets/spin_btn_hover.png', type: 'image' },
@@ -114,6 +113,13 @@ async function startTitansSlotGame() {
       { id: 'symbol_09', url: '/games/titans/assets/Symbol/symbol_09.png', type: 'image' },
       { id: 'symbol_10', url: '/games/titans/assets/Symbol/symbol_10.png', type: 'image' },
       { id: 'symbol_11', url: '/games/titans/assets/Symbol/symbol_11.png', type: 'image' },
+      // 免費結算
+      { id: 'fg_summary_alart_bg', url: '/games/titans/assets/fg_summary_alart_bg.png', type: 'image' },
+      { id: 'fg_summary_alart_btn_hover', url: '/games/titans/assets/fg_summary_alart_btn_hover.png', type: 'image' },
+      { id: 'fg_summary_alart_btn_normal', url: '/games/titans/assets/fg_summary_alart_btn_normal.png', type: 'image' },
+      { id: 'fg_summary_alart_btn_pressed', url: '/games/titans/assets/fg_summary_alart_btn_pressed.png', type: 'image' },
+      { id: 'fg_summary_alart_btntext_cnt', url: '/games/titans/assets/fg_summary_alart_btntext_cnt.png', type: 'image' },
+      { id: 'fg_summary_alart_Title_cnt', url: '/games/titans/assets/fg_summary_alart_Title_cnt.png', type: 'image' },
       // spine 動畫資源 - @esotericsoftware/spine-pixi-v8 需要分別載入 atlas 和 skeleton
       { id: 'Spin_Btn_skel', url: '/games/titans/assets/spine/Spin_Btn.skel', type: 'skel' },
       { id: 'Spin_Btn_atlas', url: '/games/titans/assets/spine/Spin_Btn.atlas', type: 'atlas' },

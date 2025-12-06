@@ -1,6 +1,7 @@
 import { BaseView } from '@views/BaseView';
 import * as PIXI from 'pixi.js';
 import { MainGame } from './main/MainGame';
+import { ButtonEvent } from '@/views/components/ButtonEvents';
 
 export class TitansSlotView extends BaseView {
   private mainGame!: MainGame;
@@ -26,24 +27,24 @@ export class TitansSlotView extends BaseView {
 
   // 綁定事件
   protected bindEvents(): void {
-    this.mainGame.spinButton.on('buttonClicked', this.onSpinButtonClick.bind(this));
-    this.mainGame.settingsButton.on('buttonClicked', this.onSettingsButtonClick.bind(this));
-    this.mainGame.settingsBackButton.on('buttonClicked', this.onSettingsButtonClick.bind(this));
-    this.mainGame.turboButton.on('buttonClicked', this.onTurboButtonClick.bind(this));
-    this.mainGame.autoButton.on('buttonClicked', this.onAutoButtonClick.bind(this));
-    this.mainGame.plusButton.on('buttonClicked', this.onPlusButtonClick.bind(this));
-    this.mainGame.minusButton.on('buttonClicked', this.onMinusButtonClick.bind(this));
+    this.mainGame.spinButton.on(ButtonEvent.BUTTON_CLICKED, this.onSpinButtonClick.bind(this));
+    this.mainGame.settingsButton.on(ButtonEvent.BUTTON_CLICKED, this.onSettingsButtonClick.bind(this));
+    this.mainGame.settingsBackButton.on(ButtonEvent.BUTTON_CLICKED, this.onSettingsButtonClick.bind(this));
+    this.mainGame.turboButton.on(ButtonEvent.BUTTON_CLICKED, this.onTurboButtonClick.bind(this));
+    this.mainGame.autoButton.on(ButtonEvent.BUTTON_CLICKED, this.onAutoButtonClick.bind(this));
+    this.mainGame.plusButton.on(ButtonEvent.BUTTON_CLICKED, this.onPlusButtonClick.bind(this));
+    this.mainGame.minusButton.on(ButtonEvent.BUTTON_CLICKED, this.onMinusButtonClick.bind(this));
   }
 
   // 解綁事件
   protected unbindEvents(): void {
-    this.mainGame.spinButton.off('buttonClicked', this.onSpinButtonClick.bind(this));
-    this.mainGame.settingsButton.off('buttonClicked', this.onSettingsButtonClick.bind(this));
-    this.mainGame.settingsBackButton.off('buttonClicked', this.onSettingsButtonClick.bind(this));
-    this.mainGame.turboButton.off('buttonClicked', this.onTurboButtonClick.bind(this));
-    this.mainGame.autoButton.off('buttonClicked', this.onAutoButtonClick.bind(this));
-    this.mainGame.plusButton.off('buttonClicked', this.onPlusButtonClick.bind(this));
-    this.mainGame.minusButton.off('buttonClicked', this.onMinusButtonClick.bind(this));
+    this.mainGame.spinButton.off(ButtonEvent.BUTTON_CLICKED, this.onSpinButtonClick.bind(this));
+    this.mainGame.settingsButton.off(ButtonEvent.BUTTON_CLICKED, this.onSettingsButtonClick.bind(this));
+    this.mainGame.settingsBackButton.off(ButtonEvent.BUTTON_CLICKED, this.onSettingsButtonClick.bind(this));
+    this.mainGame.turboButton.off(ButtonEvent.BUTTON_CLICKED, this.onTurboButtonClick.bind(this));
+    this.mainGame.autoButton.off(ButtonEvent.BUTTON_CLICKED, this.onAutoButtonClick.bind(this));
+    this.mainGame.plusButton.off(ButtonEvent.BUTTON_CLICKED, this.onPlusButtonClick.bind(this));
+    this.mainGame.minusButton.off(ButtonEvent.BUTTON_CLICKED, this.onMinusButtonClick.bind(this));
   }
 
   // 按鈕點擊事件

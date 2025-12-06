@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js';
 import { ResourceManager } from '@/core/ResourceManager';
+import { ButtonEvent, ButtonState } from './ButtonEvents';
 
 export interface ButtonOptions {
   baseName?: string; // 基礎名稱，會自動載入 baseName_normal, baseName_hover, baseName_pressed, baseName_disable
@@ -8,6 +9,8 @@ export interface ButtonOptions {
   anchor?: number;
   hoverScale?: number;
   clickScale?: number;
+  textTexture?: string; // 文字 texture 的資源 ID，如果有的話就顯示
+  textPosition?: { x: number, y: number }; // 文字位置
 }
 
 /**
@@ -19,7 +22,8 @@ export class BaseButton extends PIXI.Container {
   private hoverSprite?: PIXI.Sprite;
   private pressedSprite?: PIXI.Sprite;
   private disabledSprite?: PIXI.Sprite;
-  private currentState: 'normal' | 'hover' | 'pressed' | 'disabled' = 'normal';
+  private textSprite?: PIXI.Sprite; // 文字 texture sprite
+  private currentState: ButtonState = ButtonState.NORMAL;
   private isEnabled: boolean = true;
   private hoverScale: number;
   private clickScale: number;
@@ -73,6 +77,31 @@ export class BaseButton extends PIXI.Container {
         this.disabledSprite.height = options.height;
       }
     }
+
+    // 如果有提供文字 texture，載入並顯示
+    if (options.textTexture) {
+      this.loadTextTexture(options.textTexture, anchor, resourceManager, options.textPosition);
+    }
+  }
+
+  /**
+   * 載入文字 texture
+   */
+  private loadTextTexture(textureId: string, anchor: number, resourceManager: ResourceManager, textPosition?: { x: number, y: number }): void {
+    const resource = resourceManager.getResource(textureId);
+    
+    if (resource) {
+      const texture = PIXI.Texture.from(resource);
+      this.textSprite = new PIXI.Sprite(texture);
+      this.textSprite.anchor.set(anchor);
+      this.textSprite.label = 'text';
+      if (textPosition) {
+        this.textSprite.position.set(textPosition.x, textPosition.y);
+      }
+      this.addChild(this.textSprite);
+    } else {
+      console.warn(`[BaseButton] 找不到文字 texture 資源: ${textureId}`);
+    }
   }
 
   /**
@@ -95,7 +124,12 @@ export class BaseButton extends PIXI.Container {
         const texture = PIXI.Texture.from(resource);
         const sprite = new PIXI.Sprite(texture);
         sprite.anchor.set(anchor);
-        sprite.visible = state === 'normal'; // 只有 normal 狀態預設可見
+        // 將字符串狀態轉換為 ButtonState enum
+        const buttonState = state === 'normal' ? ButtonState.NORMAL :
+                          state === 'hover' ? ButtonState.HOVER :
+                          state === 'pressed' ? ButtonState.PRESSED :
+                          ButtonState.DISABLED;
+        sprite.visible = buttonState === ButtonState.NORMAL; // 只有 normal 狀態預設可見
 
         if (width && height) {
           sprite.width = width;
@@ -146,36 +180,39 @@ export class BaseButton extends PIXI.Container {
   private onPointerDown(): void {
     if (!this.isEnabled) return;
     
-    this.setState('pressed');
+    this.setState(ButtonState.PRESSED);
     this.scale.set(this.clickScale);
+    this.emit(ButtonEvent.BUTTON_DOWN);
   }
 
   private onPointerUp(): void {
     if (!this.isEnabled) return;
     
-    this.setState('hover');
+    this.setState(ButtonState.HOVER);
     this.scale.set(this.originalScale);
-    this.emit('buttonClicked');
+    this.emit(ButtonEvent.BUTTON_CLICKED);
   }
 
   private onPointerOver(): void {
     if (!this.isEnabled) return;
     
-    this.setState('hover');
+    this.setState(ButtonState.HOVER);
     this.scale.set(this.hoverScale);
+    this.emit(ButtonEvent.BUTTON_OVER);
   }
 
   private onPointerOut(): void {
     if (!this.isEnabled) return;
     
-    this.setState('normal');
+    this.setState(ButtonState.NORMAL);
     this.scale.set(this.originalScale);
+    this.emit(ButtonEvent.BUTTON_OUT);
   }
 
   /**
    * 切換按鈕狀態
    */
-  private setState(state: 'normal' | 'hover' | 'pressed' | 'disabled'): void {
+  private setState(state: ButtonState): void {
     if (this.currentState === state) return;
 
     // 隱藏所有狀態的精靈
@@ -186,24 +223,24 @@ export class BaseButton extends PIXI.Container {
 
     // 顯示對應狀態的精靈
     switch (state) {
-      case 'normal':
+      case ButtonState.NORMAL:
         this.normalSprite.visible = true;
         break;
-      case 'hover':
+      case ButtonState.HOVER:
         if (this.hoverSprite) {
           this.hoverSprite.visible = true;
         } else {
           this.normalSprite.visible = true;
         }
         break;
-      case 'pressed':
+      case ButtonState.PRESSED:
         if (this.pressedSprite) {
           this.pressedSprite.visible = true;
         } else {
           this.normalSprite.visible = true;
         }
         break;
-      case 'disabled':
+      case ButtonState.DISABLED:
         if (this.disabledSprite) {
           this.disabledSprite.visible = true;
         } else {
@@ -219,6 +256,7 @@ export class BaseButton extends PIXI.Container {
    * 設置按鈕啟用狀態
    */
   public setEnabled(enabled: boolean): void {
+    const wasEnabled = this.isEnabled;
     this.isEnabled = enabled;
     
     if (enabled) {
@@ -226,13 +264,18 @@ export class BaseButton extends PIXI.Container {
       this.cursor = 'pointer';
       this.alpha = 1;
       this.scale.set(this.originalScale);
-      this.setState('normal');
+      this.setState(ButtonState.NORMAL);
     } else {
       this.eventMode = 'none';
       this.cursor = 'default';
       this.alpha = 0.5;
       this.scale.set(this.originalScale);
-      this.setState('disabled');
+      this.setState(ButtonState.DISABLED);
+    }
+    
+    // 如果啟用狀態改變，發出事件
+    if (wasEnabled !== enabled) {
+      this.emit(ButtonEvent.ENABLED_CHANGED, enabled);
     }
   }
 
