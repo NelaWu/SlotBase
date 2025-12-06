@@ -110,7 +110,7 @@ export class MainGame extends PIXI.Container {
       skeleton: 'Spin_Btn_skel',
     });
     spinSpine.label = 'spinSpine';
-    this.spinButton.addChild(spinSpine);
+    this.spinButton.addChildAt(spinSpine, 1);
     spinSpine.state.setAnimation(0, "Idle", true);
 
     const spineLogo:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('spin_btn_logo') as string));

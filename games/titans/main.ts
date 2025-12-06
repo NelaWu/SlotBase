@@ -37,6 +37,7 @@ async function startTitansSlotGame() {
       { id: 'mg_bg_01', url: '/games/titans/assets/mg_bg_01.png', type: 'image' },
       { id: 'mg_bg_02', url: '/games/titans/assets/mg_bg_02.png', type: 'image' },
       { id: 'mg_frame_roof', url: '/games/titans/assets/mg_frame_roof.png', type: 'image' },
+      { id: 'fg_info_bg', url: '/games/titans/assets/fg_info_bg.png', type: 'image' },
       { id: 'game_logo_cnt', url: '/games/titans/assets/game_logo_cnt.png', type: 'image' },
       { id: 'mg_frame', url: '/games/titans/assets/mg_frame.png', type: 'image' },
       { id: 'fg_bg', url: '/games/titans/assets/fg_bg.png', type: 'image' },

@@ -108,7 +108,6 @@ export class BaseButton extends PIXI.Container {
         switch (state) {
           case 'normal':
             this.normalSprite = sprite;
-            console.log(`[BaseButton] 載入 ${baseName} 的 ${state} 狀態，大小: ${sprite.width}x${sprite.height}`);
             break;
           case 'hover':
             this.hoverSprite = sprite;

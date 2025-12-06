@@ -68,6 +68,7 @@ export class GameScene extends PIXI.Container {
           const infoBgTexture = PIXI.Texture.from(infoBgResource);
           const infoBgSprite = new PIXI.Sprite(infoBgTexture);
           infoBgSprite.position.set(0, 1606);
+          infoBgSprite.label = 'infoBgSprite';
           this.addChild(infoBgSprite);
         }
     }
@@ -75,6 +76,8 @@ export class GameScene extends PIXI.Container {
         const resourceManager = ResourceManager.getInstance();
         const freeBgResource = resourceManager.getResource('fg_bg');
         this.bgSprites[0].texture = PIXI.Texture.from(freeBgResource);
+        this.bgSprites[1].visible = false;
+        this.bgSprites[2].visible = false;
         let roofTexture = resourceManager.getResource('fg_frame_roof');
         let frameTexture = resourceManager.getResource('fg_frame');
         this.roofSprite1!.texture = PIXI.Texture.from(roofTexture);
@@ -87,6 +90,8 @@ export class GameScene extends PIXI.Container {
         const resourceManager = ResourceManager.getInstance();
         const freeBgResource = resourceManager.getResource('mg_bg_00');
         this.bgSprites[0].texture = PIXI.Texture.from(freeBgResource);
+        this.bgSprites[1].visible = true;
+        this.bgSprites[2].visible = true;
         let roofTexture = resourceManager.getResource('mg_frame_roof');
         let frameTexture = resourceManager.getResource('mg_frame');
         this.roofSprite1!.texture = PIXI.Texture.from(roofTexture);
