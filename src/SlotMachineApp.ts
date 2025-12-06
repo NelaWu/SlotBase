@@ -17,6 +17,7 @@ export interface SlotMachineAppConfig {
   gameConfig?: SlotMachineConfig;
   resources: ResourceDefinition[];
   enableOfflineMode?: boolean;
+  language?: string; // 語言參數，用於控制資源載入（如 'zh-TW', 'en', 'zh-CN'）
 }
 
 // 拉霸機應用程式主類別
@@ -70,6 +71,11 @@ export class SlotMachineApp {
     }
 
     try {
+      // 設置全局語言參數（用於資源載入控制）
+      const language = this.config.language || this.detectLanguage();
+      (globalThis as any).LANGUAGE = language;
+      console.log(`[SlotMachineApp] 當前語言: ${language}`);
+
       // 初始化 PIXI
       await this.initializePixi();
       
@@ -100,6 +106,37 @@ export class SlotMachineApp {
       console.error('初始化失敗:', error);
       throw error;
     }
+  }
+
+  /**
+   * 檢測語言
+   */
+  private detectLanguage(): string {
+    // 1. 從 URL 參數獲取
+    const urlParams = new URLSearchParams(window.location.search);
+    const langParam = urlParams.get('lang');
+    if (langParam) {
+      return langParam;
+    }
+
+    // 2. 從 localStorage 獲取
+    try {
+      const saved = localStorage.getItem('game_language');
+      if (saved) {
+        return saved;
+      }
+    } catch (error) {
+      console.warn('[SlotMachineApp] 無法讀取 localStorage:', error);
+    }
+
+    // 3. 從瀏覽器語言獲取
+    const browserLang = navigator.language;
+    if (browserLang.startsWith('zh')) {
+      return browserLang === 'zh-CN' ? 'zh-CN' : 'zh-TW';
+    }
+
+    // 4. 默認返回英文
+    return 'en';
   }
 
   // 初始化 PIXI
