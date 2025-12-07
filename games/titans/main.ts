@@ -1,5 +1,4 @@
 import { TitansSlotApp, TitansSlotAppConfig } from './TitansSlotApp';
-// 導入 @esotericsoftware/spine-pixi-v8 以註冊 Spine 資源載入器
 import '@esotericsoftware/spine-pixi-v8';
 
 // Titans 拉霸遊戲入口
@@ -12,6 +11,19 @@ async function startTitansSlotGame() {
     console.error('找不到遊戲容器 #game-container');
     return;
   }
+
+  //語系轉換(真尷尬這邊太早執行了，只好再寫一次語系😅)
+  const urlParams = new URLSearchParams(window.location.search);
+  const language = urlParams.get('lang');
+  let lang:string = '';
+  if( language == 'zh-TW'){
+    lang = 'cnt';
+  }else if(language == 'en'){
+    lang = 'en';
+  }else{
+    lang = 'cns';
+  }
+  console.log('🌐 語言:', language, '轉換後語言:', lang);
 
   // 配置遊戲
   const config: TitansSlotAppConfig = {
@@ -30,6 +42,7 @@ async function startTitansSlotGame() {
       retryDelay: 1000
     },
 
+
     // 資源配置
     resources: [
       // 背景圖片
@@ -38,7 +51,7 @@ async function startTitansSlotGame() {
       { id: 'mg_bg_02', url: '/games/titans/assets/mg_bg_02.png', type: 'image' },
       { id: 'mg_frame_roof', url: '/games/titans/assets/mg_frame_roof.png', type: 'image' },
       { id: 'fg_info_bg', url: '/games/titans/assets/fg_info_bg.png', type: 'image' },
-      { id: 'game_logo_cnt', url: '/games/titans/assets/game_logo_cnt.png', type: 'image' },
+      { id: 'game_logo_cnt', url: '/games/titans/assets/game_logo_'+lang+'.png', type: 'image' },
       { id: 'mg_frame', url: '/games/titans/assets/mg_frame.png', type: 'image' },
       { id: 'fg_bg', url: '/games/titans/assets/fg_bg.png', type: 'image' },
       { id: 'fg_frame_roof', url: '/games/titans/assets/fg_frame_roof.png', type: 'image' },
@@ -80,10 +93,10 @@ async function startTitansSlotGame() {
       { id: 'sub_btn_pressed', url: '/games/titans/assets/sub_btn_pressed.png', type: 'image' },
       { id: 'sub_btn_disable', url: '/games/titans/assets/sub_btn_disable.png', type: 'image' },
       // free_btn 所有狀態
-      { id: 'fg_btn_cnt_disable', url: '/games/titans/assets/fg_btn_cnt_disable.png', type: 'image' },
-      { id: 'fg_btn_cnt_normal', url: '/games/titans/assets/fg_btn_cnt_normal.png', type: 'image' },
-      { id: 'fg_btn_cnt_hover', url: '/games/titans/assets/fg_btn_cnt_hover.png', type: 'image' },
-      { id: 'fg_btn_cnt_pressed', url: '/games/titans/assets/fg_btn_cnt_pressed.png', type: 'image' },
+      { id: 'fg_btn_cnt_disable', url: '/games/titans/assets/fg_btn_'+lang+'_disable.png', type: 'image' },
+      { id: 'fg_btn_cnt_normal', url: '/games/titans/assets/fg_btn_'+lang+'_normal.png', type: 'image' },
+      { id: 'fg_btn_cnt_hover', url: '/games/titans/assets/fg_btn_'+lang+'_hover.png', type: 'image' },
+      { id: 'fg_btn_cnt_pressed', url: '/games/titans/assets/fg_btn_'+lang+'_pressed.png', type: 'image' },
       // settings_btn 所有狀態
       { id: 'logout_btn_normal', url: '/games/titans/assets/logout_btn_normal.png', type: 'image' },
       { id: 'logout_btn_hover', url: '/games/titans/assets/logout_btn_hover.png', type: 'image' },
@@ -118,11 +131,27 @@ async function startTitansSlotGame() {
       { id: 'fg_summary_alart_btn_hover', url: '/games/titans/assets/fg_summary_alart_btn_hover.png', type: 'image' },
       { id: 'fg_summary_alart_btn_normal', url: '/games/titans/assets/fg_summary_alart_btn_normal.png', type: 'image' },
       { id: 'fg_summary_alart_btn_pressed', url: '/games/titans/assets/fg_summary_alart_btn_pressed.png', type: 'image' },
-      { id: 'fg_summary_alart_btntext_cnt', url: '/games/titans/assets/fg_summary_alart_btntext_cnt.png', type: 'image' },
-      { id: 'fg_summary_alart_Title_cnt', url: '/games/titans/assets/fg_summary_alart_Title_cnt.png', type: 'image' },
+      { id: 'fg_summary_alart_btntext_cnt', url: '/games/titans/assets/fg_summary_alart_btntext_'+lang+'.png', type: 'image' },
+      { id: 'fg_summary_alart_Title_cnt', url: '/games/titans/assets/fg_summary_alart_Title_'+lang+'.png', type: 'image' },
+      { id: 'fg_summary_alart_number_0', url: '/games/titans/assets/fg_summary_alart_number_0.png', type: 'image' },
+      { id: 'fg_summary_alart_number_1', url: '/games/titans/assets/fg_summary_alart_number_1.png', type: 'image' },
+      { id: 'fg_summary_alart_number_2', url: '/games/titans/assets/fg_summary_alart_number_2.png', type: 'image' },
+      { id: 'fg_summary_alart_number_3', url: '/games/titans/assets/fg_summary_alart_number_3.png', type: 'image' },
+      { id: 'fg_summary_alart_number_4', url: '/games/titans/assets/fg_summary_alart_number_4.png', type: 'image' },
+      { id: 'fg_summary_alart_number_5', url: '/games/titans/assets/fg_summary_alart_number_5.png', type: 'image' },
+      { id: 'fg_summary_alart_number_6', url: '/games/titans/assets/fg_summary_alart_number_6.png', type: 'image' },
+      { id: 'fg_summary_alart_number_7', url: '/games/titans/assets/fg_summary_alart_number_7.png', type: 'image' },
+      { id: 'fg_summary_alart_number_8', url: '/games/titans/assets/fg_summary_alart_number_8.png', type: 'image' },
+      { id: 'fg_summary_alart_number_9', url: '/games/titans/assets/fg_summary_alart_number_9.png', type: 'image' },
+      { id: 'fg_summary_alart_number_,', url: '/games/titans/assets/fg_summary_alart_number_,.png', type: 'image' },
+      { id: 'fg_summary_alart_number_.', url: '/games/titans/assets/fg_summary_alart_number_..png', type: 'image' },
+      // fessSpin
+      // { id: 'fessSpin_bg', url: '/games/titans/assets/fessSpin_bg.png', type: 'image' },
       // spine 動畫資源 - @esotericsoftware/spine-pixi-v8 需要分別載入 atlas 和 skeleton
       { id: 'Spin_Btn_skel', url: '/games/titans/assets/spine/Spin_Btn.skel', type: 'skel' },
       { id: 'Spin_Btn_atlas', url: '/games/titans/assets/spine/Spin_Btn.atlas', type: 'atlas' },
+      { id: 'Big_Treasure_skel', url: '/games/titans/assets/spine/Big_Treasure.skel', type: 'skel' },
+      { id: 'Big_Treasure_atlas', url: '/games/titans/assets/spine/Big_Treasure.atlas', type: 'atlas' },
       
     ],
 

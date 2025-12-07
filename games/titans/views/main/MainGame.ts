@@ -6,6 +6,7 @@ import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { GameScene } from './GameScene';
 import { FreeEnd } from './bigAnimation/FreeEnd';
 import { GameEventEnum } from '../../enum/gameEnum';
+import { FessSpin } from './bigAnimation/FessSpin';
 
 export class MainGame extends PIXI.Container {
   public gameScene!: GameScene;
@@ -337,9 +338,14 @@ export class MainGame extends PIXI.Container {
     //test
     this.freeEnd = new FreeEnd();
     this.bigAnimationContainer.addChild(this.freeEnd);
+    this.freeEnd.setWinText('1000000');
     this.freeEnd.on(GameEventEnum.FreeEndClose, () => {
       this.removeChild(this.bigAnimationContainer);
     });
+
+    // //test fessSpin
+    // const fessSpin = new FessSpin();
+    // this.bigAnimationContainer.addChild(fessSpin);
   }
 }
 

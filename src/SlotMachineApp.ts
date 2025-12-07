@@ -72,7 +72,8 @@ export class SlotMachineApp {
 
     try {
       // 設置全局語言參數（用於資源載入控制）
-      const language = this.config.language || this.detectLanguage();
+      // 優先使用配置中的語言，否則使用從 index.html 設置的全局 LANGUAGE
+      const language = this.config.language || (globalThis as any).LANGUAGE || this.detectLanguage();
       (globalThis as any).LANGUAGE = language;
       console.log(`[SlotMachineApp] 當前語言: ${language}`);
 
@@ -119,23 +120,7 @@ export class SlotMachineApp {
       return langParam;
     }
 
-    // 2. 從 localStorage 獲取
-    try {
-      const saved = localStorage.getItem('game_language');
-      if (saved) {
-        return saved;
-      }
-    } catch (error) {
-      console.warn('[SlotMachineApp] 無法讀取 localStorage:', error);
-    }
-
-    // 3. 從瀏覽器語言獲取
-    const browserLang = navigator.language;
-    if (browserLang.startsWith('zh')) {
-      return browserLang === 'zh-CN' ? 'zh-CN' : 'zh-TW';
-    }
-
-    // 4. 默認返回英文
+    // 默認返回英文
     return 'en';
   }
 

@@ -3,8 +3,11 @@ import { BaseButton } from '@/views/components/BaseButton';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
 import { GameEventEnum } from '../../../enum/gameEnum';
 import * as PIXI from 'pixi.js';
+import { BaseNumber } from '@/views/components/BaseNumber';
+import { gsap } from 'gsap';
 
 export class FreeEnd extends PIXI.Container {
+    private winText?: BaseNumber
     constructor() {
         super();
         this.init();
@@ -54,6 +57,21 @@ export class FreeEnd extends PIXI.Container {
             
         });
         this.addChild(closeBtn);
+        this.winText = new BaseNumber({
+            baseName: 'fg_summary_alart_number',
+            anchor: 0.5,
+            align: 'center',
+            useThousandSeparator: true
+        });
+        this.winText.position.set(540,962);
+        this.winText.showText('0');
+        this.addChild(this.winText);
+    }
+    public setWinText(text: string): void {
+        let num:{money:number} = {money:0}
+        gsap.to(num, { money: text, duration: 5, onUpdate: () => {
+            this.winText?.showText(Math.round(num.money).toString());
+        } });
     }
 
     private onCloseBtnClicked(): void {
