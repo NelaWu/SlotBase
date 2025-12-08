@@ -10,6 +10,7 @@ export interface ButtonOptions {
   hoverScale?: number;
   clickScale?: number;
   textTexture?: string; // 文字 texture 的資源 ID，如果有的話就顯示
+  textPressTexture?: string; // 按下狀態的文字 texture 資源 ID，如果有且按下時會替換 textTexture
   textPosition?: { x: number, y: number }; // 文字位置
 }
 
@@ -23,6 +24,7 @@ export class BaseButton extends PIXI.Container {
   private pressedSprite?: PIXI.Sprite;
   private disabledSprite?: PIXI.Sprite;
   private textSprite?: PIXI.Sprite; // 文字 texture sprite
+  private textPressSprite?: PIXI.Sprite; // 按下狀態的文字 texture sprite
   private currentState: ButtonState = ButtonState.NORMAL;
   private isEnabled: boolean = true;
   private hoverScale: number;
@@ -82,6 +84,11 @@ export class BaseButton extends PIXI.Container {
     if (options.textTexture) {
       this.loadTextTexture(options.textTexture, anchor, resourceManager, options.textPosition);
     }
+
+    // 如果有提供按下狀態的文字 texture，載入但不顯示
+    if (options.textPressTexture) {
+      this.loadTextPressTexture(options.textPressTexture, anchor, resourceManager, options.textPosition);
+    }
   }
 
   /**
@@ -101,6 +108,27 @@ export class BaseButton extends PIXI.Container {
       this.addChild(this.textSprite);
     } else {
       console.warn(`[BaseButton] 找不到文字 texture 資源: ${textureId}`);
+    }
+  }
+
+  /**
+   * 載入按下狀態的文字 texture
+   */
+  private loadTextPressTexture(textureId: string, anchor: number, resourceManager: ResourceManager, textPosition?: { x: number, y: number }): void {
+    const resource = resourceManager.getResource(textureId);
+    
+    if (resource) {
+      const texture = PIXI.Texture.from(resource);
+      this.textPressSprite = new PIXI.Sprite(texture);
+      this.textPressSprite.anchor.set(anchor);
+      this.textPressSprite.label = 'textPress';
+      this.textPressSprite.visible = false; // 預設隱藏
+      if (textPosition) {
+        this.textPressSprite.position.set(textPosition.x, textPosition.y);
+      }
+      this.addChild(this.textPressSprite);
+    } else {
+      console.warn(`[BaseButton] 找不到按下狀態文字 texture 資源: ${textureId}`);
     }
   }
 
@@ -220,6 +248,17 @@ export class BaseButton extends PIXI.Container {
     if (this.hoverSprite) this.hoverSprite.visible = false;
     if (this.pressedSprite) this.pressedSprite.visible = false;
     if (this.disabledSprite) this.disabledSprite.visible = false;
+
+    // 處理文字 sprite 的顯示/隱藏
+    if (state === ButtonState.PRESSED && this.textPressSprite) {
+      // 按下狀態：如果有 textPressSprite，顯示它並隱藏原文字
+      if (this.textSprite) this.textSprite.visible = false;
+      this.textPressSprite.visible = true;
+    } else {
+      // 其他狀態：顯示原文字，隱藏按下狀態文字
+      if (this.textSprite) this.textSprite.visible = true;
+      if (this.textPressSprite) this.textPressSprite.visible = false;
+    }
 
     // 顯示對應狀態的精靈
     switch (state) {

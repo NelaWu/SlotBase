@@ -75,7 +75,6 @@ export class FreeEnd extends PIXI.Container {
     }
 
     private onCloseBtnClicked(): void {
-        this.emit(GameEventEnum.FreeEndClose);
-        
+        this.emit(GameEventEnum.BIG_ANIMATION_CLOSE);
     }
 }

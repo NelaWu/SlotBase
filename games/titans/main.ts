@@ -146,6 +146,16 @@ async function startTitansSlotGame() {
       { id: 'fg_summary_alart_number_,', url: '/games/titans/assets/fg_summary_alart_number_,.png', type: 'image' },
       { id: 'fg_summary_alart_number_.', url: '/games/titans/assets/fg_summary_alart_number_..png', type: 'image' },
       // fessSpin
+      { id: 'buyfg_bg_startbtn_normal', url: '/games/titans/assets/buyfg_bg_startbtn_normal.png', type: 'image' },
+      { id: 'buyfg_bg_startbtn_pressed', url: '/games/titans/assets/buyfg_bg_startbtn_pressed.png', type: 'image' },
+      { id: 'buyfg_bg_startbtn_hover', url: '/games/titans/assets/buyfg_bg_startbtn_hover.png', type: 'image' },
+      { id: 'buyfg_bg_cancelbtn_normal', url: '/games/titans/assets/buyfg_bg_cancelbtn_normal.png', type: 'image' },
+      { id: 'buyfg_bg_cancelbtn_pressed', url: '/games/titans/assets/buyfg_bg_cancelbtn_pressed.png', type: 'image' },
+      { id: 'buyfg_bg_cancelbtn_hover', url: '/games/titans/assets/buyfg_bg_cancelbtn_hover.png', type: 'image' },
+      { id: 'buyfg_bg_btntext_start_normal', url: '/games/titans/assets/buyfg_bg_btntext_start_normal_'+lang+'.png', type: 'image' },
+      { id: 'buyfg_bg_btntext_start_pressed', url: '/games/titans/assets/buyfg_bg_btntext_start_pressed_'+lang+'.png', type: 'image' },
+      { id: 'buyfg_bg_btntext_cancel_normal', url: '/games/titans/assets/buyfg_bg_btntext_cancel_normal_'+lang+'.png', type: 'image' },
+      { id: 'buyfg_bg_btntext_cancel_pressed', url: '/games/titans/assets/buyfg_bg_btntext_cancel_pressed_'+lang+'.png', type: 'image' },
       // { id: 'fessSpin_bg', url: '/games/titans/assets/fessSpin_bg.png', type: 'image' },
       // spine 動畫資源 - @esotericsoftware/spine-pixi-v8 需要分別載入 atlas 和 skeleton
       { id: 'Spin_Btn_skel', url: '/games/titans/assets/spine/Spin_Btn.skel', type: 'skel' },

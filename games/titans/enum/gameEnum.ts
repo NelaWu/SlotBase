@@ -1,3 +1,3 @@
 export enum GameEventEnum{
-    FreeEndClose = 'freeEndClose',
+    BIG_ANIMATION_CLOSE = 'bigAnimationClose',
 }
