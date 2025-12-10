@@ -1,8 +1,11 @@
 import { ResourceManager } from '@/core/ResourceManager';
+import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import * as PIXI from 'pixi.js';
 
 export class GameScene extends PIXI.Container {
   private bgSprites: PIXI.Sprite[] = [];
+  private mainSpine?: Spine;
+  private freeSpine?: Spine;
   private roofSprite1?: PIXI.Sprite;
   private roofSprite2?: PIXI.Sprite;
   private frameSprite1?: PIXI.Sprite;
@@ -30,7 +33,24 @@ export class GameScene extends PIXI.Container {
             this.addChild(this.bgSprites[this.bgSprites.length - 1]);
           }
         });
-    
+        this.mainSpine = Spine.from({
+          atlas: 'Main_Game_BG_atlas',
+          skeleton: 'Main_Game_BG_skel',
+        });
+        this.mainSpine.label = 'mainSpine';
+        this.addChildAt(this.mainSpine, 2);
+        this.mainSpine.position.set(540, 960);
+        this.mainSpine.alpha = 0.5;
+        this.mainSpine.state.setAnimation(0, "Idle", true);
+        this.freeSpine = Spine.from({
+          atlas: 'Free_Game_BG_atlas',
+          skeleton: 'Free_Game_BG_skel',
+        });
+        this.freeSpine.label = 'freeSpine';
+        this.addChildAt(this.freeSpine, 2);
+        this.freeSpine.position.set(540, 960);
+        this.freeSpine.alpha = 0.5;
+        this.freeSpine.state.setAnimation(0, "Idle", true);
         // 2. 載入屋頂圖片
         const roofTexture = PIXI.Texture.from(resourceManager.getResource('mg_frame_roof') as string);
         if (roofTexture) {
@@ -78,6 +98,8 @@ export class GameScene extends PIXI.Container {
         this.bgSprites[0].texture = PIXI.Texture.from(freeBgResource);
         this.bgSprites[1].visible = false;
         this.bgSprites[2].visible = false;
+        this.mainSpine!.visible = false;
+        this.freeSpine!.visible = true;
         let roofTexture = resourceManager.getResource('fg_frame_roof');
         let frameTexture = resourceManager.getResource('fg_frame');
         this.roofSprite1!.texture = PIXI.Texture.from(roofTexture);
@@ -92,6 +114,8 @@ export class GameScene extends PIXI.Container {
         this.bgSprites[0].texture = PIXI.Texture.from(freeBgResource);
         this.bgSprites[1].visible = true;
         this.bgSprites[2].visible = true;
+        this.mainSpine!.visible = true;
+        this.freeSpine!.visible = false;
         let roofTexture = resourceManager.getResource('mg_frame_roof');
         let frameTexture = resourceManager.getResource('mg_frame');
         this.roofSprite1!.texture = PIXI.Texture.from(roofTexture);

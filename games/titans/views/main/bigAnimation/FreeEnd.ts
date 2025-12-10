@@ -5,6 +5,7 @@ import { GameEventEnum } from '../../../enum/gameEnum';
 import * as PIXI from 'pixi.js';
 import { BaseNumber } from '@/views/components/BaseNumber';
 import { gsap } from 'gsap';
+import { Spine } from '@esotericsoftware/spine-pixi-v8';
 
 export class FreeEnd extends PIXI.Container {
     private winText?: BaseNumber
@@ -14,11 +15,15 @@ export class FreeEnd extends PIXI.Container {
     }
     init(): void {
         const resourceManager = ResourceManager.getInstance();
-        const freeEndResource = resourceManager.getResource('fg_summary_alart_bg');
-        const freeEndTexture = PIXI.Texture.from(freeEndResource);
-        const freeEndSprite = new PIXI.Sprite(freeEndTexture);
-        freeEndSprite.position.set(60, 300);
-        this.addChild(freeEndSprite);
+        
+        const bg = Spine.from({
+            atlas: 'FG_Summary_Alart_atlas',
+            skeleton: 'FG_Summary_Alart_skel',
+          });
+          bg.position.set(540,900);
+          bg.state.setAnimation(0, "Idle", true);
+          this.addChild(bg);
+          console.log(bg);
 
         const title = resourceManager.getResource('fg_summary_alart_Title_cnt');
         const titleTexture = PIXI.Texture.from(title);

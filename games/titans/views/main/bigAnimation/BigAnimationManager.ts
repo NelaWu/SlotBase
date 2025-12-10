@@ -22,12 +22,16 @@ export class BigAnimationManager extends PIXI.Container {
     this.backgroundMask.drawRect(0, 0, 1080, 1920);
     this.backgroundMask.endFill();
     this.bigAnimationContainer.addChild(this.backgroundMask);
+
+    // 預設隱藏
+    this.hide();
   }
 
   /**
    * 顯示 FessSpin 動畫
    */
-  public showFessSpin(): FessSpin {
+  public showFreeSpin(): FessSpin {
+    this.show();
     const fessSpin = new FessSpin();
     this.bigAnimationContainer.addChild(fessSpin);
     // 監聽關閉事件
@@ -42,6 +46,7 @@ export class BigAnimationManager extends PIXI.Container {
    * @param winAmount 獲勝金額
    */
   public showFreeEnd(winAmount: string): FreeEnd {
+    this.show();
     const freeEnd = new FreeEnd();
     freeEnd.setWinText(winAmount);
     this.bigAnimationContainer.addChild(freeEnd);
@@ -58,14 +63,14 @@ export class BigAnimationManager extends PIXI.Container {
   /**
    * 顯示動畫容器
    */
-  public show(): void {
+  private show(): void {
     this.bigAnimationContainer.visible = true;
   }
 
   /**
    * 隱藏動畫容器
    */
-  public hide(): void {
+  private hide(): void {
     this.bigAnimationContainer.visible = false;
   }
 }
