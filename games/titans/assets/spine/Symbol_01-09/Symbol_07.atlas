@@ -424,6 +424,10 @@ Symbol_06_Sweep/Symbol_06_Sweep_28
 bounds:495,367,15,28
 offsets:32,17,50,50
 rotate:90
+Symbol_07_Sweep/Symbol_07_Sweep_00
+bounds:1359,54,20,23
+offsets:5,7,50,50
+rotate:90
 Symbol_07_Sweep/Symbol_07_Sweep_01
 bounds:1359,54,20,23
 offsets:5,7,50,50

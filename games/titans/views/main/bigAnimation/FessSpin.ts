@@ -2,6 +2,7 @@ import { BaseButton } from '@/views/components/BaseButton';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
 import { GameEventEnum } from '../../../enum/gameEnum';
 import * as PIXI from 'pixi.js';
+import { Spine } from '@esotericsoftware/spine-pixi-v8';
 
 export class FessSpin extends PIXI.Container  {
   private startBtn?: BaseButton
@@ -12,6 +13,15 @@ export class FessSpin extends PIXI.Container  {
   }
 
   init(): void {
+    const bg = Spine.from({
+      atlas: 'Buy_FG_atlas',
+      skeleton: 'Buy_FG_skel',
+    });
+    bg.label = 'buyFgSpine';
+    this.addChild(bg);
+    bg.position.set(540, 900);
+    bg.alpha = 0.5;
+    bg.state.setAnimation(0, "Idle", true);
     this.startBtn = new BaseButton({
       baseName: 'buyfg_bg_startbtn',
       textTexture: 'buyfg_bg_btntext_start_normal',

@@ -121,6 +121,9 @@ offsets:1,1,102,102
 M9_01
 bounds:1261,94,98,98
 offsets:1,1,100,100
+Symbol_03_Sweep/Symbol_03_Sweep_00
+bounds:700,25,18,34
+offsets:10,25,75,75
 Symbol_03_Sweep/Symbol_03_Sweep_01
 bounds:700,25,18,34
 offsets:10,25,75,75

@@ -55,6 +55,16 @@ export class MainGame extends PIXI.Container {
 
     // 創建大動畫管理器
     this.createBigAnimation();
+
+  }
+
+  public playSymbol10Animation(): void {
+    const spin = this.getChildByLabel?.('symbol10Spine');
+    if (spin && 'state' in spin && typeof (spin as any).state.setAnimation === 'function') {
+      const spineState = (spin as any).state;
+      console.log('playSymbol10Animation', spin);
+      spineState.setAnimation(0, "Win", true);
+    }
   }
 
   public playSpinAnimation(): void {
