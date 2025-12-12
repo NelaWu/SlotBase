@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { FessSpin } from './FessSpin';
 import { FreeEnd } from './FreeEnd';
+import { Transition } from './Transition';
 import { GameEventEnum } from '../../../enum/gameEnum';
 
 export class BigAnimationManager extends PIXI.Container {
@@ -57,6 +58,19 @@ export class BigAnimationManager extends PIXI.Container {
     });
     
     return freeEnd;
+  }
+
+  public showTransition(): Transition {
+    this.show();
+    this.backgroundMask.visible = false;
+    const transition = new Transition();
+    this.bigAnimationContainer.addChild(transition);
+    // 監聽關閉事件
+    transition.on(GameEventEnum.BIG_ANIMATION_TRANSITION_COMPLETE, () => {
+      this.hide();
+      this.backgroundMask.visible = true;
+    });
+    return transition;
   }
 
 
