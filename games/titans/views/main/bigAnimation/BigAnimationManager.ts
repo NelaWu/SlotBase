@@ -3,6 +3,7 @@ import { FessSpin } from './FessSpin';
 import { FreeEnd } from './FreeEnd';
 import { Transition } from './Transition';
 import { GameEventEnum } from '../../../enum/gameEnum';
+import { BigTreasure } from './BigTreasure';
 
 export class BigAnimationManager extends PIXI.Container {
   private bigAnimationContainer: PIXI.Container;
@@ -26,6 +27,7 @@ export class BigAnimationManager extends PIXI.Container {
 
     // 預設隱藏
     this.hide();
+
   }
 
   /**
@@ -71,6 +73,15 @@ export class BigAnimationManager extends PIXI.Container {
       this.backgroundMask.visible = true;
     });
     return transition;
+  }
+  public showBigTreasure(win:string): BigTreasure {
+    this.show();
+    const bigTreasure = new BigTreasure(win);
+    this.bigAnimationContainer.addChild(bigTreasure);
+    bigTreasure.on(GameEventEnum.BIG_ANIMATION_BIG_TREASURE_COMPLETE, () => {
+      this.hide();
+    });
+    return bigTreasure;
   }
 
 
