@@ -337,6 +337,7 @@ export class MainGame extends PIXI.Container {
     this.bigAnimationManager = new BigAnimationManager();
     this.bigAnimationManager.zIndex = 9999;
     this.addChild(this.bigAnimationManager);
+    this.bigAnimationManager.showFreeSpin();
   }
 }
 
