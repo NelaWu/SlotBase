@@ -2,8 +2,9 @@ import * as PIXI from 'pixi.js';
 import { FessSpin } from './FessSpin';
 import { FreeEnd } from './FreeEnd';
 import { Transition } from './Transition';
-import { GameEventEnum } from '../../../enum/gameEnum';
+import { BigWinType, GameEventEnum } from '../../../enum/gameEnum';
 import { BigTreasure } from './BigTreasure';
+import { BigWin } from './BigWin';
 
 export class BigAnimationManager extends PIXI.Container {
   private bigAnimationContainer: PIXI.Container;
@@ -27,7 +28,6 @@ export class BigAnimationManager extends PIXI.Container {
 
     // 預設隱藏
     this.hide();
-
   }
 
   /**
@@ -38,7 +38,7 @@ export class BigAnimationManager extends PIXI.Container {
     const fessSpin = new FessSpin();
     this.bigAnimationContainer.addChild(fessSpin);
     // 監聽關閉事件
-    fessSpin.on(GameEventEnum.BIG_ANIMATION_CLOSE, () => {
+    fessSpin.once(GameEventEnum.BIG_ANIMATION_CLOSE, () => {
       this.hide();
     });
     return fessSpin;
@@ -55,7 +55,7 @@ export class BigAnimationManager extends PIXI.Container {
     this.bigAnimationContainer.addChild(freeEnd);
     
     // 監聽關閉事件
-    freeEnd.on(GameEventEnum.BIG_ANIMATION_CLOSE, () => {
+    freeEnd.once(GameEventEnum.BIG_ANIMATION_CLOSE, () => {
       this.hide();
     });
     
@@ -68,7 +68,7 @@ export class BigAnimationManager extends PIXI.Container {
     const transition = new Transition();
     this.bigAnimationContainer.addChild(transition);
     // 監聽關閉事件
-    transition.on(GameEventEnum.BIG_ANIMATION_TRANSITION_COMPLETE, () => {
+    transition.once(GameEventEnum.BIG_ANIMATION_TRANSITION_COMPLETE, () => {
       this.hide();
       this.backgroundMask.visible = true;
     });
@@ -78,10 +78,20 @@ export class BigAnimationManager extends PIXI.Container {
     this.show();
     const bigTreasure = new BigTreasure(win);
     this.bigAnimationContainer.addChild(bigTreasure);
-    bigTreasure.on(GameEventEnum.BIG_ANIMATION_BIG_TREASURE_COMPLETE, () => {
+    bigTreasure.once(GameEventEnum.BIG_ANIMATION_BIG_TREASURE_COMPLETE, () => {
       this.hide();
     });
     return bigTreasure;
+  }
+
+  public showBigWin(type:BigWinType, money:string,bet?:number): BigWin {
+    this.show();
+    const bigWin = new BigWin(type, money,bet);
+    this.bigAnimationContainer.addChild(bigWin);
+    bigWin.once(GameEventEnum.BIG_ANIMATION_BIG_WIN_COMPLETE, () => {
+      this.hide();
+    });
+    return bigWin;
   }
 
 

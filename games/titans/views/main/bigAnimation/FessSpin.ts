@@ -3,7 +3,6 @@ import { ButtonEvent } from '@/views/components/ButtonEvents';
 import { GameEventEnum } from '../../../enum/gameEnum';
 import * as PIXI from 'pixi.js';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
-import { Sprite } from 'pixi.js';
 import { ResourceManager } from '@/core/ResourceManager';
 import { BaseNumber } from '@/views/components/BaseNumber';
 
