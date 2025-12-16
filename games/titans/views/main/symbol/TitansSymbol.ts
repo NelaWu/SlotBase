@@ -17,15 +17,13 @@ export class TitansSymbol extends BaseSymbol {
       const symbolTexture = PIXI.Texture.from(symbolResource);
       this.sprite.texture = symbolTexture;
     }
-    //to do 確認好美術檔
-    if(id == 1 || id == 2 || id ==4 || id == 10 || id == 11){
-      this.spine = Spine.from({
-        atlas: `symbol_${id.toString().padStart(2, '0')}_atlas`,
-        skeleton: `symbol_${id.toString().padStart(2, '0')}_skel`,
-      });
-      this.spine.scale.set(0.5, 0.5);
-      this.addChild(this.spine);
-    }
+    this.spine = Spine.from({
+      atlas: `symbol_${id.toString().padStart(2, '0')}_atlas`,
+      skeleton: `symbol_${id.toString().padStart(2, '0')}_skel`,
+    });
+    this.spine.scale.set(0.5, 0.5);
+    this.addChild(this.spine); 
+    this.hideWin();
   }
   public showWin(): void {
     if (this.spine) {
