@@ -142,7 +142,6 @@ export class TitansWheel extends PIXI.Container {
     
     this.symbolStates.forEach(col => {
       col.forEach(state => {
-        console.log('clear symbol', state);
         gsap.to(state.symbol, {
           y: this.config.reelHeight + this.symbolHeight,
           duration: 0.17*(this.config.symbolsPerReel - state.row),

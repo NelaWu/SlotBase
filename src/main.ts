@@ -88,7 +88,8 @@ function updateUI(): void {
 
   const model = slotMachineApp.getModel();
   const currentState = slotMachineApp.getCurrentState();
-
+  console.log('updateUI', model.getBalance());
+  
   // 更新餘額和投注顯示
   balanceDisplay.textContent = model.getBalance().toString();
   betDisplay.textContent = model.getCurrentBet().toString();

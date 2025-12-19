@@ -15,6 +15,7 @@ export class TitansSlotApp extends SlotMachineApp {
   private TitansView: TitansSlotView;
   private TitansController: TitansSlotController;
   private wsManager?: WebSocketManager;
+  private spinStartedHandler?: () => void;
 
   constructor(config: TitansSlotAppConfig) {
     super(config);
@@ -42,6 +43,9 @@ export class TitansSlotApp extends SlotMachineApp {
       // 初始化 WebSocket 連接
       await this.initializeWebSocket();
 
+      // 監聽 Model 的 spinStarted 事件，發送 WebSocket 訊息
+      this.bindModelEvents();
+
       console.log('⚡ Titans 拉霸應用程式初始化完成');
       console.log('🎮 餘額:', this.TitansModel.getBalance());
       console.log('💰 投注:', this.TitansModel.getCurrentBet());
@@ -57,19 +61,27 @@ export class TitansSlotApp extends SlotMachineApp {
    */
   private async initializeWebSocket(): Promise<void> {
     try {
+      // 獲取語言參數
+      const urlParams = new URLSearchParams(window.location.search);
+      const language = urlParams.get('lang') || 'zh-cn';
+      
       // 創建 WebSocket 管理器實例
       this.wsManager = WebSocketManager.getInstance({
         url: 'wss://gsvr1.wkgm88.net/gameserver',
         reconnectInterval: 3000,        // 3秒重連間隔
         maxReconnectAttempts: -1,      // 無限重連
-        heartbeatInterval: 30000,      // 30秒心跳
-        heartbeatMessage: JSON.stringify({ type: 'ping' }),
-        autoReconnect: true
+        heartbeatInterval: 5000,      // 30秒心跳（確保 > 0 才會發送心跳）
+        autoReconnect: true,
+        initMessage: {
+          GameToken: 'BN80',
+          GameID: 7,
+          DemoOn: false,
+          Lang: language.toLowerCase() // 轉換為小寫，如 'zh-cn'
+        }
       });
-
       // 監聽連接事件
       this.wsManager.on(WebSocketEvent.CONNECT, (data) => {
-        console.log('✅ WebSocket 連接成功');
+        console.log('✅ WebSocket 連接成功',data);
       });
 
       // 監聽斷開事件
@@ -79,7 +91,6 @@ export class TitansSlotApp extends SlotMachineApp {
 
       // 監聽消息事件
       this.wsManager.on(WebSocketEvent.MESSAGE, (data) => {
-        console.log('📨 收到 WebSocket 消息:', data);
         this.handleWebSocketMessage(data);
       });
 
@@ -102,31 +113,43 @@ export class TitansSlotApp extends SlotMachineApp {
   }
 
   /**
+   * 綁定 Model 事件監聽器
+   */
+  private bindModelEvents(): void {
+    // 監聽旋轉開始事件，發送 WebSocket 訊息
+    this.spinStartedHandler = () => {
+      const betMultiple = this.TitansModel.getCurrentBet();
+      this.sendWebSocketMessage({
+        code: 11002,
+        BetMultiple: betMultiple
+      });
+    };
+    this.TitansModel.on('spinStarted', this.spinStartedHandler);
+  }
+
+  /**
    * 處理 WebSocket 消息
    */
   private handleWebSocketMessage(data: any): void {
-    // 根據消息類型處理不同的邏輯
-    if (typeof data === 'object' && data.type) {
-      switch (data.type) {
-        case 'pong':
-          // 心跳回應，無需處理
-          break;
-        case 'game_result':
-          // 遊戲結果
-          if (data.result) {
-            // 處理遊戲結果
-            console.log('🎰 收到遊戲結果:', data.result);
+    // 根據 Code 處理不同的消息類型
+    if (typeof data === 'object' && typeof data.Code === 'number') {
+      switch (data.Code) {
+        case 1005:
+          // 初始化
+          if (data.Balance !== undefined && data.Balance > 0) {
+            this.TitansModel.setBalance(data.Balance);
           }
           break;
-        case 'balance_update':
-          // 餘額更新
-          if (data.balance !== undefined) {
-            this.TitansModel.setBalance(data.balance);
-            console.log('💰 餘額更新:', data.balance);
-          }
+        case 11001:
+          console.log('🔐 收到投注設定:', data);
           break;
+        
+        case -2:
+          // 心跳回應（已在 WebSocketManager 中處理，不會到達這裡）
+          break;
+        
         default:
-          console.log('📨 未處理的消息類型:', data.type);
+          console.log('📨 收到其他消息 Code:', data.Code, data);
       }
     }
   }
@@ -153,10 +176,15 @@ export class TitansSlotApp extends SlotMachineApp {
   override destroy(): void {
     console.log('🗑️  銷毀 Titans 拉霸組件...');
     
-    // 斷開 WebSocket 連接
+    // 移除 Model 事件監聽器
+    if (this.spinStartedHandler) {
+      this.TitansModel.off('spinStarted', this.spinStartedHandler);
+      this.spinStartedHandler = undefined;
+    }
+    
     if (this.wsManager) {
-      this.wsManager.disconnect();
       this.wsManager.removeAllListeners();
+      // 不調用 disconnect() - 讓後端決定何時關閉連接
       this.wsManager = undefined;
     }
     
