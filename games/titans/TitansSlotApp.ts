@@ -3,6 +3,7 @@ import { TitansSlotModel, TitansSlotConfig, TitansSlotResult } from './models/Ti
 import { TitansSlotView } from './views/TitansSlotView';
 import { TitansSlotController } from './controllers/TitansSlotController';
 import { WebSocketManager, WebSocketEvent } from '@/core/WebSocketManager';
+import { SymbolMapper } from './constants/SymbolMapper';
 
 // Titans 拉霸應用程式配置
 export interface TitansSlotAppConfig extends SlotMachineAppConfig {
@@ -138,13 +139,14 @@ export class TitansSlotApp extends SlotMachineApp {
 
     const spinInfo = data.SpinInfo;
     
-    // 提取牌面結果 (SymbolResult)
-    const reels: number[][] = spinInfo.SymbolResult || spinInfo.ScreenOrg || [];
+    // 提取牌面結果 (SymbolResult) 並轉換符號 ID
+    const serverReels: number[][] = spinInfo.SymbolResult || spinInfo.ScreenOrg || [];
+    const reels: number[][] = SymbolMapper.serverToClientArray(serverReels);
     
-    // 提取獲勝線
+    // 提取獲勝線編號
     const winLines: number[] = [];
     if (spinInfo.WinLineInfos && Array.isArray(spinInfo.WinLineInfos)) {
-      winLines.push(...spinInfo.WinLineInfos.map((info: any) => info.LineIndex || info.Index || 0));
+      winLines.push(...spinInfo.WinLineInfos.map((info: any) => info.LineNo || info.LineIndex || 0));
     }
     
     // 提取獲勝金額
@@ -152,6 +154,13 @@ export class TitansSlotApp extends SlotMachineApp {
     
     // 提取倍數
     const multiplier = spinInfo.Multiplier || 1;
+    
+    // 提取詳細的獲勝連線信息並轉換符號 ID
+    const winLineInfos = (spinInfo.WinLineInfos || []).map((info: any) => ({
+      ...info,
+      SymbolID: SymbolMapper.serverToClient(info.SymbolID || info.SymbolId || 0),
+      // WinPosition 中的符號 ID 如果需要轉換，可以在這裡處理
+    }));
     
     // 判斷是否觸發 Bonus
     let bonusFeature: string | undefined;
@@ -182,7 +191,8 @@ export class TitansSlotApp extends SlotMachineApp {
       bonusTriggered: bonusFeature !== undefined,
       bonusFeature,
       freeSpins,
-      jackpotWon
+      jackpotWon,
+      winLineInfos // 包含詳細的獲勝連線信息
     };
     
     // 設置結果到 Model（Model 會自動處理餘額更新）

@@ -173,6 +173,8 @@ export class TitansWheel extends PIXI.Container {
    * 停止旋轉（掉落指定的結果符號）
    */
   public stopSpin(result: { symbolIds: number[][], onComplete?: () => void }): void {
+    console.log('stopSpin',result);
+    
     const { symbolIds, onComplete } = result;
     // 驗證結果數量
     if (symbolIds.length !== this.config.numberOfReels) {

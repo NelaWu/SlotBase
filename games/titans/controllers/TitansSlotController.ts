@@ -63,9 +63,7 @@ export class TitansSlotController extends BaseController {
   private onSpinStarted(): void {
     this.log('開始旋轉');
     this.view.startSpinAnimation();
-    
-    // 模擬伺服器回應（實際應該調用 API）
-    this.simulateSpinResult();
+    // 移除模擬結果，改為等待 WebSocket 11003 消息
   }
 
   private onSpinCompleted(result: TitansSlotResult): void {
@@ -143,50 +141,6 @@ export class TitansSlotController extends BaseController {
   }
 
   // ==================== 輔助方法 ====================
-
-  // 模擬旋轉結果（實際應該從後端 API 獲取）
-  private simulateSpinResult(): void {
-    setTimeout(() => {
-      // 生成隨機結果
-      const reels: number[][] = [];
-      for (let i = 0; i < 6; i++) {
-        reels.push([
-          Math.floor(Math.random() * 11) + 1,
-          Math.floor(Math.random() * 11) + 1,
-          Math.floor(Math.random() * 11) + 1,
-          Math.floor(Math.random() * 11) + 1,
-          Math.floor(Math.random() * 11) + 1
-        ]);
-      }
-
-      // 隨機決定是否獲勝
-      const isWin = Math.random() > 0.5;
-      const totalWin = isWin ? this.model.getCurrentBet() * (Math.floor(Math.random() * 10) + 1) : 0;
-
-      // 隨機決定是否觸發 Bonus（低機率）
-      const bonusRandom = Math.random();
-      let bonusFeature: string | undefined;
-      let freeSpins: number | undefined;
-
-      if (bonusRandom > 0.95) {
-        bonusFeature = 'freeSpins';
-        freeSpins = 10;
-      } else if (bonusRandom > 0.98) {
-        bonusFeature = 'jackpot';
-      }
-
-      const result: TitansSlotResult = {
-        reels,
-        winLines: isWin ? [0, 1, 2] : [],
-        totalWin,
-        bonusFeature,
-        freeSpins,
-        jackpotWon: bonusFeature === 'jackpot'
-      };
-
-      this.model.setSpinResult(result);
-    }, 1000); // 模擬網路延遲
-  }
 
   // 處理 Bonus 功能
   private handleBonusFeature(bonusType: string): void {

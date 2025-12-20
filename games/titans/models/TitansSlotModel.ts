@@ -8,11 +8,27 @@ export interface TitansSlotConfig extends SlotMachineConfig {
   jackpotMultiplier: number;
 }
 
+// 獲勝連線信息
+export interface WinLineInfo {
+  LineNo: number;
+  SymbolID: number;
+  SymbolType: number;
+  SymbolCount: number;
+  WayCount: number;
+  WinPosition: number[][]; // [reelIndex, symbolIndex]
+  Multiplier: number;
+  WinOrg: number;
+  Win: number;
+  WinType: number;
+  Odds: number;
+}
+
 // Titans 拉霸結果
 export interface TitansSlotResult extends SpinResult {
   bonusFeature?: string;
   freeSpins?: number;
   jackpotWon?: boolean;
+  winLineInfos?: WinLineInfo[]; // 詳細的獲勝連線信息
 }
 
 // Titans 拉霸 Model
