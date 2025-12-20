@@ -46,6 +46,13 @@ export class TitansSlotApp extends SlotMachineApp {
 
       // 監聽 Model 的 spinStarted 事件，發送 WebSocket 訊息
       this.bindModelEvents();
+      
+      // 設置旋轉動畫完成回調，用於發送 WebSocket 11010
+      this.TitansView.setOnSpinAnimationComplete(() => {
+        this.sendWebSocketMessage({
+          code: 11010
+        });
+      });
 
       console.log('⚡ Titans 拉霸應用程式初始化完成');
       console.log('🎮 餘額:', this.TitansModel.getBalance());

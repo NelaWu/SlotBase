@@ -5,9 +5,17 @@ import { ButtonEvent } from '@/views/components/ButtonEvents';
 
 export class TitansSlotView extends BaseView {
   private mainGame!: MainGame;
+  private onSpinAnimationCompleteCallback?: () => void; // 旋轉動畫完成回調
 
   constructor(app: PIXI.Application) {
     super(app);
+  }
+
+  /**
+   * 設置旋轉動畫完成回調
+   */
+  public setOnSpinAnimationComplete(callback: () => void): void {
+    this.onSpinAnimationCompleteCallback = callback;
   }
 
   // 創建 UI 組件
@@ -102,6 +110,11 @@ export class TitansSlotView extends BaseView {
         setTimeout(() => {
           this.setSpinButtonEnabled(true);
         }, 300);
+        
+        // 牌面顯示完成後，觸發回調（用於發送 WebSocket 11010）
+        if (this.onSpinAnimationCompleteCallback) {
+          this.onSpinAnimationCompleteCallback();
+        }
       }
     });
   }
