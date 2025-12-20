@@ -258,4 +258,9 @@ export class TitansSlotView extends BaseView {
     
     this.scale.set(scale);
   }
+
+  // 獲取 MainGame 實例
+  public getMainGame(): MainGame {
+    return this.mainGame;
+  }
 }

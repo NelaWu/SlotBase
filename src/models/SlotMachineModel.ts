@@ -27,8 +27,9 @@ export class SlotMachineModel extends BaseModel {
     
     this.stateData = {
       isSpinning: false,
-      currentBet: 10,
-      balance: 1000,
+      betList: [],
+      currentBet: 0,
+      balance: 0,
       loadingProgress: 0
     };
   }
@@ -66,6 +67,17 @@ export class SlotMachineModel extends BaseModel {
   // 獲取當前投注
   getCurrentBet(): number {
     return this.stateData.currentBet || 0;
+  }
+
+  // 設置投注列表
+  setBetList(betList: number[]): void {
+    this.stateData.betList = betList;
+    this.emit('betListChanged', betList);
+  }
+
+  // 獲取投注列表
+  getBetList(): number[] {
+    return this.stateData.betList || [];
   }
 
   // 檢查是否能夠開始轉動
@@ -150,6 +162,7 @@ export class SlotMachineModel extends BaseModel {
   reset(): void {
     this.stateData = {
       isSpinning: false,
+      betList: [],
       currentBet: 10,
       balance: 1000,
       loadingProgress: 0

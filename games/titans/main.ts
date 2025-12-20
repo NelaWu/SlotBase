@@ -158,6 +158,14 @@ async function startTitansSlotGame() {
       { id: 'buyfg_bg_btntext_cancel_pressed', url: '/games/titans/assets/buyfg_bg_btntext_cancel_pressed_'+lang+'.png', type: 'image' },
       { id: 'buyfg_title01', url: '/games/titans/assets/buyfg_title01_'+lang+'.png', type: 'image' },
       { id: 'buyfg_title02', url: '/games/titans/assets/buyfg_title02_'+lang+'.png', type: 'image' },
+      //bet panel
+      { id: 'bet_panel', url: '/games/titans/assets/bet_panel.png', type: 'image' },
+      { id: 'bet_bnt_hover', url: '/games/titans/assets/bet_bnt_hover.png', type: 'image' },
+      { id: 'bet_bnt_normal', url: '/games/titans/assets/bet_bnt_normal.png', type: 'image' },
+      { id: 'bet_bnt_pressed', url: '/games/titans/assets/bet_bnt_pressed.png', type: 'image' },
+      { id: 'bet_btntext', url: '/games/titans/assets/bet_btntext_'+lang+'.png', type: 'image' },
+      { id: 'bet_select', url: '/games/titans/assets/bet_select.png', type: 'image' },
+      { id: 'bet_title', url: '/games/titans/assets/bet_title_'+lang+'.png', type: 'image' },
       // { id: 'fessSpin_bg', url: '/games/titans/assets/fessSpin_bg.png', type: 'image' },
       // spine 動畫資源 - @esotericsoftware/spine-pixi-v8 需要分別載入 atlas 和 skeleton
       // 主目錄下的 Spine 資源

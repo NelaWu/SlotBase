@@ -36,6 +36,7 @@ export interface SlotMachineConfig {
 // 拉霸機狀態資料
 export interface SlotStateData {
   isSpinning: boolean;
+  betList: number[];
   lastResult?: any;
   currentBet?: number;
   balance?: number;

@@ -5,6 +5,7 @@ import { TitansWheel } from './wheel/TitansWheel';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { GameScene } from './GameScene';
 import { BigAnimationManager } from './bigAnimation/BigAnimationManager';
+import { BetPanel } from './BetPanel';
 
 export class MainGame extends PIXI.Container {
   public gameScene!: GameScene;
@@ -28,6 +29,7 @@ export class MainGame extends PIXI.Container {
   public betButtonContainer!: PIXI.Container;
   public settingsButtonContainer!: PIXI.Container;
   public bigAnimationManager!: BigAnimationManager;
+  public betPanel!: BetPanel;
 
   constructor() {
     super();
@@ -52,6 +54,7 @@ export class MainGame extends PIXI.Container {
 
     // 設置佈局
     this.setupLayout();
+
 
     // 創建大動畫管理器
     this.createBigAnimation();
@@ -144,7 +147,6 @@ export class MainGame extends PIXI.Container {
       baseName: 'option_btn',
       anchor: 0.5
     });
-    this.settingsButton.zIndex = 15;
     this.addChild(this.settingsButton);
 
     // 設定返回按鈕
@@ -152,7 +154,6 @@ export class MainGame extends PIXI.Container {
       baseName: 'option_back_btn',
       anchor: 0.5
     });
-    this.settingsBackButton.zIndex = 15;
     this.addChild(this.settingsBackButton);
     this.settingsBackButton.visible = false;
 
@@ -161,7 +162,6 @@ export class MainGame extends PIXI.Container {
       baseName: 'turbo_btn',
       anchor: 0.5
     });
-    this.turboButton.zIndex = 15;
     this.betButtonContainer.addChild(this.turboButton);
 
     // 自動旋轉按鈕
@@ -169,7 +169,6 @@ export class MainGame extends PIXI.Container {
       baseName: 'auto_btn',
       anchor: 0.5
     });
-    this.autoButton.zIndex = 15;
     this.betButtonContainer.addChild(this.autoButton);
 
     // 加注按鈕
@@ -177,7 +176,6 @@ export class MainGame extends PIXI.Container {
       baseName: 'plus_btn',
       anchor: 0.5
     });
-    this.plusButton.zIndex = 15;
     this.betButtonContainer.addChild(this.plusButton);
 
     // 減注按鈕
@@ -185,7 +183,6 @@ export class MainGame extends PIXI.Container {
       baseName: 'sub_btn',
       anchor: 0.5
     });
-    this.minusButton.zIndex = 15;
     this.betButtonContainer.addChild(this.minusButton);
 
     // 購買免費旋轉按鈕
@@ -193,7 +190,6 @@ export class MainGame extends PIXI.Container {
       baseName: 'fg_btn_cnt',
       anchor: 0
     });
-    this.buyFreeSpinsButton.zIndex = 15;
     this.addChild(this.buyFreeSpinsButton);
   }
 
@@ -202,19 +198,16 @@ export class MainGame extends PIXI.Container {
       baseName: 'logout_btn',
       anchor: 0.5
     });
-    this.logoutButton.zIndex = 15;
     this.settingsButtonContainer.addChild(this.logoutButton);
     this.recordButton = new BaseButton({
       baseName: 'record_btn',
       anchor: 0.5
     });
-    this.recordButton.zIndex = 15;
     this.settingsButtonContainer.addChild(this.recordButton);
     this.infoButton = new BaseButton({
       baseName: 'info_btn',
       anchor: 0.5
     });
-    this.infoButton.zIndex = 15;
     this.settingsButtonContainer.addChild(this.infoButton);
   }
 
@@ -242,7 +235,7 @@ export class MainGame extends PIXI.Container {
     this.addChild(this.balanceText);
 
     // 投注顯示
-    const betIcon:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('trophy_ui') as string));
+    const betIcon:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('multiple_ui') as string));
     betIcon.position.set(376,1539);
     this.addChild(betIcon);
     this.betText = new PIXI.Text({
@@ -252,6 +245,23 @@ export class MainGame extends PIXI.Container {
     this.betText.x = 432;   
     this.betText.y = 1540;
     this.addChild(this.betText);
+    
+    // 點擊betBackground開啟betPanel
+    const betBackground = new PIXI.Graphics();
+    betBackground.beginFill(0x000000, 0);
+    betBackground.drawRect(0, 0, 350, 50);
+    betBackground.endFill();
+    betBackground.position.set(365,1535);
+    betBackground.eventMode = 'static';
+    betBackground.cursor = 'pointer';
+    betBackground.hitArea = new PIXI.Rectangle(0, 0, 350, 50);
+    betBackground.on('pointerdown', () => {
+      if (this.betPanel) {
+        this.betPanel.show();
+      }
+    });
+    
+    this.addChild(betBackground);
 
     // 獲勝金額顯示（底部）
     const winIcon:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('trophy_ui') as string));
@@ -337,6 +347,17 @@ export class MainGame extends PIXI.Container {
     this.bigAnimationManager = new BigAnimationManager();
     this.bigAnimationManager.zIndex = 9999;
     this.addChild(this.bigAnimationManager);
+  }
+
+  public createBetPanel(betlist: number[], onBetSelected?: (betAmount: number) => void): void {
+    // 如果已經存在 betPanel，先移除
+    if (this.betPanel) {
+      this.removeChild(this.betPanel);
+      this.betPanel.destroy();
+    }
+    this.betPanel = new BetPanel(betlist, onBetSelected);
+    this.betPanel.visible = false; // 初始狀態為隱藏
+    this.addChild(this.betPanel);
   }
 }
 

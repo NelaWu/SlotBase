@@ -1,5 +1,5 @@
 import { SlotMachineApp, SlotMachineAppConfig } from '@/SlotMachineApp';
-import { TitansSlotModel, TitansSlotConfig } from './models/TitansSlotModel';
+import { TitansSlotModel, TitansSlotConfig, TitansSlotResult } from './models/TitansSlotModel';
 import { TitansSlotView } from './views/TitansSlotView';
 import { TitansSlotController } from './controllers/TitansSlotController';
 import { WebSocketManager, WebSocketEvent } from '@/core/WebSocketManager';
@@ -128,6 +128,68 @@ export class TitansSlotApp extends SlotMachineApp {
   }
 
   /**
+   * 處理旋轉結果 (Code 11003)
+   */
+  private handleSpinResult(data: any): void {
+    if (!data.SpinInfo) {
+      console.warn('⚠️  旋轉結果缺少 SpinInfo');
+      return;
+    }
+
+    const spinInfo = data.SpinInfo;
+    
+    // 提取牌面結果 (SymbolResult)
+    const reels: number[][] = spinInfo.SymbolResult || spinInfo.ScreenOrg || [];
+    
+    // 提取獲勝線
+    const winLines: number[] = [];
+    if (spinInfo.WinLineInfos && Array.isArray(spinInfo.WinLineInfos)) {
+      winLines.push(...spinInfo.WinLineInfos.map((info: any) => info.LineIndex || info.Index || 0));
+    }
+    
+    // 提取獲勝金額
+    const totalWin = spinInfo.Win || 0;
+    
+    // 提取倍數
+    const multiplier = spinInfo.Multiplier || 1;
+    
+    // 判斷是否觸發 Bonus
+    let bonusFeature: string | undefined;
+    let freeSpins: number | undefined;
+    let jackpotWon = false;
+    
+    // 根據 GameState 或其他字段判斷 Bonus
+    if (spinInfo.GameState === 1 || spinInfo.GameStateType === 1) {
+      // 可能需要根據實際業務邏輯調整
+      if (spinInfo.FGRemainTimes > 0) {
+        bonusFeature = 'freeSpins';
+        freeSpins = spinInfo.FGRemainTimes;
+      }
+    }
+    
+    // 檢查是否中大獎
+    if (data.WinJPInfo && data.WinJPInfo.Value > 0) {
+      jackpotWon = true;
+      bonusFeature = 'jackpot';
+    }
+    
+    // 構建結果對象
+    const result: TitansSlotResult = {
+      reels,
+      winLines,
+      totalWin,
+      multiplier,
+      bonusTriggered: bonusFeature !== undefined,
+      bonusFeature,
+      freeSpins,
+      jackpotWon
+    };
+    
+    // 設置結果到 Model（Model 會自動處理餘額更新）
+    this.TitansModel.setSpinResult(result);
+  }
+
+  /**
    * 處理 WebSocket 消息
    */
   private handleWebSocketMessage(data: any): void {
@@ -142,6 +204,27 @@ export class TitansSlotApp extends SlotMachineApp {
           break;
         case 11001:
           console.log('🔐 收到投注設定:', data);
+          // 設置 BetMultiples 到 betList
+          if (data.BetMultiples && Array.isArray(data.BetMultiples) && data.BetMultiples.length > 0) {
+            this.TitansModel.setBetList(data.BetMultiples);
+            // 預設下注金額為陣列第一個元素
+            const defaultBet = data.BetMultiples[0];
+            this.TitansModel.setBet(defaultBet);
+            // 呼叫 MainGame.createBetPanel，並傳入回調函數以更新 Model 的 currentBet
+            this.TitansView.getMainGame().createBetPanel(
+              data.BetMultiples,
+              (betAmount: number) => {
+                // 當用戶選擇投注金額時，更新 Model
+                this.TitansModel.setBet(betAmount);
+              }
+            );
+          }
+          break;
+        
+        case 11003:
+          console.log('🎰 收到旋轉結果:', data);
+          // 處理旋轉結果
+          this.handleSpinResult(data);
           break;
         
         case -2:
