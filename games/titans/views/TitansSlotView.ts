@@ -102,9 +102,10 @@ export class TitansSlotView extends BaseView {
   }
 
   // 公開方法 - 停止旋轉動畫
-  public stopSpinAnimation(results: number[][]): void {
+  public stopSpinAnimation(results: number[][], onClearComplete?: () => void): void {
     this.mainGame.wheel.stopSpin({
       symbolIds: results,  // 直接傳入陣列
+      onClearComplete: onClearComplete, // 清空完成回調
       onComplete: () => {
         // 所有捲軸停止後，啟用按鈕
         setTimeout(() => {
@@ -275,5 +276,10 @@ export class TitansSlotView extends BaseView {
   // 獲取 MainGame 實例
   public getMainGame(): MainGame {
     return this.mainGame;
+  }
+
+  // 檢查畫面上是否有可見符號
+  public hasVisibleSymbols(): boolean {
+    return this.mainGame.wheel.hasVisibleSymbols();
   }
 }

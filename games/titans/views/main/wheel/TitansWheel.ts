@@ -56,6 +56,9 @@ export class TitansWheel extends PIXI.Container {
   private lastTime: number = 0;
   private isAnimating: boolean = false;
   private dropCompleteCallback?: () => void;
+  private clearCompleteCallback?: () => void; // 清空完成回調
+  private isClearing: boolean = false; // 是否正在清空符號
+  private clearStartTime: number = 0; // 清空開始時間
 
   constructor(config: TitansWheelConfig) {
     super();
@@ -136,24 +139,78 @@ export class TitansWheel extends PIXI.Container {
   }
 
   /**
+   * 檢查畫面上是否有符號顯示（公開方法）
+   */
+  public hasVisibleSymbols(): boolean {
+    // 檢查 symbolStates 是否有符號且符號存在
+    if (!this.symbolStates || this.symbolStates.length === 0) {
+      return false;
+    }
+    
+    // 檢查是否有任何符號存在且可見
+    for (const col of this.symbolStates) {
+      if (col && col.length > 0) {
+        for (const state of col) {
+          if (state && state.symbol && state.symbol.visible && !state.symbol.destroyed) {
+            return true;
+          }
+        }
+      }
+    }
+    
+    return false;
+  }
+
+  /**
    * 清空所有符號
    */
   private clearSymbols(): void {
-    
-    this.symbolStates.forEach(col => {
-      col.forEach(state => {
-        gsap.to(state.symbol, {
-          y: this.config.reelHeight + this.symbolHeight,
-          duration: 0.17*(this.config.symbolsPerReel - state.row),
-          delay: 0.1*state.col,
-          ease: 'power2.inOut',
-          onComplete: () => {
+    if (!this.hasVisibleSymbols()) {
+      // 如果沒有可見符號，直接清空狀態
+      this.symbolStates.forEach(col => {
+        col.forEach(state => {
+          if (state.symbol && !state.symbol.destroyed) {
             state.symbol.destroy();
           }
         });
       });
+      this.symbolStates = [];
+      this.isClearing = false;
+      return;
+    }
+    
+    // 標記開始清空
+    this.isClearing = true;
+    this.clearStartTime = performance.now();
+    
+    // 計算清空動畫的最長時間
+    const lastCol = this.symbolStates.length - 1;
+    const lastRow = this.symbolStates[lastCol]?.length - 1 || 0;
+    const maxDuration = 0.17 * (this.config.symbolsPerReel - lastRow);
+    const maxDelay = 0.1 * lastCol;
+    const clearAnimationTime = (maxDelay + maxDuration) * 1000 + 100; // 額外 100ms 緩衝
+    
+    this.symbolStates.forEach(col => {
+      col.forEach(state => {
+        if (state.symbol && !state.symbol.destroyed) {
+          gsap.to(state.symbol, {
+            y: this.config.reelHeight + this.symbolHeight,
+            duration: 0.17*(this.config.symbolsPerReel - state.row),
+            delay: 0.1*state.col,
+            ease: 'power2.inOut',
+            onComplete: () => {
+              state.symbol.destroy();
+            }
+          });
+        }
+      });
     });
     this.symbolStates = [];
+    
+    // 設置清空完成標記
+    setTimeout(() => {
+      this.isClearing = false;
+    }, clearAnimationTime);
   }
 
   /**
@@ -172,17 +229,108 @@ export class TitansWheel extends PIXI.Container {
   /**
    * 停止旋轉（掉落指定的結果符號）
    */
-  public stopSpin(result: { symbolIds: number[][], onComplete?: () => void }): void {
+  public stopSpin(result: { symbolIds: number[][], onComplete?: () => void, onClearComplete?: () => void }): void {
     console.log('stopSpin',result);
     
-    const { symbolIds, onComplete } = result;
+    const { symbolIds, onComplete, onClearComplete } = result;
     // 驗證結果數量
+    if (!symbolIds || !Array.isArray(symbolIds) || symbolIds.length === 0) {
+      console.error(`Invalid symbolIds:`, symbolIds);
+      return;
+    }
+    
     if (symbolIds.length !== this.config.numberOfReels) {
-      console.error(`Expected ${this.config.numberOfReels} reels, got ${symbolIds.length}`);
+      console.error(`Expected ${this.config.numberOfReels} reels, got ${symbolIds.length}`, symbolIds);
       return;
     }
 
     this.dropCompleteCallback = onComplete;
+    this.clearCompleteCallback = onClearComplete;
+    
+    // 檢查是否需要清空舊符號（如果畫面上沒有符號顯示，則清空）
+    const hasVisible = this.hasVisibleSymbols();
+    console.log('🔍 stopSpin - hasVisibleSymbols:', hasVisible, 'isClearing:', this.isClearing, 'symbolStates length:', this.symbolStates.length);
+    
+    // 如果正在清空，需要等待清空完成
+    if (this.isClearing) {
+      // 計算剩餘清空時間
+      const elapsed = performance.now() - this.clearStartTime;
+      const lastCol = this.symbolStates.length - 1;
+      const lastRow = this.symbolStates[lastCol]?.length - 1 || 0;
+      const maxDuration = 0.17 * (this.config.symbolsPerReel - lastRow);
+      const maxDelay = 0.1 * lastCol;
+      const totalClearTime = (maxDelay + maxDuration) * 1000 + 100;
+      const remainingTime = Math.max(0, totalClearTime - elapsed);
+      
+      console.log('⏳ 正在清空中，等待剩餘時間:', remainingTime, 'ms');
+      
+      // 等待清空完成後觸發回調，然後創建新符號
+      setTimeout(() => {
+        console.log('✅ 清空動畫完成，觸發清空完成回調');
+        // 觸發清空完成回調
+        if (this.clearCompleteCallback) {
+          this.clearCompleteCallback();
+          this.clearCompleteCallback = undefined;
+        }
+        
+        // 創建新符號
+        this.createNewSymbols(symbolIds);
+      }, remainingTime);
+      return;
+    }
+    
+    if (!hasVisible) {
+      // 如果沒有可見符號且沒有在清空，直接清空狀態（不需要動畫）
+      this.symbolStates.forEach(col => {
+        col.forEach(state => {
+          if (state.symbol && !state.symbol.destroyed) {
+            state.symbol.destroy();
+          }
+        });
+      });
+      this.symbolStates = [];
+      
+      // 觸發清空完成回調（沒有可見符號時立即觸發）
+      console.log('✅ 沒有可見符號，立即觸發清空完成回調');
+      if (this.clearCompleteCallback) {
+        this.clearCompleteCallback();
+        this.clearCompleteCallback = undefined;
+      }
+      
+      // 直接創建新符號
+      this.createNewSymbols(symbolIds);
+    } else {
+      // 如果有可見符號，先計算清空動畫時間（在清空前保存狀態）
+      const lastCol = this.symbolStates.length - 1;
+      const lastRow = this.symbolStates[lastCol]?.length - 1 || 0;
+      const maxDuration = 0.17 * (this.config.symbolsPerReel - lastRow);
+      const maxDelay = 0.1 * lastCol;
+      const clearAnimationTime = (maxDelay + maxDuration) * 1000 + 100; // 額外 100ms 緩衝
+      
+      console.log('⏳ 有可見符號，等待清空動畫完成，時間:', clearAnimationTime, 'ms');
+      
+      // 清空舊符號（帶動畫）
+      this.clearSymbols();
+      
+      // 等待清空動畫完成後觸發回調，然後創建新符號
+      setTimeout(() => {
+        console.log('✅ 清空動畫完成，觸發清空完成回調');
+        // 觸發清空完成回調
+        if (this.clearCompleteCallback) {
+          this.clearCompleteCallback();
+          this.clearCompleteCallback = undefined;
+        }
+        
+        // 創建新符號
+        this.createNewSymbols(symbolIds);
+      }, clearAnimationTime);
+    }
+  }
+
+  /**
+   * 創建新符號並開始掉落動畫
+   */
+  private createNewSymbols(symbolIds: number[][]): void {
     // 創建新符號並準備掉落
     for (let col = 0; col < this.config.numberOfReels; col++) {
       this.symbolStates[col] = [];
@@ -416,6 +564,21 @@ export class TitansWheel extends PIXI.Container {
    */
   public getIsAnimating(): boolean {
     return this.isAnimating;
+  }
+
+  /**
+   * 獲取清空動畫的預計時間（毫秒）
+   */
+  public getClearAnimationTime(): number {
+    if (!this.hasVisibleSymbols() || !this.symbolStates || this.symbolStates.length === 0) {
+      return 0; // 沒有可見符號，不需要清空動畫
+    }
+    
+    const lastCol = this.symbolStates.length - 1;
+    const lastRow = this.symbolStates[lastCol]?.length - 1 || 0;
+    const maxDuration = 0.17 * (this.config.symbolsPerReel - lastRow);
+    const maxDelay = 0.1 * lastCol;
+    return (maxDelay + maxDuration) * 1000 + 100; // 額外 100ms 緩衝
   }
 
   /**

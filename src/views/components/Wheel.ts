@@ -149,7 +149,6 @@ export abstract class Wheel<T extends BaseSymbol> extends PIXI.Container {
       console.warn('Wheel is already spinning');
       return;
     }
-
     this.isSpinning = true;
     this.spinStartTime = Date.now();
 

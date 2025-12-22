@@ -63,13 +63,23 @@ export class TitansSlotController extends BaseController {
   private onSpinStarted(): void {
     this.log('開始旋轉');
     this.view.startSpinAnimation();
-    // 移除模擬結果，改為等待 WebSocket 11003 消息
   }
 
   private onSpinCompleted(result: TitansSlotResult): void {
     this.log('旋轉完成', result);
-    this.view.stopSpinAnimation(result.reels);
+    
+    // 停止旋轉動畫，並在清空完成後執行後續邏輯
+    this.view.stopSpinAnimation(result.reels, () => {
+      // 牌面清空完成後執行這些邏輯
+      this.executeAfterClearComplete(result);
+    });
+  }
 
+  /**
+   * 在牌面清空完成後執行的邏輯
+   */
+  private executeAfterClearComplete(result: TitansSlotResult): void {
+    console.log('🎯 executeAfterClearComplete 被調用');
     // 更新獲勝金額顯示
     this.view.updateWinAmount(result.totalWin);
 
@@ -127,8 +137,6 @@ export class TitansSlotController extends BaseController {
   // ==================== View 事件處理 ====================
 
   private onSpinButtonClicked(): void {
-    this.log('點擊旋轉按鈕');
-
     if (this.model.canSpin()) {
       this.model.startSpin();
     } else {
