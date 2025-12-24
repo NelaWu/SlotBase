@@ -230,8 +230,6 @@ export class TitansWheel extends PIXI.Container {
    * 停止旋轉（掉落指定的結果符號）
    */
   public stopSpin(result: { symbolIds: number[][], onComplete?: () => void, onClearComplete?: () => void }): void {
-    console.log('stopSpin',result);
-    
     const { symbolIds, onComplete, onClearComplete } = result;
     // 驗證結果數量
     if (!symbolIds || !Array.isArray(symbolIds) || symbolIds.length === 0) {
@@ -249,8 +247,6 @@ export class TitansWheel extends PIXI.Container {
     
     // 檢查是否需要清空舊符號（如果畫面上沒有符號顯示，則清空）
     const hasVisible = this.hasVisibleSymbols();
-    console.log('🔍 stopSpin - hasVisibleSymbols:', hasVisible, 'isClearing:', this.isClearing, 'symbolStates length:', this.symbolStates.length);
-    
     // 如果正在清空，需要等待清空完成
     if (this.isClearing) {
       // 計算剩餘清空時間
@@ -579,6 +575,60 @@ export class TitansWheel extends PIXI.Container {
     const maxDuration = 0.17 * (this.config.symbolsPerReel - lastRow);
     const maxDelay = 0.1 * lastCol;
     return (maxDelay + maxDuration) * 1000 + 100; // 額外 100ms 緩衝
+  }
+
+  /**
+   * 根據 WinPosition 播放獲勝動畫
+   * @param winLineInfos 獲勝連線信息數組，包含 WinPosition 數據
+   */
+  public playWinAnimations(winLineInfos: Array<{ WinPosition: number[][] }>): void {
+    if (!winLineInfos || winLineInfos.length === 0) {
+      return;
+    }
+
+    // 遍歷所有獲勝連線
+    winLineInfos.forEach((winLineInfo) => {
+      if (!winLineInfo.WinPosition || !Array.isArray(winLineInfo.WinPosition)) {
+        return;
+      }
+
+      // 遍歷每個獲勝位置 [reelIndex, symbolIndex]
+      winLineInfo.WinPosition.forEach((position) => {
+        if (!Array.isArray(position) || position.length < 2) {
+          return;
+        }
+
+        const reelIndex = position[0]; // 列索引 (col)
+        const symbolIndex = position[1]; // 行索引 (row)
+
+        // 驗證索引範圍
+        if (
+          reelIndex >= 0 &&
+          reelIndex < this.symbolStates.length &&
+          symbolIndex >= 0 &&
+          symbolIndex < this.symbolStates[reelIndex]?.length
+        ) {
+          const state = this.symbolStates[reelIndex][symbolIndex];
+          if (state && state.symbol) {
+            // 執行獲勝動畫
+            state.symbol.showWin();
+          }
+        }
+      });
+    });
+  }
+
+  /**
+   * 隱藏所有獲勝動畫
+   */
+  public hideAllWinAnimations(): void {
+    this.symbolStates.forEach((col) => {
+      col.forEach((state) => {
+        if (state && state.symbol) {
+          state.symbol.hideWin();
+        }
+      });
+    });
   }
 
   /**

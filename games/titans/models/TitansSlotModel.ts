@@ -23,12 +23,50 @@ export interface WinLineInfo {
   Odds: number;
 }
 
+// 服務器返回的 SpinInfo 結構
+export interface ServerSpinInfo {
+  GameStateType: number;
+  GameState: number;
+  WinType: number;
+  Multiplier: number;
+  ScreenOrg: number[][];
+  SymbolResult: number[][];
+  ScreenOutput: number[][];
+  WinLineInfos: WinLineInfo[];
+  FGTotalTimes: number;
+  FGCurrentTimes: number;
+  FGRemainTimes: number;
+  FGMaxFlag: boolean;
+  RndNum: number[];
+  Win: number;
+  ExtraData: string;
+  Stage: number;
+  Collection: number;
+  DemoModeRound: number;
+}
+
 // Titans 拉霸結果
 export interface TitansSlotResult extends SpinResult {
   bonusFeature?: string;
   freeSpins?: number;
   jackpotWon?: boolean;
   winLineInfos?: WinLineInfo[]; // 詳細的獲勝連線信息
+  // 服務器原始數據
+  serverSpinInfo?: ServerSpinInfo; // 完整的服務器 SpinInfo 數據
+  gameStateType?: number; // GameStateType
+  gameState?: number; // GameState
+  winType?: number; // WinType
+  screenOrg?: number[][]; // ScreenOrg
+  screenOutput?: number[][]; // ScreenOutput
+  fgTotalTimes?: number; // FGTotalTimes
+  fgCurrentTimes?: number; // FGCurrentTimes
+  fgRemainTimes?: number; // FGRemainTimes
+  fgMaxFlag?: boolean; // FGMaxFlag
+  rndNum?: number[]; // RndNum
+  extraData?: string; // ExtraData
+  stage?: number; // Stage
+  collection?: number; // Collection
+  demoModeRound?: number; // DemoModeRound
 }
 
 // Titans 拉霸 Model

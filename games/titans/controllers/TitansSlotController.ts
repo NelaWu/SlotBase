@@ -79,14 +79,15 @@ export class TitansSlotController extends BaseController {
    * 在牌面清空完成後執行的邏輯
    */
   private executeAfterClearComplete(result: TitansSlotResult): void {
-    console.log('🎯 executeAfterClearComplete 被調用');
+    console.log('executeAfterClearComplete',result);
+    
     // 更新獲勝金額顯示
     this.view.updateWinAmount(result.totalWin);
 
     // 如果有獲勝，播放動畫
-    if (result.totalWin > 0) {
+    if (result.winLineInfos && result.winLineInfos.length > 0) {
       setTimeout(() => {
-        this.view.playWinAnimation(result.totalWin);
+        this.view.playWinAnimation(result.winLineInfos!);
       }, 1000);
     }
 

@@ -258,7 +258,7 @@ async function startTitansSlotGame() {
     (window as any).TitansSlotApp = app;
 
     // 設置測試控制按鈕
-    setupTestControls(app);
+    // setupTestControls(app);
 
   } catch (error) {
     console.error('❌ 遊戲啟動失敗:', error);

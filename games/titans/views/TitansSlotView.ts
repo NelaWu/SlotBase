@@ -2,6 +2,7 @@ import { BaseView } from '@views/BaseView';
 import * as PIXI from 'pixi.js';
 import { MainGame } from './main/MainGame';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
+import { WinLineInfo } from '../models/TitansSlotModel';
 
 export class TitansSlotView extends BaseView {
   private mainGame!: MainGame;
@@ -121,34 +122,12 @@ export class TitansSlotView extends BaseView {
   }
 
   // 公開方法 - 播放獲勝動畫
-  public playWinAnimation(_winAmount: number): void {
-    // this.mainGame.winAmountText.text = `贏得 $${_winAmount}`;
-    // this.mainGame.winAmountText.visible = true;
-    // this.mainGame.winAmountText.scale.set(0);
-
-    // // 放大動畫
-    // const startTime = Date.now();
-    // const duration = 500;
-    
-    // const animate = () => {
-    //   const elapsed = Date.now() - startTime;
-    //   const progress = Math.min(elapsed / duration, 1);
-      
-    //   // 彈性效果
-    //   const scale = this.easeOutElastic(progress);
-    //   this.mainGame.winAmountText.scale.set(scale);
-      
-    //   if (progress < 1) {
-    //     requestAnimationFrame(animate);
-    //   }
-    // };
-    
-    // animate();
-
-    // // 3 秒後隱藏
-    // setTimeout(() => {
-    //   this.hideWinAmount();
-    // }, 3000);
+  public playWinAnimation(winLineInfos: WinLineInfo[]): void {
+    if (!winLineInfos || winLineInfos.length === 0) {
+      return;
+    }
+    // 調用 Wheel 的共用方法來播放獲勝動畫
+    this.mainGame.wheel.playWinAnimations(winLineInfos);
   }
 
   // 隱藏獲勝金額

@@ -199,7 +199,23 @@ export class TitansSlotApp extends SlotMachineApp {
       bonusFeature,
       freeSpins,
       jackpotWon,
-      winLineInfos // 包含詳細的獲勝連線信息
+      winLineInfos, // 包含詳細的獲勝連線信息
+      // 服務器原始數據
+      serverSpinInfo: spinInfo as any, // 完整的服務器 SpinInfo 數據
+      gameStateType: spinInfo.GameStateType,
+      gameState: spinInfo.GameState,
+      winType: spinInfo.WinType,
+      screenOrg: spinInfo.ScreenOrg,
+      screenOutput: spinInfo.ScreenOutput,
+      fgTotalTimes: spinInfo.FGTotalTimes,
+      fgCurrentTimes: spinInfo.FGCurrentTimes,
+      fgRemainTimes: spinInfo.FGRemainTimes,
+      fgMaxFlag: spinInfo.FGMaxFlag,
+      rndNum: spinInfo.RndNum,
+      extraData: spinInfo.ExtraData,
+      stage: spinInfo.Stage,
+      collection: spinInfo.Collection,
+      demoModeRound: spinInfo.DemoModeRound
     };
     
     // 設置結果到 Model（Model 會自動處理餘額更新）

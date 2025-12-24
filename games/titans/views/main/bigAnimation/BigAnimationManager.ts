@@ -24,6 +24,8 @@ export class BigAnimationManager extends PIXI.Container {
     this.backgroundMask.beginFill(0x000000, 0.9);
     this.backgroundMask.drawRect(0, 0, 1080, 1920);
     this.backgroundMask.endFill();
+    this.backgroundMask.eventMode = 'static';
+    this.backgroundMask.hitArea = new PIXI.Rectangle(0, 0, 1080, 1920);
     this.bigAnimationContainer.addChild(this.backgroundMask);
 
     // 預設隱藏

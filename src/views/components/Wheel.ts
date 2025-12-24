@@ -186,7 +186,6 @@ export abstract class Wheel<T extends BaseSymbol> extends PIXI.Container {
     // 依序停止每個 reel
     this.reels.forEach((reel, index) => {
       const stopDelay = remainingTime + (index * this.timingConfig.stopInterval);
-      console.log('wheel::stopSpin', stopDelay);
       setTimeout(() => {
         // 確保傳入的符號數量正確
         const reelSymbols = symbolIds[index] || [];

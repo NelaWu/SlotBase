@@ -6,6 +6,7 @@ import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { GameScene } from './GameScene';
 import { BigAnimationManager } from './bigAnimation/BigAnimationManager';
 import { BetPanel } from './BetPanel';
+import { ButtonEvent } from '@/views/components/ButtonEvents';
 
 export class MainGame extends PIXI.Container {
   public gameScene!: GameScene;
@@ -191,6 +192,9 @@ export class MainGame extends PIXI.Container {
       anchor: 0
     });
     this.addChild(this.buyFreeSpinsButton);
+    this.buyFreeSpinsButton.on(ButtonEvent.BUTTON_CLICKED, () => {
+      this.bigAnimationManager.showFreeSpin();
+    });
   }
 
   private createSettingsButton(): void {

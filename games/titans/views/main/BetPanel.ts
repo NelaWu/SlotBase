@@ -110,8 +110,6 @@ export class BetPanel extends PIXI.Container {
         this.init(betList);
     }
     init(betList: number[]): void {
-        console.log('betPanel',betList);
-        
         this.betList = betList;
         const backgroundMask = new PIXI.Graphics();
         backgroundMask.beginFill(0x000000, 0.9);
@@ -160,7 +158,6 @@ export class BetPanel extends PIXI.Container {
             // 使用 BetItem 元件創建投注選項
             this.betItem[i] = new BetItem(betList[i]);
             this.betItem[i].position.set(116+(i%4)*216,891+(Math.floor(i/4))*127);
-            console.log('betItem',this.betItem[i].position);
             this.betItem[i].on(ButtonEvent.BUTTON_CLICKED, ()=>{
                 this.selectBet(i);
             });
@@ -169,8 +166,6 @@ export class BetPanel extends PIXI.Container {
     }
 
     private selectBet(index: number): void {
-        console.log('selectBet',index);
-        
         // 更新視覺選擇狀態
         for(let i:number=0 ; i<this.betList.length ; i++){
             if(i === index){
