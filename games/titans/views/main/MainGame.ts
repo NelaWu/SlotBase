@@ -178,14 +178,16 @@ export class MainGame extends PIXI.Container {
     // 快速按鈕
     this.turboButton = new BaseButton({
       baseName: 'turbo_btn',
-      anchor: 0.5
+      anchor: 0.5,
+      isToggle: true,
     });
     this.betButtonContainer.addChild(this.turboButton);
 
     // 自動旋轉按鈕
     this.autoButton = new BaseButton({
       baseName: 'auto_btn',
-      anchor: 0.5
+      anchor: 0.5,
+      isToggle: true,
     });
     this.betButtonContainer.addChild(this.autoButton);
 

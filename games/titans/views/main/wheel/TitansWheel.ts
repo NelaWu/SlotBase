@@ -500,7 +500,7 @@ export class TitansWheel extends PIXI.Container {
   }
 
   /**
-   * 停止動畫
+   * 掉落動畫完成
    */
   private stopAnimation(): void {
     if (this.animationId !== null) {

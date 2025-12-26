@@ -5,6 +5,13 @@ import { TitansSlotView } from '../views/TitansSlotView';
 export class TitansSlotController extends BaseController {
   protected declare model: TitansSlotModel;
   protected declare view: TitansSlotView;
+  
+  // 自動旋轉相關
+  private isAutoSpinEnabled: boolean = false;
+  private winAnimationPlayCount: number = 0;
+  private winAnimationTimer?: NodeJS.Timeout;
+  private readonly WIN_ANIMATION_DURATION = 2000; // 每次獲勝動畫循環的持續時間（毫秒）
+  private readonly WIN_ANIMATION_PLAY_COUNT = 2; // 需要播放的次數
 
   constructor(model: TitansSlotModel, view: TitansSlotView) {
     super(model, view);
@@ -39,11 +46,13 @@ export class TitansSlotController extends BaseController {
   // 綁定 View 事件
   protected bindViewEvents(): void {
     this.view.on('spinButtonClicked', this.onSpinButtonClicked.bind(this));
+    this.view.on('autoButtonClicked', this.onAutoButtonClicked.bind(this));
   }
 
   // 解綁 View 事件
   protected unbindViewEvents(): void {
     this.view.off('spinButtonClicked', this.onSpinButtonClicked.bind(this));
+    this.view.off('autoButtonClicked', this.onAutoButtonClicked.bind(this));
   }
 
   // 初始化後更新顯示
@@ -72,6 +81,9 @@ export class TitansSlotController extends BaseController {
     this.view.stopSpinAnimation(result.reels, () => {
       // 牌面清空完成後執行這些邏輯
       this.executeAfterClearComplete(result);
+    }, () => {
+      // 符號掉落完成後的回調
+      this.executeAfterDropComplete(result);
     });
   }
 
@@ -96,6 +108,89 @@ export class TitansSlotController extends BaseController {
       setTimeout(() => {
         this.handleBonusFeature(result.bonusFeature!);
       }, 0);
+    }
+  }
+
+  /**
+   * 在符號掉落完成後執行的邏輯（用於自動旋轉）
+   */
+  private executeAfterDropComplete(result: TitansSlotResult): void {
+    console.log('executeAfterDropComplete - 符號掉落完成', result);
+    
+    // 如果沒有啟用自動旋轉，直接返回
+    if (!this.isAutoSpinEnabled) {
+      return;
+    }
+
+    // 檢查是否有中獎
+    const hasWin = result.winLineInfos && result.winLineInfos.length > 0;
+    
+    if (hasWin) {
+      // 有中獎：等待獲勝動畫播放兩次後自動旋轉
+      this.log('有中獎，等待獲勝動畫播放兩次後自動旋轉');
+      this.startWinAnimationTimer();
+    } else {
+      // 沒中獎：直接自動旋轉
+      this.log('沒中獎，立即自動旋轉');
+      this.triggerAutoSpin();
+    }
+  }
+
+  /**
+   * 開始獲勝動畫計時器（播放兩次後觸發自動旋轉）
+   */
+  private startWinAnimationTimer(): void {
+    // 清除之前的計時器
+    if (this.winAnimationTimer) {
+      clearTimeout(this.winAnimationTimer);
+    }
+
+    // 重置計數器
+    this.winAnimationPlayCount = 0;
+
+    // 設置計時器，每 WIN_ANIMATION_DURATION 毫秒增加一次計數
+    const checkAnimation = () => {
+      this.winAnimationPlayCount++;
+      this.log(`獲勝動畫播放次數: ${this.winAnimationPlayCount}/${this.WIN_ANIMATION_PLAY_COUNT}`);
+
+      if (this.winAnimationPlayCount >= this.WIN_ANIMATION_PLAY_COUNT) {
+        // 播放次數達到要求，觸發自動旋轉
+        this.log('獲勝動畫播放完成，觸發自動旋轉');
+        this.triggerAutoSpin();
+      } else {
+        // 繼續計時
+        this.winAnimationTimer = setTimeout(checkAnimation, this.WIN_ANIMATION_DURATION);
+      }
+    };
+
+    // 第一次檢查延遲 WIN_ANIMATION_DURATION 毫秒
+    this.winAnimationTimer = setTimeout(checkAnimation, this.WIN_ANIMATION_DURATION);
+  }
+
+  /**
+   * 觸發自動旋轉
+   */
+  private triggerAutoSpin(): void {
+    // 清除獲勝動畫計時器
+    if (this.winAnimationTimer) {
+      clearTimeout(this.winAnimationTimer);
+      this.winAnimationTimer = undefined;
+    }
+
+    // 隱藏獲勝動畫
+    this.view.hideWinAnimations();
+
+    // 檢查是否可以旋轉
+    if (this.model.canSpin() || this.model.isInFreeSpinsMode()) {
+      // 稍微延遲後自動旋轉，確保動畫完全結束
+      setTimeout(() => {
+        this.log('自動旋轉觸發');
+        this.model.startSpin();
+      }, 500);
+    } else {
+      // 無法旋轉，關閉自動旋轉
+      this.log('無法自動旋轉，關閉自動旋轉模式');
+      this.setAutoSpinEnabled(false);
     }
   }
 
@@ -138,6 +233,12 @@ export class TitansSlotController extends BaseController {
   // ==================== View 事件處理 ====================
 
   private onSpinButtonClicked(): void {
+    // 如果自動旋轉已啟用，手動點擊旋轉按鈕時關閉自動旋轉
+    if (this.isAutoSpinEnabled) {
+      this.setAutoSpinEnabled(false);
+      this.log('手動旋轉：已關閉自動旋轉模式');
+    }
+    
     if (this.model.canSpin()) {
       this.model.startSpin();
     } else {
@@ -145,6 +246,36 @@ export class TitansSlotController extends BaseController {
         this.handleError('餘額不足');
       } else {
         this.handleError('無法開始旋轉');
+      }
+    }
+  }
+
+  private onAutoButtonClicked(): void {
+    // 切換自動旋轉狀態
+    this.setAutoSpinEnabled(!this.isAutoSpinEnabled);
+  }
+
+  /**
+   * 設置自動旋轉狀態
+   */
+  private setAutoSpinEnabled(enabled: boolean): void {
+    this.isAutoSpinEnabled = enabled;
+    
+    if (enabled) {
+      this.log('自動旋轉已啟用');
+      // 如果當前可以旋轉，立即開始第一次自動旋轉
+      if (this.model.canSpin() || this.model.isInFreeSpinsMode()) {
+        setTimeout(() => {
+          this.log('自動旋轉：開始第一次旋轉');
+          this.model.startSpin();
+        }, 300);
+      }
+    } else {
+      this.log('自動旋轉已關閉');
+      // 清除計時器
+      if (this.winAnimationTimer) {
+        clearTimeout(this.winAnimationTimer);
+        this.winAnimationTimer = undefined;
       }
     }
   }
@@ -195,6 +326,16 @@ export class TitansSlotController extends BaseController {
   // 觸發測試 Bonus
   public triggerTestBonus(bonusType: string): void {
     this.model.triggerBonusFeature(bonusType);
+  }
+
+  // 獲取自動旋轉狀態
+  public getAutoSpinEnabled(): boolean {
+    return this.isAutoSpinEnabled;
+  }
+
+  // 設置自動旋轉狀態（公開方法）
+  public setAutoSpin(enabled: boolean): void {
+    this.setAutoSpinEnabled(enabled);
   }
 }
 

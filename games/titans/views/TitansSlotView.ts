@@ -103,11 +103,16 @@ export class TitansSlotView extends BaseView {
   }
 
   // 公開方法 - 停止旋轉動畫
-  public stopSpinAnimation(results: number[][], onClearComplete?: () => void): void {
+  public stopSpinAnimation(results: number[][], onClearComplete?: () => void, onDropComplete?: () => void): void {
     this.mainGame.wheel.stopSpin({
       symbolIds: results,  // 直接傳入陣列
       onClearComplete: onClearComplete, // 清空完成回調
       onComplete: () => {
+        // 符號掉落完成後的回調（用於自動旋轉）
+        if (onDropComplete) {
+          onDropComplete();
+        }
+        
         // 所有捲軸停止後，啟用按鈕
         setTimeout(() => {
           this.setSpinButtonEnabled(true);
@@ -128,6 +133,11 @@ export class TitansSlotView extends BaseView {
     }
     // 調用 Wheel 的共用方法來播放獲勝動畫
     this.mainGame.wheel.playWinAnimations(winLineInfos);
+  }
+
+  // 公開方法 - 隱藏所有獲勝動畫
+  public hideWinAnimations(): void {
+    this.mainGame.wheel.hideAllWinAnimations();
   }
 
   // 隱藏獲勝金額

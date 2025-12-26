@@ -14,6 +14,7 @@ export interface SpinResult {
 export class SlotMachineModel extends BaseModel {
   private config: SlotMachineConfig;
   private stateData: SlotStateData;
+  private autoSpinDelay: number;
 
   constructor(config: SlotMachineConfig = {}) {
     super();
