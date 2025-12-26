@@ -60,13 +60,31 @@ export class MainGame extends PIXI.Container {
     // 創建大動畫管理器
     this.createBigAnimation();
 
+    // //test
+    // const backgroundMask = new PIXI.Graphics();
+    // backgroundMask.beginFill(0x000000, 0.9);
+    // backgroundMask.drawRect(0, 0, 1080, 1920);
+    // backgroundMask.endFill();
+    // backgroundMask.eventMode = 'static';
+    // backgroundMask.hitArea = new PIXI.Rectangle(0, 0, 1080, 1920);
+    // this.addChild(backgroundMask);
+    // const a = Spine.from({
+    //   atlas: 'BG_Multi_Ball_atlas',
+    //   skeleton: 'BG_Multi_Ball_skel',
+    // });
+    // a.position.set(540, 920);
+    // this.addChild(a);
+    // console.log('BG_Multi_Bar_skel', a);
+    // a.state.setAnimation(0, "1-1", true);
+    // a.skeleton.setSkinByName("Lv2");
+
+
   }
 
   public playSymbol10Animation(): void {
     const spin = this.getChildByLabel?.('symbol10Spine');
     if (spin && 'state' in spin && typeof (spin as any).state.setAnimation === 'function') {
       const spineState = (spin as any).state;
-      console.log('playSymbol10Animation', spin);
       spineState.setAnimation(0, "Win", true);
     }
   }
@@ -75,7 +93,6 @@ export class MainGame extends PIXI.Container {
     const spinSpine = this.spinButton.getChildByLabel?.('spinSpine');
     if (spinSpine && 'state' in spinSpine && typeof (spinSpine as any).state.setAnimation === 'function') {
       const spineState = (spinSpine as any).state;
-      console.log('playSpinAnimation', spinSpine);
       spineState.setAnimation(0, "Spin", false);
       const onComplete = () => {
         spineState.setAnimation(0, "Idle", true);
