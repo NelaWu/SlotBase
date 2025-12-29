@@ -1,6 +1,7 @@
 import { BaseController } from '@controllers/BaseController';
 import { TitansSlotModel, TitansSlotResult } from '../models/TitansSlotModel';
 import { TitansSlotView } from '../views/TitansSlotView';
+import { GameEventEnum } from '../enum/gameEnum';
 
 export class TitansSlotController extends BaseController {
   protected declare model: TitansSlotModel;
@@ -119,27 +120,30 @@ export class TitansSlotController extends BaseController {
     
     // 如果沒有啟用自動旋轉，直接返回
     if (!this.isAutoSpinEnabled) {
+      //手動旋轉的big win
+      const isBigWin:boolean = result.totalWin/this.model.getBet()>20
+      if (isBigWin){
+        this.view.showBigWin(result.totalWin,this.model.getBet());
+      }
       return;
     }
-
+    
     // 檢查是否有中獎
     const hasWin = result.winLineInfos && result.winLineInfos.length > 0;
     
     if (hasWin) {
-      // 有中獎：等待獲勝動畫播放兩次後自動旋轉
-      this.log('有中獎，等待獲勝動畫播放兩次後自動旋轉');
-      this.startWinAnimationTimer();
+      // 有中獎：等待獲勝動畫播放兩次後檢查 big win
+      this.startWinAnimationTimer(result);
     } else {
       // 沒中獎：直接自動旋轉
-      this.log('沒中獎，立即自動旋轉');
       this.triggerAutoSpin();
     }
   }
 
   /**
-   * 開始獲勝動畫計時器（播放兩次後觸發自動旋轉）
+   * 開始獲勝動畫計時器（播放兩次後檢查 big win 並觸發自動旋轉）
    */
-  private startWinAnimationTimer(): void {
+  private startWinAnimationTimer(result: TitansSlotResult): void {
     // 清除之前的計時器
     if (this.winAnimationTimer) {
       clearTimeout(this.winAnimationTimer);
@@ -154,9 +158,9 @@ export class TitansSlotController extends BaseController {
       this.log(`獲勝動畫播放次數: ${this.winAnimationPlayCount}/${this.WIN_ANIMATION_PLAY_COUNT}`);
 
       if (this.winAnimationPlayCount >= this.WIN_ANIMATION_PLAY_COUNT) {
-        // 播放次數達到要求，觸發自動旋轉
-        this.log('獲勝動畫播放完成，觸發自動旋轉');
-        this.triggerAutoSpin();
+        // 播放次數達到要求，檢查是否需要播放 big win
+        this.log('獲勝動畫播放完成，檢查 big win 條件');
+        this.checkAndPlayBigWin(result);
       } else {
         // 繼續計時
         this.winAnimationTimer = setTimeout(checkAnimation, this.WIN_ANIMATION_DURATION);
@@ -165,6 +169,34 @@ export class TitansSlotController extends BaseController {
 
     // 第一次檢查延遲 WIN_ANIMATION_DURATION 毫秒
     this.winAnimationTimer = setTimeout(checkAnimation, this.WIN_ANIMATION_DURATION);
+  }
+
+  /**
+   * 檢查並播放 big win 動畫（如果達成條件）
+   */
+  private checkAndPlayBigWin(result: TitansSlotResult): void {
+    // 檢查 big win 條件：totalWin / bet > 20
+    const bet = this.model.getCurrentBet();
+    const isBigWin = bet > 0 && result.totalWin / bet > 20;
+    
+    if (isBigWin) {
+      this.log(`達成 Big Win 條件！獲勝金額: ${result.totalWin}, 投注: ${bet}, 倍數: ${result.totalWin / bet}`);
+      
+      // 播放 big win 動畫並獲取實例
+      const mainGame = this.view.getMainGame();
+      const bigWinInstance = mainGame.bigAnimationManager.showBigWin(result.totalWin.toString(), bet);
+      
+      // 監聽 big win 動畫完成事件
+      // BigWin 動畫完成時會發出 BIG_ANIMATION_BIG_WIN_COMPLETE 事件
+      bigWinInstance.once(GameEventEnum.BIG_ANIMATION_BIG_WIN_COMPLETE, () => {
+        this.log('Big Win 動畫播放完成，觸發自動旋轉');
+        this.triggerAutoSpin();
+      });
+    } else {
+      // 沒有達成 big win，直接觸發自動旋轉
+      this.log('未達成 Big Win 條件，直接觸發自動旋轉');
+      this.triggerAutoSpin();
+    }
   }
 
   /**

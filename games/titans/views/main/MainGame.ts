@@ -7,6 +7,7 @@ import { GameScene } from './GameScene';
 import { BigAnimationManager } from './bigAnimation/BigAnimationManager';
 import { BetPanel } from './BetPanel';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
+import { BigWinType } from 'games/titans/enum/gameEnum';
 
 export class MainGame extends PIXI.Container {
   public gameScene!: GameScene;
@@ -381,6 +382,10 @@ export class MainGame extends PIXI.Container {
     this.betPanel = new BetPanel(betlist, onBetSelected);
     this.betPanel.visible = false; // 初始狀態為隱藏
     this.addChild(this.betPanel);
+  }
+
+  public showBigWin(money:string, bet?:number):void{
+    this.bigAnimationManager.showBigWin(money,bet);
   }
 }
 

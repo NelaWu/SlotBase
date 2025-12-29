@@ -3,6 +3,8 @@ import * as PIXI from 'pixi.js';
 import { MainGame } from './main/MainGame';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
 import { WinLineInfo } from '../models/TitansSlotModel';
+import { BigWinType } from '../enum/gameEnum';
+import { BigWin } from './main/bigAnimation/BigWin';
 
 export class TitansSlotView extends BaseView {
   private mainGame!: MainGame;
@@ -270,5 +272,9 @@ export class TitansSlotView extends BaseView {
   // 檢查畫面上是否有可見符號
   public hasVisibleSymbols(): boolean {
     return this.mainGame.wheel.hasVisibleSymbols();
+  }
+
+  public showBigWin( money:number, bet:number){
+    this.mainGame.showBigWin(money.toString(),bet);
   }
 }

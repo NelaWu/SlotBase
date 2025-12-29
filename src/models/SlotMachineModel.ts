@@ -65,6 +65,10 @@ export class SlotMachineModel extends BaseModel {
     }
   }
 
+  getBet(): number {
+    return this.stateData.currentBet || 0;
+  }
+
   // 獲取當前投注
   getCurrentBet(): number {
     return this.stateData.currentBet || 0;
