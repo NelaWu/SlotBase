@@ -91,9 +91,18 @@ export class BigAnimationManager extends PIXI.Container {
     this.show();
     const bigWin = new BigWin(type, money.toString(),bet);
     this.bigAnimationContainer.addChild(bigWin);
+
     bigWin.once(GameEventEnum.BIG_ANIMATION_BIG_WIN_COMPLETE, () => {
       this.hide();
     });
+    
+    // 添加點擊空白處跳過動畫功能
+    const onBackgroundClick = () => {
+      bigWin.skipToEnd();
+      this.backgroundMask.off('pointerdown', onBackgroundClick);
+    };
+    this.backgroundMask.on('pointerdown', onBackgroundClick);
+    
     return bigWin;
   }
 
