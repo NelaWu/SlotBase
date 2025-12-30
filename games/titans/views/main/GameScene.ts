@@ -10,6 +10,7 @@ export class GameScene extends PIXI.Container {
   private roofSprite2?: PIXI.Sprite;
   private frameSprite1?: PIXI.Sprite;
   private frameSprite2?: PIXI.Sprite;
+  private characterSpine?: Spine;
     constructor() {
         super();
         this.init();
@@ -51,7 +52,20 @@ export class GameScene extends PIXI.Container {
         this.freeSpine.position.set(540, 960);
         this.freeSpine.alpha = 0.5;
         this.freeSpine.state.setAnimation(0, "Idle", true);
-        // 2. 載入屋頂圖片
+
+        // 2. 載入角色動畫
+        this.characterSpine = Spine.from({
+          atlas: 'Character_atlas',
+          skeleton: 'Character_skel',
+        });
+        this.characterSpine.label = 'characterSpine';
+        this.addChild(this.characterSpine);
+        this.characterSpine.position.set(630, 400);
+        this.characterSpine.state.setAnimation(0, "Idle", true);
+        this.characterSpine.skeleton.setSkinByName("Mg");
+        console.log('characterSpine',this.characterSpine);
+        
+        // 3. 載入屋頂圖片
         const roofTexture = PIXI.Texture.from(resourceManager.getResource('mg_frame_roof') as string);
         if (roofTexture) {
           this.roofSprite1 = new PIXI.Sprite(roofTexture);
@@ -62,7 +76,7 @@ export class GameScene extends PIXI.Container {
           this.roofSprite2.scale.x = -1;
           this.addChild(this.roofSprite2);
         }
-        // 3. 載入LOGO
+        // 4. 載入LOGO
         const logoResource = resourceManager.getResource('game_logo_cnt');
         if (logoResource) {
           const frameTexture = PIXI.Texture.from(logoResource);
@@ -70,7 +84,7 @@ export class GameScene extends PIXI.Container {
           frameSprite.position.set(426, 582);
           this.addChild(frameSprite);
         }
-        // 4. 載入框架圖片（疊加在背景上）
+        // 5. 載入框架圖片（疊加在背景上）
         const frameResource = resourceManager.getResource('mg_frame');
         if (frameResource) {
           const frameTexture = PIXI.Texture.from(frameResource);
@@ -82,7 +96,7 @@ export class GameScene extends PIXI.Container {
           this.frameSprite2.scale.x = -1;
           this.addChild(this.frameSprite2);
         }
-        // 5. 載入資訊背景圖片
+        // 6. 載入資訊背景圖片
         const infoBgResource = resourceManager.getResource('fg_info_bg');
         if (infoBgResource) {
           const infoBgTexture = PIXI.Texture.from(infoBgResource);
@@ -106,6 +120,7 @@ export class GameScene extends PIXI.Container {
         this.roofSprite2!.texture = PIXI.Texture.from(roofTexture);
         this.frameSprite1!.texture = PIXI.Texture.from(frameTexture);
         this.frameSprite2!.texture = PIXI.Texture.from(frameTexture);
+        this.characterSpine!.skeleton.setSkinByName("Fg");
     }
 
     setMG(): void {
@@ -122,5 +137,12 @@ export class GameScene extends PIXI.Container {
         this.roofSprite2!.texture = PIXI.Texture.from(roofTexture);
         this.frameSprite1!.texture = PIXI.Texture.from(frameTexture);
         this.frameSprite2!.texture = PIXI.Texture.from(frameTexture);
+        this.characterSpine!.skeleton.setSkinByName("Mg");
+    }
+
+    public playMultiBallAnimation(): void {
+      // 播放 Multiplier_Low 動畫，完成後自動播放 Idle 動畫
+      this.characterSpine!.state.setAnimation(0, "Multiplier_Low", false);
+      this.characterSpine!.state.addAnimation(0, "Idle", true, 0);
     }
 }
