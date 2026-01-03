@@ -97,18 +97,19 @@ export class TitansSlotView extends BaseView {
   // ==================== 公開方法 - 供 Controller 調用 ====================
 
   // 公開方法 - 開始旋轉動畫
-  public startSpinAnimation(): void {
+  public startSpinAnimation(fastDrop?: boolean): void {
     this.setSpinButtonEnabled(false);
     this.hideWinAmount();
     this.updateWinAmount(0);
-    this.mainGame.wheel.startSpin();
+    this.mainGame.wheel.startSpin(fastDrop);
   }
 
   // 公開方法 - 停止旋轉動畫
-  public stopSpinAnimation(results: number[][], onClearComplete?: () => void, onDropComplete?: () => void): void {
+  public stopSpinAnimation(results: number[][], onClearComplete?: () => void, onDropComplete?: () => void, fastDrop?: boolean): void {
     this.mainGame.wheel.stopSpin({
       symbolIds: results,  // 直接傳入陣列
       onClearComplete: onClearComplete, // 清空完成回調
+      fastDrop: fastDrop, // 快速掉落（自動旋轉模式）
       onComplete: () => {
         // 符號掉落完成後的回調（用於自動旋轉）
         if (onDropComplete) {

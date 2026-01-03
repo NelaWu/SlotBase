@@ -59,6 +59,7 @@ export class TitansWheel extends PIXI.Container {
   private clearCompleteCallback?: () => void; // 清空完成回調
   private isClearing: boolean = false; // 是否正在清空符號
   private clearStartTime: number = 0; // 清空開始時間
+  private originalColumnDelay: number = 100; // 原始的 columnDelay（用於快速掉落後恢復）
 
   constructor(config: TitansWheelConfig) {
     super();
@@ -75,8 +76,8 @@ export class TitansWheel extends PIXI.Container {
       dropSpeed: 3000,      // 初始掉落速度
       gravity: 2000,       // 重力加速度
       bounce: 0.1,         // 彈跳係數
-      columnDelay: 100,     // 每列延遲 50ms
-      rowDelay: 0,        // 每行延遲 50ms
+      columnDelay:this.originalColumnDelay,     // 每列延遲
+      rowDelay: 0,        // 每行延遲
       ...config.animation
     };
 
@@ -196,7 +197,7 @@ export class TitansWheel extends PIXI.Container {
           gsap.to(state.symbol, {
             y: this.config.reelHeight + this.symbolHeight,
             duration: 0.17*(this.config.symbolsPerReel - state.row),
-            delay: 0.1*state.col,
+            delay: 0.1*this.animationConfig.columnDelay/100*state.col,
             ease: 'power2.inOut',
             onComplete: () => {
               state.symbol.destroy();
@@ -216,10 +217,17 @@ export class TitansWheel extends PIXI.Container {
   /**
    * 開始旋轉（清空 + 掉落新符號）
    */
-  public startSpin(): void {
+  public startSpin(fastDrop?: boolean): void {
     if (this.isAnimating) {
       console.warn('Animation is already running');
       return;
+    }
+
+    // 如果啟用快速掉落，臨時設置 columnDelay 為 0
+    if (fastDrop) {
+      this.animationConfig.columnDelay = 0;
+    } else {
+      this.animationConfig.columnDelay = this.originalColumnDelay;
     }
 
     // 清空現有符號
@@ -229,8 +237,16 @@ export class TitansWheel extends PIXI.Container {
   /**
    * 停止旋轉（掉落指定的結果符號）
    */
-  public stopSpin(result: { symbolIds: number[][], onComplete?: () => void, onClearComplete?: () => void }): void {
-    const { symbolIds, onComplete, onClearComplete } = result;
+  public stopSpin(result: { symbolIds: number[][], onComplete?: () => void, onClearComplete?: () => void, fastDrop?: boolean }): void {
+    const { symbolIds, onComplete, onClearComplete, fastDrop } = result;
+    
+    // 如果啟用快速掉落，臨時設置 columnDelay 為 0
+    if (fastDrop) {
+      this.animationConfig.columnDelay = 0;
+    }
+    else{
+      this.animationConfig.columnDelay = this.originalColumnDelay;
+    }
     // 驗證結果數量
     if (!symbolIds || !Array.isArray(symbolIds) || symbolIds.length === 0) {
       console.error(`Invalid symbolIds:`, symbolIds);

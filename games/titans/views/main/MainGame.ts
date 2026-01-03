@@ -7,7 +7,6 @@ import { GameScene } from './GameScene';
 import { BigAnimationManager } from './bigAnimation/BigAnimationManager';
 import { BetPanel } from './BetPanel';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
-import { BigWinType } from 'games/titans/enum/gameEnum';
 
 export class MainGame extends PIXI.Container {
   public gameScene!: GameScene;

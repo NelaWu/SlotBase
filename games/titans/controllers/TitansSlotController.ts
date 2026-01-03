@@ -9,6 +9,7 @@ export class TitansSlotController extends BaseController {
   
   // 自動旋轉相關
   private isAutoSpinEnabled: boolean = false;
+  private isTurboEnabled: boolean = false;
   private winAnimationPlayCount: number = 0;
   private winAnimationTimer?: NodeJS.Timeout;
   private readonly WIN_ANIMATION_DURATION = 2000; // 每次獲勝動畫循環的持續時間（毫秒）
@@ -48,12 +49,14 @@ export class TitansSlotController extends BaseController {
   protected bindViewEvents(): void {
     this.view.on('spinButtonClicked', this.onSpinButtonClicked.bind(this));
     this.view.on('autoButtonClicked', this.onAutoButtonClicked.bind(this));
+    this.view.on('turboButtonClicked', this.onTurboButtonClicked.bind(this));
   }
 
   // 解綁 View 事件
   protected unbindViewEvents(): void {
     this.view.off('spinButtonClicked', this.onSpinButtonClicked.bind(this));
     this.view.off('autoButtonClicked', this.onAutoButtonClicked.bind(this));
+    this.view.off('turboButtonClicked', this.onTurboButtonClicked.bind(this));
   }
 
   // 初始化後更新顯示
@@ -72,20 +75,22 @@ export class TitansSlotController extends BaseController {
 
   private onSpinStarted(): void {
     this.log('開始旋轉');
-    this.view.startSpinAnimation();
+    // 傳遞 Turbo 狀態作為快速掉落標記
+    this.view.startSpinAnimation(this.isTurboEnabled);
   }
 
   private onSpinCompleted(result: TitansSlotResult): void {
     this.log('旋轉完成', result);
     
     // 停止旋轉動畫，並在清空完成後執行後續邏輯
+    // 如果啟用 Turbo 模式，使用快速掉落模式
     this.view.stopSpinAnimation(result.reels, () => {
       // 牌面清空完成後執行這些邏輯
       this.executeAfterClearComplete(result);
     }, () => {
       // 符號掉落完成後的回調
       this.executeAfterDropComplete(result);
-    });
+    }, this.isTurboEnabled); // 傳遞 Turbo 狀態作為快速掉落標記
   }
 
   /**
@@ -287,6 +292,10 @@ export class TitansSlotController extends BaseController {
     this.setAutoSpinEnabled(!this.isAutoSpinEnabled);
   }
 
+  private onTurboButtonClicked(): void {
+    this.isTurboEnabled = !this.isTurboEnabled;
+  }
+
   /**
    * 設置自動旋轉狀態
    */
@@ -363,6 +372,10 @@ export class TitansSlotController extends BaseController {
   // 獲取自動旋轉狀態
   public getAutoSpinEnabled(): boolean {
     return this.isAutoSpinEnabled;
+  }
+
+  public getTurboEnabled(): boolean {
+    return this.isTurboEnabled;
   }
 
   // 設置自動旋轉狀態（公開方法）
