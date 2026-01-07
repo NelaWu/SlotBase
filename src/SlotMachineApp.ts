@@ -278,7 +278,7 @@ export class SlotMachineApp {
   }
 
   // 更新循環
-  private update(deltaTime: number): void {
+  protected update(deltaTime: number): void {
     this.stateMachine.update(deltaTime);
   }
 

@@ -17,6 +17,7 @@ export class TitansSlotApp extends SlotMachineApp {
   private TitansController: TitansSlotController;
   private wsManager?: WebSocketManager;
   private spinStartedHandler?: () => void;
+  private isWaitingRespin: boolean = false; // 是否正在等待 respin
 
   constructor(config: TitansSlotAppConfig) {
     super(config);
@@ -147,7 +148,7 @@ export class TitansSlotApp extends SlotMachineApp {
     const spinInfo = data.SpinInfo;
     
     // 提取牌面結果 (SymbolResult) 並轉換符號 ID
-    const serverReels: number[][] = spinInfo.SymbolResult || spinInfo.ScreenOrg || [];
+    const serverReels: number[][] = spinInfo.SymbolResult;
     const reels: number[][] = SymbolMapper.serverToClientArray(serverReels);
     
     // 提取獲勝線編號
@@ -218,8 +219,52 @@ export class TitansSlotApp extends SlotMachineApp {
       demoModeRound: spinInfo.DemoModeRound
     };
     
+    // 檢查是否正在等待 respin，如果是則用新資料補空白（不清空牌面）
+    if (this.isWaitingRespin) {
+      console.log('🔄 收到 respin 資料，補空白處（不清空牌面）');
+      
+      // 先更新餘額（但不觸發 spinCompleted 事件）
+      if (result.totalWin > 0) {
+        this.TitansModel['setBalance'](this.TitansModel.getBalance() + result.totalWin);
+      }
+      
+      // 使用 fillEmptySlots 補空白（會觸發掉落動畫）
+      // 等待掉落動畫完成後，觸發 spinCompleted 事件，讓 Controller 正常處理獲勝檢查
+      this.TitansView.getMainGame().wheel.fillEmptySlots(reels, () => {
+        console.log('🔄 fillEmptySlots 完成，觸發 spinCompleted 事件');
+        // 觸發 spinCompleted 事件，讓 Controller 處理獲勝檢查
+        // 使用 setSpinResult 來觸發事件（但不會再次更新餘額，因為已經更新過了）
+        this.TitansModel.setSpinResult(result);
+      });
+      
+      // 重置狀態
+      this.isWaitingRespin = false;
+      
+      return; // respin 時直接返回，不執行後續的 WaitNGRespin 檢查
+    }
+    
     // 設置結果到 Model（Model 會自動處理餘額更新）
     this.TitansModel.setSpinResult(result);
+    
+    // 檢查 WaitNGRespin 參數
+    if (data.WaitNGRespin === true) {
+      console.log('🔄 WaitNGRespin 為 true，等待 removeWinSymbols 完成後自動 spin');
+      this.isWaitingRespin = true;
+      
+      // 設置回調，當 removeWinSymbols 完成後自動發送 spin 請求
+      this.TitansView.getMainGame().wheel.setOnRemoveWinComplete(() => {
+        console.log('🔄 removeWinSymbols 完成，自動發送 respin 請求（不清空牌面）');
+        // 自動發送 spin 請求（使用相同的投注金額）
+        const betMultiple = this.TitansModel.getCurrentBet();
+        this.sendWebSocketMessage({
+          code: 11002,
+          BetMultiple: betMultiple
+        });
+      });
+    } else {
+      // 重置狀態
+      this.isWaitingRespin = false;
+    }
   }
 
   /**
@@ -256,6 +301,169 @@ export class TitansSlotApp extends SlotMachineApp {
         
         case 11003:
           console.log('🎰 收到旋轉結果:', data);
+        //   data = {
+        //     "Code": 11003,
+        //     "Result": 0,
+        //     "RoundCode": "round_2057",
+        //     "SpinInfo": {
+        //         "GameStateType": 0,
+        //         "GameState": 2,
+        //         "WinType": 1,
+        //         "Multiplier": 4,
+        //         "ScreenOrg": [],
+        //         "SymbolResult": [
+        //             [
+        //                 11,
+        //                 2,
+        //                 2,
+        //                 12,
+        //                 12
+        //             ],
+        //             [
+        //                 11,
+        //                 12,
+        //                 12,
+        //                 3,
+        //                 2
+        //             ],
+        //             [
+        //                 13,
+        //                 13,
+        //                 31,
+        //                 53,
+        //                 4
+        //             ],
+        //             [
+        //                 12,
+        //                 12,
+        //                 4,
+        //                 31,
+        //                 4
+        //             ],
+        //             [
+        //                 4,
+        //                 4,
+        //                 31,
+        //                 12,
+        //                 12
+        //             ],
+        //             [
+        //                 3,
+        //                 3,
+        //                 2,
+        //                 13,
+        //                 3
+        //             ]
+        //         ],
+        //         "ScreenOutput": [
+        //             [
+        //                 11,
+        //                 2,
+        //                 2
+        //             ],
+        //             [
+        //                 11,
+        //                 3,
+        //                 2
+        //             ],
+        //             [
+        //                 13,
+        //                 13,
+        //                 31,
+        //                 53,
+        //                 4
+        //             ],
+        //             [
+        //                 4,
+        //                 31,
+        //                 4
+        //             ],
+        //             [
+        //                 4,
+        //                 4,
+        //                 31
+        //             ],
+        //             [
+        //                 3,
+        //                 3,
+        //                 2,
+        //                 13,
+        //                 3
+        //             ]
+        //         ],
+        //         "WinLineInfos": [
+        //             {
+        //                 "LineNo": 1,
+        //                 "SymbolID": 12,
+        //                 "SymbolType": 1,
+        //                 "SymbolCount": 8,
+        //                 "WayCount": 0,
+        //                 "WinPosition": [
+        //                     [
+        //                         0,
+        //                         3
+        //                     ],
+        //                     [
+        //                         0,
+        //                         4
+        //                     ],
+        //                     [
+        //                         1,
+        //                         1
+        //                     ],
+        //                     [
+        //                         1,
+        //                         2
+        //                     ],
+        //                     [
+        //                         3,
+        //                         0
+        //                     ],
+        //                     [
+        //                         3,
+        //                         1
+        //                     ],
+        //                     [
+        //                         4,
+        //                         3
+        //                     ],
+        //                     [
+        //                         4,
+        //                         4
+        //                     ]
+        //                 ],
+        //                 "Multiplier": 1,
+        //                 "WinOrg": 160,
+        //                 "Win": 160,
+        //                 "WinType": 1,
+        //                 "Odds": 16
+        //             }
+        //         ],
+        //         "FGTotalTimes": 0,
+        //         "FGCurrentTimes": 0,
+        //         "FGRemainTimes": 0,
+        //         "FGMaxFlag": false,
+        //         "RndNum": [
+        //             5,
+        //             1,
+        //             30,
+        //             2,
+        //             19,
+        //             30
+        //         ],
+        //         "Win": 640,
+        //         "ExtraData": "",
+        //         "Stage": 1,
+        //         "Collection": 0,
+        //         "DemoModeRound": 0
+        //     },
+        //     "LDOption": [],
+        //     "WaitNGRespin": true,
+        //     "WinJPInfo": {
+        //         "JPLevel": 0,
+        //         "Value": 0
+        //     }
+        // }
           // 處理旋轉結果
           this.handleSpinResult(data);
           break;

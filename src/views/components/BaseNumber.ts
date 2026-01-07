@@ -68,6 +68,15 @@ export class BaseNumber extends PIXI.Container {
       this.digitTextures.set(',', PIXI.Texture.from(commaResource));
     }
     // 千分位符號是可選的，找不到也不報錯
+
+    // 載入倍數符號（x）
+    const multiplierResourceId = `${this.baseName}_x`;
+    const multiplierResource = this.resourceManager.getResource(multiplierResourceId);
+    if (multiplierResource) {
+      this.digitTextures.set('x', PIXI.Texture.from(multiplierResource));
+    }
+    // 倍數符號是可選的，找不到也不報錯
+    
   }
 
   /**
@@ -202,7 +211,7 @@ export class BaseNumber extends PIXI.Container {
         const offsetY = (maxDigitHeight - height) / 2;
         sprite.y = offsetY;
       } else {
-        // 數字保持在 y=0 (中心對齊)
+        // 數字和倍數符號保持在 y=0 (中心對齊)
         sprite.y = 0;
       }
     }

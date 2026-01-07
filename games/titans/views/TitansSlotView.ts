@@ -3,6 +3,8 @@ import * as PIXI from 'pixi.js';
 import { MainGame } from './main/MainGame';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
 import { WinLineInfo } from '../models/TitansSlotModel';
+import { BigWinType } from '../enum/gameEnum';
+import { BigWin } from './main/bigAnimation/BigWin';
 
 export class TitansSlotView extends BaseView {
   private mainGame!: MainGame;
@@ -95,19 +97,25 @@ export class TitansSlotView extends BaseView {
   // ==================== 公開方法 - 供 Controller 調用 ====================
 
   // 公開方法 - 開始旋轉動畫
-  public startSpinAnimation(): void {
+  public startSpinAnimation(fastDrop?: boolean): void {
     this.setSpinButtonEnabled(false);
     this.hideWinAmount();
     this.updateWinAmount(0);
-    this.mainGame.wheel.startSpin();
+    this.mainGame.wheel.startSpin(fastDrop);
   }
 
   // 公開方法 - 停止旋轉動畫
-  public stopSpinAnimation(results: number[][], onClearComplete?: () => void): void {
+  public stopSpinAnimation(results: number[][], onClearComplete?: () => void, onDropComplete?: () => void, fastDrop?: boolean): void {
     this.mainGame.wheel.stopSpin({
       symbolIds: results,  // 直接傳入陣列
       onClearComplete: onClearComplete, // 清空完成回調
+      fastDrop: fastDrop, // 快速掉落（自動旋轉模式）
       onComplete: () => {
+        // 符號掉落完成後的回調（用於自動旋轉）
+        if (onDropComplete) {
+          onDropComplete();
+        }
+        
         // 所有捲軸停止後，啟用按鈕
         setTimeout(() => {
           this.setSpinButtonEnabled(true);
@@ -128,6 +136,15 @@ export class TitansSlotView extends BaseView {
     }
     // 調用 Wheel 的共用方法來播放獲勝動畫
     this.mainGame.wheel.playWinAnimations(winLineInfos);
+  }
+
+  // 公開方法 - 隱藏所有獲勝動畫
+  public hideWinAnimations(): void {
+    this.mainGame.wheel.hideAllWinAnimations();
+  }
+
+  public playMultiBallAnimation():void{
+    this.mainGame.playMultiBallAnimation();
   }
 
   // 隱藏獲勝金額
@@ -260,5 +277,9 @@ export class TitansSlotView extends BaseView {
   // 檢查畫面上是否有可見符號
   public hasVisibleSymbols(): boolean {
     return this.mainGame.wheel.hasVisibleSymbols();
+  }
+
+  public showBigWin( money:number, bet:number){
+    this.mainGame.showBigWin(money.toString(),bet);
   }
 }

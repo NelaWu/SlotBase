@@ -25,6 +25,8 @@ export class BigWin extends PIXI.Container {
     private moneyText?: BaseNumber;
     private winTitle?: Spine;
     private scrollAnimationTimer?: number;
+    private winAmount: number = 0; // 保存最終獲勝金額
+    private bet?: number; // 保存押注金額
 
     constructor(type:BigWinType, money:string, bet?:number) {
         super();
@@ -44,6 +46,10 @@ export class BigWin extends PIXI.Container {
     }
 
     private initBigWin(type:BigWinType, winAmount:number, bet:number, multiplier:number): void {
+        // 保存最終金額和押注金額
+        this.winAmount = winAmount;
+        this.bet = bet;
+        
         const bg = Spine.from({
             atlas: 'Prize_Win_Vfx_atlas',
             skeleton: 'Prize_Win_Vfx_skel',
@@ -232,6 +238,54 @@ export class BigWin extends PIXI.Container {
         // 開始動畫
         this.moneyText?.showText("0");
         this.scrollAnimationTimer = requestAnimationFrame(animate);
+    }
+
+    /**
+     * 跳過滾分動畫，直接顯示最終金額並播放結束動畫
+     */
+    public skipToEnd(): void {
+        // 停止滾分動畫
+        if (this.scrollAnimationTimer !== undefined) {
+            cancelAnimationFrame(this.scrollAnimationTimer);
+            this.scrollAnimationTimer = undefined;
+        }
+        
+        // 直接顯示最終金額
+        if (this.moneyText) {
+            this.moneyText.showText(Math.floor(this.winAmount).toString());
+        }
+        
+        // 根據最終金額設置正確的階段 skin
+        if (this.winTitle && this.bet !== undefined) {
+            const finalMultiplier = this.winAmount / this.bet;
+            const finalStageIndex = this.getStageIndexByAmount(this.winAmount, this.bet);
+            const finalStage = BIG_WIN_STAGES[finalStageIndex];
+            
+            try {
+                this.winTitle.skeleton.setSkinByName(finalStage.skin);
+                this.winTitle.skeleton.setSlotsToSetupPose();
+            } catch (error) {
+                console.error(`[BigWin] 設置最終 skin 失敗: ${finalStage.skin}`, error);
+            }
+        }
+        
+        // 播放結束動畫
+        if (this.winTitle) {
+            try {
+                this.winTitle.state.setAnimation(0, "Prize_Win_End", false);
+                setTimeout(() => {
+                    this.destroy();
+                }, 5000);
+                console.log('[BigWin] 跳過滾分，直接播放 Prize_Win_End 動畫');
+            } catch (error) {
+                console.error('[BigWin] 播放 End 動畫失敗:', error);
+                // 如果播放失敗，直接銷毀
+                this.destroy();
+            }
+        } else {
+            // 如果沒有 winTitle，直接銷毀
+            this.destroy();
+        }
     }
 
     destroy(): void {

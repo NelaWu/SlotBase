@@ -13,6 +13,8 @@ export enum ButtonEvent {
   BUTTON_OUT = 'buttonOut',
   /** 按鈕啟用狀態改變 */
   ENABLED_CHANGED = 'enabledChanged',
+  /** 開關狀態改變（僅在 isToggle 為 true 時觸發） */
+  TOGGLE_CHANGED = 'toggleChanged',
 }
 
 /**

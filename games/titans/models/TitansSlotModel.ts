@@ -146,7 +146,6 @@ export class TitansSlotModel extends SlotMachineModel {
     return null;
   }
 
-  // 重寫設置轉動結果
   override setSpinResult(result: TitansSlotResult): void {
     super.setSpinResult(result);
 

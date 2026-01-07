@@ -14,6 +14,7 @@ export interface SpinResult {
 export class SlotMachineModel extends BaseModel {
   private config: SlotMachineConfig;
   private stateData: SlotStateData;
+  private autoSpinDelay: number;
 
   constructor(config: SlotMachineConfig = {}) {
     super();
@@ -62,6 +63,10 @@ export class SlotMachineModel extends BaseModel {
     } else {
       this.emit('error', '投注金額超過餘額');
     }
+  }
+
+  getBet(): number {
+    return this.stateData.currentBet || 0;
   }
 
   // 獲取當前投注

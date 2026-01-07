@@ -12,6 +12,7 @@ export interface ButtonOptions {
   textTexture?: string; // 文字 texture 的資源 ID，如果有的話就顯示
   textPressTexture?: string; // 按下狀態的文字 texture 資源 ID，如果有且按下時會替換 textTexture
   textPosition?: { x: number, y: number }; // 文字位置
+  isToggle?: boolean; // 是否為開關按鈕，預設為 false
 }
 
 /**
@@ -30,12 +31,15 @@ export class BaseButton extends PIXI.Container {
   private hoverScale: number;
   private clickScale: number;
   private originalScale: number = 1;
+  private isToggle: boolean = false; // 是否為開關按鈕
+  private isOn: boolean = false; // 開關狀態（僅在 isToggle 為 true 時有效）
 
   constructor(options: ButtonOptions = {}) {
     super();
     this.name = options.baseName || '';
     this.hoverScale = options.hoverScale || 1;
     this.clickScale = options.clickScale || 1;
+    this.isToggle = options.isToggle || false;
     
     this.eventMode = 'static';
     this.cursor = 'pointer';
@@ -208,31 +212,50 @@ export class BaseButton extends PIXI.Container {
   private onPointerDown(): void {
     if (!this.isEnabled) return;
     
-    this.setState(ButtonState.PRESSED);
-    this.scale.set(this.clickScale);
+    // 如果是開關按鈕，按下時不改變狀態（保持當前開關狀態）
+    if (!this.isToggle) {
+      this.setState(ButtonState.PRESSED);
+      this.scale.set(this.clickScale);
+    }
     this.emit(ButtonEvent.BUTTON_DOWN);
   }
 
   private onPointerUp(): void {
     if (!this.isEnabled) return;
     
-    this.setState(ButtonState.HOVER);
-    this.scale.set(this.originalScale);
+    // 如果是開關按鈕，點擊時切換開關狀態
+    if (this.isToggle) {
+      this.toggle();
+    } else {
+      this.setState(ButtonState.HOVER);
+      this.scale.set(this.originalScale);
+    }
     this.emit(ButtonEvent.BUTTON_CLICKED);
   }
 
   private onPointerOver(): void {
     if (!this.isEnabled) return;
     
-    this.setState(ButtonState.HOVER);
-    this.scale.set(this.hoverScale);
+    // 如果是開關按鈕且處於 on 狀態，不顯示 hover（保持 pressed 狀態）
+    if (this.isToggle && this.isOn) {
+      // 開關 on 狀態時，hover 時保持 pressed 外觀
+      this.scale.set(this.hoverScale);
+    } else {
+      this.setState(ButtonState.HOVER);
+      this.scale.set(this.hoverScale);
+    }
     this.emit(ButtonEvent.BUTTON_OVER);
   }
 
   private onPointerOut(): void {
     if (!this.isEnabled) return;
     
-    this.setState(ButtonState.NORMAL);
+    // 如果是開關按鈕，根據 on/off 狀態顯示對應的圖片
+    if (this.isToggle) {
+      this.updateToggleState();
+    } else {
+      this.setState(ButtonState.NORMAL);
+    }
     this.scale.set(this.originalScale);
     this.emit(ButtonEvent.BUTTON_OUT);
   }
@@ -241,6 +264,12 @@ export class BaseButton extends PIXI.Container {
    * 切換按鈕狀態
    */
   private setState(state: ButtonState): void {
+    // 如果是開關按鈕，根據 on/off 狀態來決定顯示
+    if (this.isToggle) {
+      this.updateToggleState();
+      return;
+    }
+
     if (this.currentState === state) return;
 
     // 隱藏所有狀態的精靈
@@ -292,6 +321,58 @@ export class BaseButton extends PIXI.Container {
   }
 
   /**
+   * 更新開關按鈕的顯示狀態
+   */
+  private updateToggleState(): void {
+    // 隱藏所有狀態的精靈
+    this.normalSprite.visible = false;
+    if (this.hoverSprite) this.hoverSprite.visible = false;
+    if (this.pressedSprite) this.pressedSprite.visible = false;
+    if (this.disabledSprite) this.disabledSprite.visible = false;
+
+    // 處理文字 sprite 的顯示/隱藏
+    if (this.isOn && this.textPressSprite) {
+      // on 狀態：如果有 textPressSprite，顯示它並隱藏原文字
+      if (this.textSprite) this.textSprite.visible = false;
+      this.textPressSprite.visible = true;
+    } else {
+      // off 狀態：顯示原文字，隱藏按下狀態文字
+      if (this.textSprite) this.textSprite.visible = true;
+      if (this.textPressSprite) this.textPressSprite.visible = false;
+    }
+
+    // 根據開關狀態顯示對應的精靈
+    if (this.isOn) {
+      // on 狀態：顯示 pressed 圖片
+      if (this.pressedSprite) {
+        this.pressedSprite.visible = true;
+        this.currentState = ButtonState.PRESSED;
+      } else {
+        this.normalSprite.visible = true;
+        this.currentState = ButtonState.NORMAL;
+      }
+    } else {
+      // off 狀態：顯示 normal 圖片
+      this.normalSprite.visible = true;
+      this.currentState = ButtonState.NORMAL;
+    }
+  }
+
+  /**
+   * 切換開關狀態（僅在 isToggle 為 true 時有效）
+   */
+  private toggle(): void {
+    if (!this.isToggle) return;
+    
+    this.isOn = !this.isOn;
+    this.updateToggleState();
+    this.scale.set(this.originalScale);
+    
+    // 發出開關狀態改變事件
+    this.emit(ButtonEvent.TOGGLE_CHANGED, this.isOn);
+  }
+
+  /**
    * 設置按鈕啟用狀態
    */
   public setEnabled(enabled: boolean): void {
@@ -303,7 +384,12 @@ export class BaseButton extends PIXI.Container {
       this.cursor = 'pointer';
       this.alpha = 1;
       this.scale.set(this.originalScale);
-      this.setState(ButtonState.NORMAL);
+      // 如果是開關按鈕，根據 on/off 狀態顯示
+      if (this.isToggle) {
+        this.updateToggleState();
+      } else {
+        this.setState(ButtonState.NORMAL);
+      }
     } else {
       this.eventMode = 'none';
       this.cursor = 'default';
@@ -325,6 +411,39 @@ export class BaseButton extends PIXI.Container {
     return this.isEnabled;
   }
 
+  /**
+   * 設置開關狀態（僅在 isToggle 為 true 時有效）
+   */
+  public setToggleState(isOn: boolean): void {
+    if (!this.isToggle) {
+      console.warn('[BaseButton] 此按鈕不是開關按鈕，無法設置開關狀態');
+      return;
+    }
+    
+    if (this.isOn !== isOn) {
+      this.isOn = isOn;
+      this.updateToggleState();
+      this.emit(ButtonEvent.TOGGLE_CHANGED, this.isOn);
+    }
+  }
+
+  /**
+   * 獲取開關狀態（僅在 isToggle 為 true 時有效）
+   */
+  public getToggleState(): boolean {
+    if (!this.isToggle) {
+      console.warn('[BaseButton] 此按鈕不是開關按鈕，無法獲取開關狀態');
+      return false;
+    }
+    return this.isOn;
+  }
+
+  /**
+   * 檢查是否為開關按鈕
+   */
+  public getIsToggle(): boolean {
+    return this.isToggle;
+  }
 
   /**
    * 銷毀按鈕
