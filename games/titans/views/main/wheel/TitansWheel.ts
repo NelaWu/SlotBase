@@ -219,6 +219,7 @@ export class TitansWheel extends PIXI.Container {
     onClearComplete?: () => void, 
     fastDrop?: boolean 
   }): void {
+    console.log('wheel::stopSpin', result);
     const { symbolIds, onComplete, onClearComplete, fastDrop } = result;
     
     if (fastDrop) {
@@ -369,18 +370,31 @@ export class TitansWheel extends PIXI.Container {
         }
 
         const symbol = state.symbol;
-        const needsToMoveDown = symbol.y > state.targetY;
-        const needsToMoveUp = symbol.y < state.targetY;
+        const currentY = symbol.y;
+        const targetY = state.targetY;
+        const isAtTarget = Math.abs(currentY - targetY) < 0.1; // 允許小誤差
+        
+        // 如果符號已經在目標位置，且速度為 0，則跳過（不需要彈跳動畫）
+        // 這種情況下，符號已經穩定，不影響 allSettled 的判斷
+        if (isAtTarget && state.velocityY === 0) {
+          return; // 位置不變的符號，不需要任何動畫，已經穩定
+        }
+        
+        // 如果執行到這裡，說明符號需要移動或還有速度，標記為未穩定
+        allSettled = false;
+
+        const needsToMoveDown = currentY > targetY;
+        const needsToMoveUp = currentY < targetY;
 
         if (needsToMoveDown) {
-          const distance = symbol.y - state.targetY;
+          const distance = currentY - targetY;
           const speed = this.animationConfig.dropSpeed * deltaSeconds;
           
           if (distance > speed) {
             symbol.y -= speed;
             allSettled = false;
           } else {
-            symbol.y = state.targetY;
+            symbol.y = targetY;
             state.velocityY = 0;
             this.handleSymbolSettled(state);
           }
@@ -395,22 +409,23 @@ export class TitansWheel extends PIXI.Container {
           state.velocityY += this.animationConfig.gravity * deltaSeconds;
           symbol.y += state.velocityY * deltaSeconds;
 
-          if (symbol.y >= state.targetY) {
-            symbol.y = state.targetY;
+          if (symbol.y >= targetY) {
+            symbol.y = targetY;
             state.velocityY = -state.velocityY * this.animationConfig.bounce;
 
             if (Math.abs(state.velocityY) < 50) {
               state.velocityY = 0;
-              symbol.y = state.targetY;
+              symbol.y = targetY;
               this.handleSymbolSettled(state);
             }
           }
 
           allSettled = false;
         } else if (state.velocityY !== 0) {
+          // 符號在目標位置但還有速度（彈跳中）
           if (state.row > 0 && !state.hasTriggeredNext) {
             const nextState = this.symbolStates[state.col][state.row - 1];
-            if (symbol.y >= nextState.targetY) {
+            if (nextState && symbol.y >= nextState.targetY) {
               state.hasTriggeredNext = true;
               this.startSymbolDrop(state.col, state.row - 1);
             }
@@ -419,13 +434,13 @@ export class TitansWheel extends PIXI.Container {
           state.velocityY += this.animationConfig.gravity * deltaSeconds;
           symbol.y += state.velocityY * deltaSeconds;
 
-          if (symbol.y >= state.targetY) {
-            symbol.y = state.targetY;
+          if (symbol.y >= targetY) {
+            symbol.y = targetY;
             state.velocityY = -state.velocityY * this.animationConfig.bounce;
 
             if (Math.abs(state.velocityY) < 50) {
               state.velocityY = 0;
-              symbol.y = state.targetY;
+              symbol.y = targetY;
               this.handleSymbolSettled(state);
             }
           }
@@ -671,14 +686,38 @@ export class TitansWheel extends PIXI.Container {
       const targetLength = this.config.symbolsPerReel;
       const needToFill = targetLength - currentLength;
 
+      // 記錄每個符號的舊 row，用於判斷位置是否改變
+      const oldRowMap = new Map<SymbolState, number>();
+      keptStates.forEach((state) => {
+        oldRowMap.set(state, state.row);
+      });
+
       keptStates.forEach((state, index) => {
+        const oldRow = oldRowMap.get(state) ?? state.row;
         const newRow = index + needToFill;
+        const newTargetY = newRow * this.symbolHeight + this.symbolHeight / 2;
+        
         state.row = newRow;
-        state.targetY = newRow * this.symbolHeight + this.symbolHeight / 2;
-        state.dropStarted = false;
-        state.hasTriggeredNext = false;
-        state.isDropping = false;
-        state.velocityY = 0;
+        state.targetY = newTargetY;
+        
+        // 判斷位置是否改變：比較 oldRow 和 newRow
+        const rowChanged = oldRow !== newRow;
+        const isAtNewTarget = Math.abs(state.symbol.y - newTargetY) < 0.1;
+        
+        if (!rowChanged && isAtNewTarget) {
+          // 位置完全不變（row 沒變且已經在目標位置），保持不動，不需要掉落動畫
+          state.dropStarted = true;
+          state.hasTriggeredNext = false;
+          state.isDropping = false;
+          state.velocityY = 0;
+          state.symbol.y = newTargetY; // 確保位置精確
+        } else {
+          // 位置改變（row 改變或不在目標位置），需要掉落動畫
+          state.dropStarted = false;
+          state.hasTriggeredNext = false;
+          state.isDropping = false;
+          state.velocityY = 0;
+        }
       });
 
       const newStates: SymbolState[] = [];
@@ -709,15 +748,54 @@ export class TitansWheel extends PIXI.Container {
       this.symbolStates[col] = [...newStates, ...keptStates];
     }
 
-    this.startCascadeAnimation();
+    // 檢查是否所有符號都已經在目標位置（沒有需要掉落的符號）
+    let hasSymbolsToDrop = false;
+    this.symbolStates.forEach(col => {
+      col.forEach(state => {
+        if (!state.dropStarted) {
+          hasSymbolsToDrop = true;
+        } else {
+          const isAtTarget = Math.abs(state.symbol.y - state.targetY) < 0.1;
+          if (!isAtTarget || state.velocityY !== 0) {
+            hasSymbolsToDrop = true;
+          }
+        }
+      });
+    });
+
+    if (!hasSymbolsToDrop && this.isRemovingWin && this.removeWinCompleteCallback) {
+      // 所有符號都已經在目標位置，直接觸發回調
+      console.log('[Wheel] 所有符號都已在目標位置，直接觸發 removeWinCompleteCallback');
+      const callback = this.removeWinCompleteCallback;
+      this.isRemovingWin = false;
+      this.removeWinCompleteCallback = undefined;
+      // 使用 setTimeout 確保回調在下一幀執行，避免阻塞
+      setTimeout(() => {
+        callback();
+      }, 0);
+    } else {
+      // 有符號需要掉落，啟動動畫
+      this.startCascadeAnimation();
+    }
   }
 
   private startCascadeAnimation(): void {
     this.isAnimating = true;
     this.lastTime = performance.now();
 
+    // 只重置需要掉落的符號，位置不變的符號保持 dropStarted = true
     this.symbolStates.forEach((col) => {
       col.forEach((state) => {
+        const isAtTarget = Math.abs(state.symbol.y - state.targetY) < 0.1;
+        
+        // 如果符號已經在目標位置，且 dropStarted = true，保持不動
+        // 但如果是空白符號（ID 0），還是需要重置，因為它可能需要被新符號替換
+        if (isAtTarget && state.dropStarted && state.symbol.getSymbolId() !== 0) {
+          // 位置不變的非空白符號，不需要重置
+          return;
+        }
+        
+        // 需要掉落的符號（包括：不在目標位置、dropStarted = false、空白符號），重置狀態
         state.dropStarted = false;
         state.hasTriggeredNext = false;
         state.isDropping = false;
@@ -728,13 +806,22 @@ export class TitansWheel extends PIXI.Container {
     this.symbolStates.forEach((col, colIndex) => {
       if (col.length === 0) return;
       
-      const delay = colIndex * this.animationConfig.columnDelay;
-      setTimeout(() => {
-        const bottomIndex = col.length - 1;
-        if (bottomIndex >= 0) {
-          this.startSymbolDrop(colIndex, bottomIndex);
+      // 找到需要掉落的最底部符號（dropStarted = false）
+      let bottomIndexToDrop = -1;
+      for (let rowIndex = col.length - 1; rowIndex >= 0; rowIndex--) {
+        const state = col[rowIndex];
+        if (state && !state.dropStarted) {
+          bottomIndexToDrop = rowIndex;
+          break;
         }
-      }, delay);
+      }
+      
+      if (bottomIndexToDrop >= 0) {
+        const delay = colIndex * this.animationConfig.columnDelay;
+        setTimeout(() => {
+          this.startSymbolDrop(colIndex, bottomIndexToDrop);
+        }, delay);
+      }
     });
 
     this.animate();
