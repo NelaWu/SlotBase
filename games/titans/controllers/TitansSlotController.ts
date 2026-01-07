@@ -12,8 +12,12 @@ export class TitansSlotController extends BaseController {
   private isTurboEnabled: boolean = false;
   private winAnimationPlayCount: number = 0;
   private winAnimationTimer?: NodeJS.Timeout;
-  private readonly WIN_ANIMATION_DURATION = 2000; // 每次獲勝動畫循環的持續時間（毫秒）
+  private readonly WIN_ANIMATION_DURATION = 2000; // 每次獲勝動畫循環的持續時間(毫秒)
   private readonly WIN_ANIMATION_PLAY_COUNT = 2; // 需要播放的次數
+  
+  // 【新增】連鎖 Spin 相關
+  private isProcessingCascade: boolean = false; // 是否正在處理連鎖
+  private winAnimationCompleteCallback?: () => void; // 獲勝動畫完成回調
 
   constructor(model: TitansSlotModel, view: TitansSlotView) {
     super(model, view);
@@ -75,42 +79,49 @@ export class TitansSlotController extends BaseController {
 
   private onSpinStarted(): void {
     this.log('開始旋轉');
-    // 傳遞 Turbo 狀態作為快速掉落標記
     this.view.startSpinAnimation(this.isTurboEnabled);
   }
 
+  /**
+   * 旋轉完成 - 主要流程入口
+   */
   private onSpinCompleted(result: TitansSlotResult): void {
     this.log('旋轉完成', result);
     
     // 停止旋轉動畫，並在清空完成後執行後續邏輯
-    // 如果啟用 Turbo 模式，使用快速掉落模式
-    this.view.stopSpinAnimation(result.reels, () => {
-      // 牌面清空完成後執行這些邏輯
-      this.executeAfterClearComplete(result);
-    }, () => {
-      // 符號掉落完成後的回調
-      this.executeAfterDropComplete(result);
-    }, this.isTurboEnabled); // 傳遞 Turbo 狀態作為快速掉落標記
+    this.view.stopSpinAnimation(
+      result.reels, 
+      () => {
+        // 牌面清空完成後執行這些邏輯
+        this.executeAfterClearComplete(result);
+      },
+      async () => {
+        // 符號掉落完成後的回調 - 開始處理獲勝和連鎖
+        await this.executeAfterDropComplete(result);
+      }, 
+      this.isTurboEnabled
+    );
   }
 
   /**
    * 在牌面清空完成後執行的邏輯
    */
   private executeAfterClearComplete(result: TitansSlotResult): void {
-    console.log('executeAfterClearComplete',result);
+    console.log('executeAfterClearComplete', result);
     
     // 更新獲勝金額顯示
     this.view.updateWinAmount(result.totalWin);
     
-    // 檢查是否有倍數球（ID > 50），如果有則播放倍數球動畫
+    // 檢查是否有倍數球(ID > 50)，如果有則播放倍數球動畫
     const hasMultiBall = result.reels.some(col => col.some(symbolId => symbolId > 50));
     if (hasMultiBall) {
       this.view.playMultiBallAnimation();
     }
 
-    // 如果有獲勝，播放動畫
+    // 【保留】在這裡播放獲勝動畫（延遲 1 秒）
     if (result.winLineInfos && result.winLineInfos.length > 0) {
       setTimeout(() => {
+        this.log('🎯 播放獲勝動畫');
         this.view.playWinAnimation(result.winLineInfos!);
       }, 1000);
     }
@@ -124,32 +135,201 @@ export class TitansSlotController extends BaseController {
   }
 
   /**
-   * 在符號掉落完成後執行的邏輯（用於自動旋轉）
+   * 【修改】在符號掉落完成後執行的邏輯 - 處理獲勝和連鎖
    */
-  private executeAfterDropComplete(result: TitansSlotResult): void {
+  private async executeAfterDropComplete(result: TitansSlotResult): Promise<void> {
     console.log('executeAfterDropComplete - 符號掉落完成', result);
     
-    // 如果沒有啟用自動旋轉，直接返回
-    if (!this.isAutoSpinEnabled) {
-      //to do 
-      //手動旋轉的big win
-      // const isBigWin:boolean = result.totalWin/this.model.getBet()>20
-      // if (isBigWin){
-      //   this.view.showBigWin(result.totalWin,this.model.getBet());
-      // }
+    // 標記開始處理連鎖
+    this.isProcessingCascade = true;
+    
+    try {
+      // 處理當前結果的獲勝動畫和連鎖
+      await this.processWinAndCascade(result);
+      
+      // 連鎖處理完成
+      this.isProcessingCascade = false;
+      this.log('✅ 所有連鎖處理完成');
+      
+      // 根據是否為自動模式決定後續動作
+      if (this.isAutoSpinEnabled) {
+        // 自動模式：觸發下一次旋轉
+        this.triggerAutoSpin();
+      } else {
+        // 手動模式：檢查 big win（如果需要）
+        // const isBigWin = result.totalWin / this.model.getCurrentBet() > 20;
+        // if (isBigWin) {
+        //   this.view.showBigWin(result.totalWin, this.model.getCurrentBet());
+        // }
+      }
+    } catch (error) {
+      console.error('處理連鎖時發生錯誤:', error);
+      this.isProcessingCascade = false;
+    }
+  }
+
+  /**
+   * 【新增】處理 respin 結果（不清空盤面，直接處理獲勝檢查）
+   */
+  public async handleRespinResult(result: TitansSlotResult): Promise<void> {
+    console.log('🔄 handleRespinResult - 處理 respin 結果（不清空盤面）', result);
+    
+    // 標記開始處理連鎖
+    this.isProcessingCascade = true;
+    
+    try {
+      const hasWin = result.winLineInfos && result.winLineInfos.length > 0;
+      
+      // 1. 等待獲勝動畫播放完成（如果有獲勝）
+      if (hasWin) {
+        this.log('⏳ 等待獲勝動畫播放完成');
+        await this.waitForWinAnimationComplete();
+        
+        // 2. 消除得獎符號並等待動畫完成
+        this.log('🗑️ 消除得獎符號');
+        await this.removeWinSymbolsAndWait();
+      }
+      
+      // 3. 檢查是否需要連鎖（WaitNGRespin）
+      // 如果 WaitNGRespin 為 true，需要發送下一次 respin 請求（11002）
+      if (result.WaitNGRespin) {
+        this.log('🔄 檢測到 WaitNGRespin=true，發送下一次 respin 請求（11002）');
+        // 通過 App 發送 WebSocket 請求（因為 Controller 沒有直接訪問 WebSocket 的權限）
+        // 這裡需要通過事件或回調來發送請求
+        // 暫時先記錄日誌，實際發送請求應該在 App 層處理
+        this.log('⚠️  需要在 App 層發送 11002 請求');
+      } else {
+        this.log('✅ WaitNGRespin=false，respin 流程結束');
+      }
+      
+      // 連鎖處理完成
+      this.isProcessingCascade = false;
+      this.log('✅ respin 連鎖處理完成');
+      
+      // 根據是否為自動模式決定後續動作
+      if (this.isAutoSpinEnabled) {
+        // 自動模式：觸發下一次旋轉
+        this.triggerAutoSpin();
+      }
+    } catch (error) {
+      console.error('處理 respin 連鎖時發生錯誤:', error);
+      this.isProcessingCascade = false;
+    }
+  }
+
+  /**
+   * 【修改】處理獲勝動畫和連鎖邏輯（遞迴）
+   */
+  private async processWinAndCascade(result: TitansSlotResult): Promise<void> {
+    const hasWin = result.winLineInfos && result.winLineInfos.length > 0;
+    
+    // 1. 等待獲勝動畫播放完成（如果有獲勝）
+    if (hasWin) {
+      this.log('⏳ 等待獲勝動畫播放完成');
+      await this.waitForWinAnimationComplete();
+      
+      // 2. 消除得獎符號並等待動畫完成
+      this.log('🗑️ 消除得獎符號');
+      await this.removeWinSymbolsAndWait();
+    }
+    
+    // 3. 檢查是否需要連鎖（WaitNGRespin）
+    if (result.WaitNGRespin) {
+      this.log('🔄 檢測到 WaitNGRespin=true，開始連鎖 Spin');
+      await this.processCascadeSpin();
+    } else {
+      this.log('✅ WaitNGRespin=false，本輪結束');
+    }
+  }
+
+  /**
+   * 【新增】處理連鎖 Spin（WaitNGRespin=true）
+   */
+  private async processCascadeSpin(): Promise<void> {
+    // 發送連鎖 Spin 請求
+    const cascadeResult = await this.model.requestCascadeSpin();
+    
+    if (!cascadeResult) {
+      this.log('❌ 連鎖 Spin 請求失敗');
       return;
     }
     
-    // 檢查是否有中獎
-    const hasWin = result.winLineInfos && result.winLineInfos.length > 0;
+    this.log('📦 連鎖 Spin 結果:', cascadeResult);
     
-    if (hasWin) {
-      // 有中獎：等待獲勝動畫播放兩次後檢查 big win
-      this.startWinAnimationTimer(result);
-    } else {
-      // 沒中獎：直接自動旋轉
-      this.triggerAutoSpin();
+    // 更新累計獲勝金額
+    this.view.updateWinAmount(cascadeResult.totalWin);
+    
+    // 補充新符號到空位
+    await this.fillNewSymbolsAndWait(cascadeResult.newSymbols || cascadeResult.reels);
+    
+    // 播放獲勝動畫（如果連鎖有中獎）
+    if (cascadeResult.winLineInfos && cascadeResult.winLineInfos.length > 0) {
+      this.log('🎯 連鎖中獎，播放獲勝動畫');
+      this.view.playWinAnimation(cascadeResult.winLineInfos);
     }
+    
+    // 遞迴處理新的獲勝和連鎖
+    await this.processWinAndCascade(cascadeResult);
+  }
+
+  /**
+   * 【修改】等待獲勝動畫播放完成 - 使用真實的動畫完成事件
+   */
+  private waitForWinAnimationComplete(): Promise<void> {
+    return new Promise((resolve) => {
+      // 設置回調，當所有獲勝動畫播放完成時會被觸發
+      this.winAnimationCompleteCallback = () => {
+        this.log('✅ 獲勝動畫播放完成');
+        this.winAnimationCompleteCallback = undefined;
+        resolve();
+      };
+      
+      // 當 resolve 時清除超時
+      this.winAnimationCompleteCallback = () => {
+        this.log('✅ 獲勝動畫播放完成');
+        this.winAnimationCompleteCallback = undefined;
+        resolve();
+      };
+    });
+  }
+
+  /**
+   * 【新增】消除得獎符號並等待動畫完成
+   */
+  private removeWinSymbolsAndWait(): Promise<void> {
+    return new Promise((resolve) => {
+      const wheel = this.view.getMainGame().wheel;
+      
+      // 設置消除完成回調
+      wheel.setOnRemoveWinComplete(() => {
+        this.log('✅ 得獎符號消除完成');
+        resolve();
+      });
+      
+      // playWinAnimations 已經在內部會自動觸發 removeWinSymbols
+      // 所以這裡只需要等待回調即可
+    });
+  }
+
+  /**
+   * 【新增】補充新符號並等待掉落完成
+   */
+  private fillNewSymbolsAndWait(symbolIds: number[][]): Promise<void> {
+    return new Promise((resolve) => {
+      const wheel = this.view.getMainGame().wheel;
+      const fastDrop = this.isTurboEnabled;
+      
+      this.log('📥 開始補充新符號:', symbolIds);
+      
+      wheel.fillNewSymbols(
+        symbolIds,
+        () => {
+          this.log('✅ 新符號補充並掉落完成');
+          resolve();
+        },
+        fastDrop
+      );
+    });
   }
 
   /**
@@ -190,22 +370,18 @@ export class TitansSlotController extends BaseController {
     // 檢查 big win 條件：totalWin / bet > 20
     const bet = this.model.getCurrentBet();
     const isBigWin = bet > 0 && result.totalWin / bet > 20;
-    //to do 
+    
     // if (isBigWin) {
     //   this.log(`達成 Big Win 條件！獲勝金額: ${result.totalWin}, 投注: ${bet}, 倍數: ${result.totalWin / bet}`);
-      
-    //   // 播放 big win 動畫並獲取實例
+    //   
     //   const mainGame = this.view.getMainGame();
     //   const bigWinInstance = mainGame.bigAnimationManager.showBigWin(result.totalWin.toString(), bet);
-      
-    //   // 監聽 big win 動畫完成事件
-    //   // BigWin 動畫完成時會發出 BIG_ANIMATION_BIG_WIN_COMPLETE 事件
+    //   
     //   bigWinInstance.once(GameEventEnum.BIG_ANIMATION_BIG_WIN_COMPLETE, () => {
     //     this.log('Big Win 動畫播放完成，觸發自動旋轉');
     //     this.triggerAutoSpin();
     //   });
     // } else {
-      // 沒有達成 big win，直接觸發自動旋轉
       this.log('未達成 Big Win 條件，直接觸發自動旋轉');
       this.triggerAutoSpin();
     // }
@@ -281,6 +457,13 @@ export class TitansSlotController extends BaseController {
     if (this.isAutoSpinEnabled) {
       this.setAutoSpinEnabled(false);
       this.log('手動旋轉：已關閉自動旋轉模式');
+      return;
+    }
+    
+    // 【新增】如果正在處理連鎖，禁止手動旋轉
+    if (this.isProcessingCascade) {
+      this.log('正在處理連鎖中，無法手動旋轉');
+      return;
     }
     
     if (this.model.canSpin()) {
@@ -295,12 +478,19 @@ export class TitansSlotController extends BaseController {
   }
 
   private onAutoButtonClicked(): void {
+    // 【新增】如果正在處理連鎖，禁止切換自動模式
+    if (this.isProcessingCascade) {
+      this.log('正在處理連鎖中，無法切換自動模式');
+      return;
+    }
+    
     // 切換自動旋轉狀態
     this.setAutoSpinEnabled(!this.isAutoSpinEnabled);
   }
 
   private onTurboButtonClicked(): void {
     this.isTurboEnabled = !this.isTurboEnabled;
+    this.log(`Turbo 模式: ${this.isTurboEnabled ? '開啟' : '關閉'}`);
   }
 
   /**
@@ -346,6 +536,15 @@ export class TitansSlotController extends BaseController {
 
   // ==================== 公開方法 ====================
 
+  /**
+   * 【新增】當所有符號的獲勝動畫播放完成時由 Wheel 呼叫
+   */
+  public onAllWinAnimationsComplete(): void {
+    if (this.winAnimationCompleteCallback) {
+      this.winAnimationCompleteCallback();
+    }
+  }
+
   // 開始旋轉
   public spin(): void {
     if (this.model.canSpin() || this.model.isInFreeSpinsMode()) {
@@ -390,4 +589,3 @@ export class TitansSlotController extends BaseController {
     this.setAutoSpinEnabled(enabled);
   }
 }
-

@@ -49,7 +49,9 @@ export class TitansSlotApp extends SlotMachineApp {
       this.bindModelEvents();
       
       // 設置旋轉動畫完成回調，用於發送 WebSocket 11010
+      // 無論 WaitNGRespin 狀態如何，只要 11003 盤面表演完都要 call 11010
       this.TitansView.setOnSpinAnimationComplete(() => {
+        console.log('📤 動畫表演完畢，發送 11010');
         this.sendWebSocketMessage({
           code: 11010
         });
@@ -148,7 +150,14 @@ export class TitansSlotApp extends SlotMachineApp {
     const spinInfo = data.SpinInfo;
     
     // 提取牌面結果 (SymbolResult) 並轉換符號 ID
-    const serverReels: number[][] = spinInfo.SymbolResult;
+    const serverReels: number[][] | null = spinInfo.SymbolResult;
+    
+    // 檢查 SymbolResult 是否為 null 或 undefined
+    if (!serverReels || !Array.isArray(serverReels)) {
+      console.warn('⚠️  無效的牌面結果:', serverReels, 'SpinInfo:', spinInfo);
+      return;
+    }
+    
     const reels: number[][] = SymbolMapper.serverToClientArray(serverReels);
     
     // 提取獲勝線編號
@@ -228,14 +237,25 @@ export class TitansSlotApp extends SlotMachineApp {
         this.TitansModel['setBalance'](this.TitansModel.getBalance() + result.totalWin);
       }
       
-      // 使用 fillEmptySlots 補空白（會觸發掉落動畫）
-      // 等待掉落動畫完成後，觸發 spinCompleted 事件，讓 Controller 正常處理獲勝檢查
-      this.TitansView.getMainGame().wheel.fillEmptySlots(reels, () => {
-        console.log('🔄 fillEmptySlots 完成，觸發 spinCompleted 事件');
-        // 觸發 spinCompleted 事件，讓 Controller 處理獲勝檢查
-        // 使用 setSpinResult 來觸發事件（但不會再次更新餘額，因為已經更新過了）
-        this.TitansModel.setSpinResult(result);
-      });
+      // 更新 Model 狀態（但不觸發 spinCompleted 事件）
+      this.TitansModel['stateData'].lastResult = result;
+      this.TitansModel['stateData'].isSpinning = false;
+      
+      // 使用 fillNewSymbols 補空白（會觸發掉落動畫）
+      // 等待掉落動畫完成後，直接調用 Controller 的 respin 處理方法（不清空盤面）
+      const fastDrop = this.TitansController?.getTurboEnabled() || false;
+      this.TitansView.getMainGame().wheel.fillNewSymbols(reels, async () => {
+        console.log('🔄 fillNewSymbols 完成，處理 respin 獲勝檢查（不清空盤面）');
+        // 直接調用 Controller 的 respin 處理方法，不觸發 spinCompleted 事件
+        // 這樣可以避免 stopSpinAnimation 清空盤面的問題
+        await this.TitansController.handleRespinResult(result);
+        
+        // 動畫表演完畢後，發送 11010（無論 WaitNGRespin 狀態如何）
+        console.log('📤 respin 動畫表演完畢，發送 11010');
+        this.sendWebSocketMessage({
+          code: 11010
+        });
+      }, fastDrop);
       
       // 重置狀態
       this.isWaitingRespin = false;

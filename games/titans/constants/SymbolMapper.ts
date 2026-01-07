@@ -105,10 +105,20 @@ export class SymbolMapper {
    * @param serverSymbolIds 服務器返回的符號 ID 陣列（二維陣列）
    * @returns 客戶端使用的符號 ID 陣列（二維陣列）
    */
-  static serverToClientArray(serverSymbolIds: number[][]): number[][] {
-    return serverSymbolIds.map(row => 
-      row.map(symbolId => this.serverToClient(symbolId))
-    );
+  static serverToClientArray(serverSymbolIds: number[][] | null | undefined): number[][] {
+    // 檢查輸入是否為 null 或 undefined
+    if (!serverSymbolIds || !Array.isArray(serverSymbolIds)) {
+      console.warn('⚠️  serverToClientArray: 無效的輸入:', serverSymbolIds);
+      return [];
+    }
+    
+    return serverSymbolIds.map(row => {
+      if (!Array.isArray(row)) {
+        console.warn('⚠️  serverToClientArray: 無效的行數據:', row);
+        return [];
+      }
+      return row.map(symbolId => this.serverToClient(symbolId));
+    });
   }
 
   /**

@@ -44,9 +44,22 @@ export class TitansSymbol extends BaseSymbol {
     return MULTIPLIER_MAP[id] || null;
   }
   public setSymbol(id: number): void {
+    // 處理空白符號（ID 0）
+    if (id === 0) {
+      this.symbolId = 0;
+      this.sprite.visible = false;
+      if (this.spine) {
+        this.spine.visible = false;
+        this.spine.renderable = false;
+      }
+      this.isSpecialSymbol = false;
+      return;
+    }
+    
     if(id >= 41) console.log('11003] 收到消息:show multi win',id);
     
     this.symbolId = id;
+    this.sprite.visible = true; // 確保非空白符號可見
     let symbolName:string = '';
     this.isSpecialSymbol = true;
     if(id >= 51 && id <= 55){
@@ -118,6 +131,7 @@ export class TitansSymbol extends BaseSymbol {
     }
     this.hideWin();
   }
+  
   public showWin(onComplete?: () => void): void {
     if (this.spine) {
       this.spine.visible = true;

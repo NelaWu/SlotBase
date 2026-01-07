@@ -43,6 +43,7 @@ export interface ServerSpinInfo {
   Stage: number;
   Collection: number;
   DemoModeRound: number;
+  WaitNGRespin?: boolean; // 【新增】是否需要連鎖
 }
 
 // Titans 拉霸結果
@@ -67,6 +68,10 @@ export interface TitansSlotResult extends SpinResult {
   stage?: number; // Stage
   collection?: number; // Collection
   demoModeRound?: number; // DemoModeRound
+  
+  // 【新增】連鎖相關欄位
+  WaitNGRespin?: boolean; // 是否需要連鎖 Spin
+  newSymbols?: number[][]; // 連鎖時補充的新符號（可選）
 }
 
 // Titans 拉霸 Model
@@ -194,6 +199,78 @@ export class TitansSlotModel extends SlotMachineModel {
     }
   }
 
+  /**
+   * 【新增】請求連鎖 Spin（WaitNGRespin=true 時呼叫）
+   * 
+   * 這個方法會發送請求給後端，取得連鎖的新符號資料
+   * 
+   * @returns Promise<TitansSlotResult | null> 連鎖 Spin 的結果
+   */
+  public async requestCascadeSpin(): Promise<TitansSlotResult | null> {
+    try {
+      console.log('[Model] 發送連鎖 Spin 請求...');
+      
+      // 這裡應該呼叫你的 WebSocket 或 API 請求
+      // 範例：假設你有一個 sendSpinRequest 方法
+      const result = await this.sendSpinRequestToServer();
+      
+      if (!result) {
+        console.error('[Model] 連鎖 Spin 請求失敗');
+        return null;
+      }
+      
+      console.log('[Model] 收到連鎖 Spin 結果:', result);
+      
+      // 更新餘額（如果後端有回傳）
+      if (result.balance !== undefined) {
+        this.setBalance(result.balance);
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('[Model] 連鎖 Spin 請求錯誤:', error);
+      this.emit('error', '連鎖 Spin 請求失敗');
+      return null;
+    }
+  }
+
+  /**
+   * 【修改】向伺服器請求旋轉結果
+   * 
+   * 這個方法需要根據你的實際 WebSocket 通訊協議來實作
+   * 這裡只是一個範例架構
+   */
+  private async sendSpinRequestToServer(): Promise<TitansSlotResult | null> {
+    // TODO: 實作你的實際 WebSocket 請求邏輯
+    // 
+    // 範例：
+    // return new Promise((resolve, reject) => {
+    //   const requestData = {
+    //     action: 'spin',
+    //     bet: this.currentBet,
+    //   };
+    //   
+    //   // 發送 WebSocket 請求
+    //   this.websocket.send(JSON.stringify(requestData));
+    //   
+    //   // 監聽回應
+    //   this.websocket.once('spinResult', (data) => {
+    //     const result: TitansSlotResult = {
+    //       reels: data.SymbolResult,
+    //       winLineInfos: data.WinLineInfos,
+    //       totalWin: data.Win,
+    //       WaitNGRespin: data.WaitNGRespin || false,
+    //       newSymbols: data.NewSymbols,
+    //       balance: data.Balance
+    //     };
+    //     resolve(result);
+    //   });
+    // });
+    
+    console.warn('[Model] sendSpinRequestToServer 尚未實作，請根據你的 WebSocket 協議實作');
+    return null;
+  }
+
   // 獲取 Titans 配置
   getTitansConfig(): TitansSlotConfig {
     return { ...this.TitansConfig };
@@ -206,4 +283,3 @@ export class TitansSlotModel extends SlotMachineModel {
     this.emit('gameReset');
   }
 }
-

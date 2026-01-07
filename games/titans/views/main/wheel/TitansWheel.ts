@@ -60,6 +60,7 @@ export class TitansWheel extends PIXI.Container {
   private clearCompleteCallback?: () => void;
   private removeWinCompleteCallback?: () => void;
   private fillEmptySlotsCompleteCallback?: () => void;
+  private allWinAnimationsCompleteCallback?: () => void; // 【新增】所有獲勝動畫完成回調
   private isRemovingWin: boolean = false;
   private isFillingEmptySlots: boolean = false;
   private isClearing: boolean = false;
@@ -197,9 +198,6 @@ export class TitansWheel extends PIXI.Container {
     }, clearAnimationTime);
   }
 
-  /**
-   * 開始旋轉(清空 + 掉落新符號) - 用於第一次 spin
-   */
   public startSpin(fastDrop?: boolean): void {
     if (this.isAnimating) {
       console.warn('Animation is already running');
@@ -215,9 +213,6 @@ export class TitansWheel extends PIXI.Container {
     this.clearSymbols();
   }
 
-  /**
-   * 停止旋轉(掉落指定的結果符號) - 用於第一次 spin
-   */
   public stopSpin(result: { 
     symbolIds: number[][], 
     onComplete?: () => void, 
@@ -495,6 +490,13 @@ export class TitansWheel extends PIXI.Container {
     this.removeWinCompleteCallback = callback;
   }
 
+  /**
+   * 【新增】設置所有獲勝動畫完成回調
+   */
+  public setOnAllWinAnimationsComplete(callback: () => void): void {
+    this.allWinAnimationsCompleteCallback = callback;
+  }
+
   private getRandomSymbolId(): number {
     return Math.floor(Math.random() * 11) + 1;
   }
@@ -538,7 +540,7 @@ export class TitansWheel extends PIXI.Container {
   }
 
   /**
-   * 播放獲勝動畫
+   * 【修改】播放獲勝動畫 - 追蹤所有動畫完成
    */
   public playWinAnimations(winLineInfos: Array<{ WinPosition: number[][] }>): void {
     if (!winLineInfos || winLineInfos.length === 0) {
@@ -585,16 +587,24 @@ export class TitansWheel extends PIXI.Container {
     winSymbols.forEach((state) => {
       state.symbol.showWin(() => {
         completedCount++;
+        console.log(`[Wheel] 符號動畫完成: ${completedCount}/${totalAnimations}`);
+        
+        // 【修改】當所有符號動畫都完成時
         if (completedCount >= totalAnimations) {
+          console.log('[Wheel] ✅ 所有獲勝動畫播放完成');
+          
+          // 觸發所有動畫完成回調
+          if (this.allWinAnimationsCompleteCallback) {
+            this.allWinAnimationsCompleteCallback();
+          }
+          
+          // 然後自動消除得獎符號
           this.removeWinSymbols();
         }
       });
     });
   }
 
-  /**
-   * 隱藏所有獲勝動畫
-   */
   public hideAllWinAnimations(): void {
     this.symbolStates.forEach((col) => {
       col.forEach((state) => {
@@ -606,9 +616,6 @@ export class TitansWheel extends PIXI.Container {
     });
   }
 
-  /**
-   * 消除所有顯示獲勝動畫的符號，並讓其他符號往下堆疊
-   */
   public removeWinSymbols(): void {
     this.isRemovingWin = true;
     
@@ -677,8 +684,7 @@ export class TitansWheel extends PIXI.Container {
       const newStates: SymbolState[] = [];
       for (let i = 0; i < needToFill; i++) {
         const symbol = new TitansSymbol();
-        symbol.setSymbol(0); // 0 = 空白符號
-        symbol.visible = false;
+        symbol.setSymbol(0); // setSymbol(0) 會自動處理空白符號的顯示
         
         const x = col * this.symbolWidth + this.symbolWidth / 2;
         const startY = i * this.symbolHeight + this.symbolHeight / 2;
@@ -706,9 +712,6 @@ export class TitansWheel extends PIXI.Container {
     this.startCascadeAnimation();
   }
 
-  /**
-   * 啟動堆疊動畫：讓符號掉落到新位置
-   */
   private startCascadeAnimation(): void {
     this.isAnimating = true;
     this.lastTime = performance.now();
@@ -737,11 +740,6 @@ export class TitansWheel extends PIXI.Container {
     this.animate();
   }
 
-  /**
-   * 【新增】補充新符號到空位 - 用於連鎖 spin (WaitNGRespin=true)
-   * @param symbolIds 二維陣列 [col][row]，只填充前 N 個位置（N = 需要補充的數量）
-   * @param onComplete 補完符號並掉落完成後的回調
-   */
   public fillNewSymbols(symbolIds: number[][], onComplete?: () => void, fastDrop?: boolean): void {
     this.isFillingEmptySlots = true;
     this.fillEmptySlotsCompleteCallback = onComplete;
@@ -762,7 +760,6 @@ export class TitansWheel extends PIXI.Container {
       const colStates = this.symbolStates[col] || [];
       const colSymbolIds = symbolIds[col] || [];
       
-      // 找出所有空白符號（symbol.visible = false 或 symbolId = 0）
       const emptyIndices: number[] = [];
       colStates.forEach((state, rowIndex) => {
         if (!state.symbol.visible || state.symbol.getSymbolId() === 0) {
@@ -772,22 +769,18 @@ export class TitansWheel extends PIXI.Container {
 
       if (emptyIndices.length === 0) continue;
 
-      // 從上到下補充新符號
       emptyIndices.forEach((rowIndex, i) => {
         const state = colStates[rowIndex];
         const newSymbolId = colSymbolIds[i];
 
         if (newSymbolId !== null && newSymbolId !== undefined && newSymbolId !== 0) {
-          // 設置新符號
           state.symbol.setSymbol(newSymbolId);
           state.symbol.visible = true;
 
-          // 重置起始位置到畫面上方
           const x = col * this.symbolWidth + this.symbolWidth / 2;
           const startY = -this.config.reelHeight / this.config.symbolsPerReel * (emptyIndices.length - i);
           state.symbol.position.set(x, startY);
 
-          // 重置掉落狀態
           state.velocityY = 0;
           state.dropStarted = false;
           state.hasTriggeredNext = false;
@@ -796,7 +789,6 @@ export class TitansWheel extends PIXI.Container {
       });
     }
 
-    // 啟動掉落動畫
     this.startCascadeAnimation();
   }
 
