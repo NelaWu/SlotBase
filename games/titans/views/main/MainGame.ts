@@ -31,6 +31,7 @@ export class MainGame extends PIXI.Container {
   public settingsButtonContainer!: PIXI.Container;
   public bigAnimationManager!: BigAnimationManager;
   public betPanel!: BetPanel;
+  public multiBallSpine!: Spine;
 
   constructor() {
     super();
@@ -56,28 +57,11 @@ export class MainGame extends PIXI.Container {
     // 設置佈局
     this.setupLayout();
 
+    // 創建倍數球動畫
+    this.createMultiBallAnimation();
 
     // 創建大動畫管理器
     this.createBigAnimation();
-
-    // //test
-    // const backgroundMask = new PIXI.Graphics();
-    // backgroundMask.beginFill(0x000000, 0.9);
-    // backgroundMask.drawRect(0, 0, 1080, 1920);
-    // backgroundMask.endFill();
-    // backgroundMask.eventMode = 'static';
-    // backgroundMask.hitArea = new PIXI.Rectangle(0, 0, 1080, 1920);
-    // this.addChild(backgroundMask);
-    // const a = Spine.from({
-    //   atlas: 'BG_Multi_Ball_atlas',
-    //   skeleton: 'BG_Multi_Ball_skel',
-    // });
-    // a.position.set(540, 920);
-    // this.addChild(a);
-    // console.log('BG_Multi_Bar_skel', a);
-    // a.state.setAnimation(0, "1-1", true);
-    // a.skeleton.setSkinByName("Lv2");
-
 
   }
 
@@ -372,6 +356,19 @@ export class MainGame extends PIXI.Container {
     this.addChild(this.bigAnimationManager);
   }
 
+  private createMultiBallAnimation(): void {
+    this.multiBallSpine = Spine.from({
+      atlas: 'BG_Multi_Ball_atlas',
+      skeleton: 'BG_Multi_Ball_skel',
+    });
+    this.multiBallSpine.label = 'multiBallSpine';
+    this.addChild(this.multiBallSpine);
+    this.multiBallSpine.position.set(550, 950);
+    console.log('multiBallSpine',this.multiBallSpine);
+    // this.multiBallSpine.skeleton.setSkinByName("Lv2");
+    // this.multiBallSpine.state.setAnimation(0, "1-4", true);
+  }
+
   public createBetPanel(betlist: number[], onBetSelected?: (betAmount: number) => void): void {
     // 如果已經存在 betPanel，先移除
     if (this.betPanel) {
@@ -385,6 +382,10 @@ export class MainGame extends PIXI.Container {
 
   public showBigWin(money:string, bet?:number):void{
     this.bigAnimationManager.showBigWin(money,bet);
+  }
+
+  public playMultiBallAnimation():void{
+    this.gameScene.playMultiBallAnimation();
   }
 }
 

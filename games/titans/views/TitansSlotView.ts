@@ -121,7 +121,7 @@ export class TitansSlotView extends BaseView {
           this.setSpinButtonEnabled(true);
         }, 300);
         
-        // 牌面顯示完成後，觸發回調（用於發送 WebSocket 11010）
+        // 牌面顯示完成後，觸發回調（用於發送 WebSocket 11011）
         if (this.onSpinAnimationCompleteCallback) {
           this.onSpinAnimationCompleteCallback();
         }
@@ -141,6 +141,10 @@ export class TitansSlotView extends BaseView {
   // 公開方法 - 隱藏所有獲勝動畫
   public hideWinAnimations(): void {
     this.mainGame.wheel.hideAllWinAnimations();
+  }
+
+  public playMultiBallAnimation():void{
+    this.mainGame.playMultiBallAnimation();
   }
 
   // 隱藏獲勝金額

@@ -3,6 +3,7 @@ import { BaseSymbol } from '@/views/components/BaseSymbol';
 import * as PIXI from 'pixi.js';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { BaseNumber } from '@/views/components/BaseNumber';
+import gsap from 'gsap';
 
 /**
  * 倍數 ID 映射表
@@ -28,6 +29,26 @@ const MULTIPLIER_MAP: Record<number, number> = {
   68: 200,
   69: 250,
   70: 500,
+  151:2,
+  152:3,
+  153:4,
+  154:6,
+  155:8,
+  156:10,
+  157:12,
+  158:15,
+  159:18,
+  160:25,
+  161:50,
+  162:55,
+  163:60,
+  164:65,
+  165:80,
+  166:100,
+  167:150,
+  168:200,
+  169:250,
+  170:500,
 };
 
 /**
@@ -43,7 +64,20 @@ export class TitansSymbol extends BaseSymbol {
   private getMultiplierValue(id: number): number | null {
     return MULTIPLIER_MAP[id] || null;
   }
-  public setSymbol(id: number): void {    
+  public setSymbol(id: number): void {
+    this.sprite.visible = false;
+    // 處理空白符號（ID 0）
+    if (id === 0) {
+      if (this.spine) {
+        this.spine.visible = false;
+        this.spine.renderable = false;
+      }
+      this.isSpecialSymbol = false;
+      return;
+    }
+    
+    if(id >= 41) console.log('11003] 收到消息:show multi win',id);
+    
     this.symbolId = id;
     let symbolName:string = '';
     this.isSpecialSymbol = true;
@@ -66,6 +100,7 @@ export class TitansSymbol extends BaseSymbol {
     }else{
       symbolName = `symbol_${id.toString().padStart(2, '0')}`;
       this.isSpecialSymbol = false;
+      this.sprite.visible = true;
     }
     const symbolResource = ResourceManager.getInstance().getResource(symbolName);
     
@@ -73,13 +108,15 @@ export class TitansSymbol extends BaseSymbol {
       const symbolTexture = PIXI.Texture.from(symbolResource);
       this.sprite.texture = symbolTexture;
     }
-    if(id <= 11){
+
+    if(!this.isSpecialSymbol){
       this.spine = Spine.from({
         atlas: `symbol_${id.toString().padStart(2, '0')}_atlas`,
         skeleton: `symbol_${id.toString().padStart(2, '0')}_skel`,
       });
       this.spine.scale.set(0.5, 0.5);
       this.addChild(this.spine); 
+      this.hideWin();
     }
     else{
       //倍數球的spine
@@ -87,10 +124,9 @@ export class TitansSymbol extends BaseSymbol {
         atlas: `Symbol_Multi_atlas`,
         skeleton: `Symbol_Multi_skel`,
       });
+      
       this.spine.scale.set(0.5, 0.5);
-      this.addChild(this.spine); 
-      console.log('show multi win',this.spine);
-      this.spine.skeleton.setSkinByName('Lv2');
+      // this.addChild(this.spine);
       if(id >= 51 && id <= 55){
         this.spine.skeleton.setSkinByName('Lv1');
       }else if(id >= 56 && id <= 60){
@@ -100,10 +136,13 @@ export class TitansSymbol extends BaseSymbol {
       }else if(id >= 66 && id <= 70){
         this.spine.skeleton.setSkinByName('Lv4');
       }
-      this.spine.state.setAnimation(0, "Collect", true);
-      
+      else{
+        this.spine.skeleton.setSkinByName('Lv4');
+      }
+
       // 顯示倍數文字
       const multiplierValue = this.getMultiplierValue(id);
+      console.log('11003] 收到消息:show multi win',multiplierValue);
       if (multiplierValue !== null) {
         const multiText = new BaseNumber({
           baseName: 'fg_total_multi_number',
@@ -111,17 +150,54 @@ export class TitansSymbol extends BaseSymbol {
           align: 'center',
           useThousandSeparator: true
         });
-        this.addChild(multiText);
         multiText.showText(multiplierValue.toString()+'x');
+        multiText.scale.set(0, 0);
+        setTimeout(() => {
+          const a:{scale:number} = {scale:2};
+          gsap.to(a, {
+            scale:1,
+            duration: 0.5,
+            delay: 0.5,
+            onStart: () => {
+              if(this.spine){
+                this.addChild(this.spine);
+                this.spine!.visible = true;
+                this.spine!.renderable = true;
+                this.spine!.state?.setAnimation(0, "Hit", false);
+              }
+              this.addChild(multiText);
+            },
+            onUpdate: () => {
+              multiText.scale.set(a.scale, a.scale);
+            }
+          });
+          this.spine?.state?.setAnimation(0, "Hit", false);
+        }, 400);
+        
       }
     }
-    this.hideWin();
   }
-  public showWin(): void {
+  
+  public showWin(onComplete?: () => void): void {
     if (this.spine) {
       this.spine.visible = true;
       this.spine.renderable = true; // 啟用渲染
-      this.spine.state.setAnimation(0, "Win", true);
+      this.sprite.visible = false;
+      
+      const trackEntry = this.spine.state.setAnimation(0, "Win", false);
+      trackEntry.listener = {
+        complete: () => {
+          if (this.spine) {
+            this.spine.visible = false;
+            this.spine.renderable = false;
+          }
+          this.sprite.visible = true;
+          // 調用完成回調
+          if (onComplete) {
+            onComplete();
+          }
+        }
+      };
     }
   }
   
@@ -132,6 +208,7 @@ export class TitansSymbol extends BaseSymbol {
       // 隱藏並禁用渲染以節省效能
       this.spine.visible = false;
       this.spine.renderable = false; // 禁用渲染，跳過渲染管線
+      this.sprite.visible = true;
     }
   }
   
