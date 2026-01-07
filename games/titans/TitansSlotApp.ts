@@ -255,10 +255,17 @@ export class TitansSlotApp extends SlotMachineApp {
         this.sendWebSocketMessage({
           code: 11010
         });
+        
+        // 根據 WaitNGRespin 狀態決定是否保持 isWaitingRespin
+        if (result.WaitNGRespin === true) {
+          console.log('🔄 WaitNGRespin=true，保持 isWaitingRespin=true，等待收到 11011 後再發送下一次 11002');
+          // 保持 isWaitingRespin = true，等待收到 11011 後再發送 11002
+          this.isWaitingRespin = true;
+        } else {
+          console.log('✅ WaitNGRespin=false，respin 流程結束，重置 isWaitingRespin=false');
+          this.isWaitingRespin = false;
+        }
       }, fastDrop);
-      
-      // 重置狀態
-      this.isWaitingRespin = false;
       
       return; // respin 時直接返回，不執行後續的 WaitNGRespin 檢查
     }

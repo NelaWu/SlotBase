@@ -180,8 +180,11 @@ export class TitansSlotController extends BaseController {
     try {
       const hasWin = result.winLineInfos && result.winLineInfos.length > 0;
       
-      // 1. 等待獲勝動畫播放完成（如果有獲勝）
+      // 1. 播放獲勝動畫並等待完成（如果有獲勝）
       if (hasWin) {
+        this.log('🎯 播放獲勝動畫');
+        this.view.playWinAnimation(result.winLineInfos!);
+        
         this.log('⏳ 等待獲勝動畫播放完成');
         await this.waitForWinAnimationComplete();
         

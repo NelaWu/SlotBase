@@ -3,6 +3,7 @@ import { BaseSymbol } from '@/views/components/BaseSymbol';
 import * as PIXI from 'pixi.js';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { BaseNumber } from '@/views/components/BaseNumber';
+import gsap from 'gsap';
 
 /**
  * 倍數 ID 映射表
@@ -95,6 +96,7 @@ export class TitansSymbol extends BaseSymbol {
       });
       this.spine.scale.set(0.5, 0.5);
       this.addChild(this.spine); 
+      this.hideWin();
     }
     else{
       //倍數球的spine
@@ -114,7 +116,7 @@ export class TitansSymbol extends BaseSymbol {
       }else if(id >= 66 && id <= 70){
         this.spine.skeleton.setSkinByName('Lv4');
       }
-      this.spine.state.setAnimation(0, "Collect", true);
+      this.spine.state.setAnimation(0, "Hit", false);
       
       // 顯示倍數文字
       const multiplierValue = this.getMultiplierValue(id);
@@ -127,9 +129,18 @@ export class TitansSymbol extends BaseSymbol {
         });
         this.addChild(multiText);
         multiText.showText(multiplierValue.toString()+'x');
+        multiText.scale.set(0, 0);
+        const a:{scale:number} = {scale:2};
+        gsap.to(a, {
+          scale:1,
+          duration: 0.5,
+          delay: 0.5,
+          onUpdate: () => {
+            multiText.scale.set(a.scale, a.scale);
+          }
+        });
       }
     }
-    this.hideWin();
   }
   
   public showWin(onComplete?: () => void): void {
