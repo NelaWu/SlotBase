@@ -487,11 +487,11 @@ export class TitansWheel extends PIXI.Container {
       this.dropCompleteCallback();
       this.dropCompleteCallback = undefined;
     }
-    
+    console.log('[Wheel] ✅ 觸發所有動畫完成回調',this.isRemovingWin,this.removeWinCompleteCallback);
     if (this.isRemovingWin && this.removeWinCompleteCallback) {
       this.isRemovingWin = false;
       this.removeWinCompleteCallback();
-      this.removeWinCompleteCallback = undefined;
+      // this.removeWinCompleteCallback = undefined;
     }
     
     if (this.isFillingEmptySlots && this.fillEmptySlotsCompleteCallback) {

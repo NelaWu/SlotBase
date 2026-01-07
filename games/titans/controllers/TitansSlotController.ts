@@ -303,9 +303,21 @@ export class TitansSlotController extends BaseController {
     return new Promise((resolve) => {
       const wheel = this.view.getMainGame().wheel;
       
-      // 設置消除完成回調
+      // 保存原有的回調（如果有的話）
+      const existingCallback = (wheel as any).removeWinCompleteCallback;
+      
+      // 設置消除完成回調（會先執行原有回調，然後 resolve）
       wheel.setOnRemoveWinComplete(() => {
         this.log('✅ 得獎符號消除完成');
+        // 如果原有回調存在，先執行它（用於發送 11002）
+        // 注意：原有回調執行後會被清除，所以我們需要在執行前保存
+        if (existingCallback) {
+          try {
+            existingCallback();
+          } catch (error) {
+            console.error('執行原有 removeWinCompleteCallback 時發生錯誤:', error);
+          }
+        }
         resolve();
       });
       

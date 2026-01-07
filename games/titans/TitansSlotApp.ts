@@ -246,6 +246,22 @@ export class TitansSlotApp extends SlotMachineApp {
       const fastDrop = this.TitansController?.getTurboEnabled() || false;
       this.TitansView.getMainGame().wheel.fillNewSymbols(reels, async () => {
         console.log('🔄 fillNewSymbols 完成，處理 respin 獲勝檢查（不清空盤面）');
+        
+        // 如果 WaitNGRespin=true，設置 removeWinSymbols 完成後的回調，用於發送下一次 11002
+        // 注意：必須在 handleRespinResult 之前設置，因為 handleRespinResult 會調用 removeWinSymbolsAndWait
+        if (result.WaitNGRespin === true) {
+          console.log('🔄 WaitNGRespin=true，設置 removeWinSymbols 完成後的回調');
+          this.TitansView.getMainGame().wheel.setOnRemoveWinComplete(() => {
+            console.log('🔄 removeWinSymbols 完成，自動發送 respin 請求（不清空牌面）');
+            // 自動發送 spin 請求（使用相同的投注金額）
+            const betMultiple = this.TitansModel.getCurrentBet();
+            this.sendWebSocketMessage({
+              code: 11002,
+              BetMultiple: betMultiple
+            });
+          });
+        }
+        
         // 直接調用 Controller 的 respin 處理方法，不觸發 spinCompleted 事件
         // 這樣可以避免 stopSpinAnimation 清空盤面的問題
         await this.TitansController.handleRespinResult(result);
