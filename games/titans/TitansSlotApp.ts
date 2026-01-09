@@ -51,10 +51,12 @@ export class TitansSlotApp extends SlotMachineApp {
       // 設置旋轉動畫完成回調，用於發送 WebSocket 11010
       // 無論 WaitNGRespin 狀態如何，只要 11003 盤面表演完都要 call 11010
       this.TitansView.setOnSpinAnimationComplete(() => {
-        console.log('📤 動畫表演完畢，發送 11010');
-        this.sendWebSocketMessage({
-          code: 11010
-        });
+        if(this.isWaitingRespin==false){
+          console.log('📤 動畫表演完畢，發送 11010');
+          this.sendWebSocketMessage({
+            code: 11010
+          });
+        }
       });
 
       console.log('⚡ Titans 拉霸應用程式初始化完成');
@@ -266,11 +268,6 @@ export class TitansSlotApp extends SlotMachineApp {
         // 這樣可以避免 stopSpinAnimation 清空盤面的問題
         await this.TitansController.handleRespinResult(result);
         
-        // 動畫表演完畢後，發送 11010（無論 WaitNGRespin 狀態如何）
-        console.log('📤 respin 動畫表演完畢，發送 11010');
-        this.sendWebSocketMessage({
-          code: 11010
-        });
         
         // 根據 WaitNGRespin 狀態決定是否保持 isWaitingRespin
         if (result.WaitNGRespin === true) {
@@ -280,6 +277,11 @@ export class TitansSlotApp extends SlotMachineApp {
         } else {
           console.log('✅ WaitNGRespin=false，respin 流程結束，重置 isWaitingRespin=false');
           this.isWaitingRespin = false;
+          // 動畫表演完畢後，發送 11010
+          console.log('📤 respin 動畫表演完畢，發送 11010');
+          this.sendWebSocketMessage({
+            code: 11010
+          });
         }
       }, fastDrop);
       
