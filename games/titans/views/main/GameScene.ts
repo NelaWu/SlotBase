@@ -60,10 +60,10 @@ export class GameScene extends PIXI.Container {
         });
         this.characterSpine.label = 'characterSpine';
         this.addChild(this.characterSpine);
-        this.characterSpine.position.set(630, 400);
+        this.characterSpine.position.set(610, 450);
+        this.characterSpine.scale.set(1.1);
         this.characterSpine.state.setAnimation(0, "Idle", true);
         this.characterSpine.skeleton.setSkinByName("Mg");
-        console.log('characterSpine',this.characterSpine);
         
         // 3. 載入屋頂圖片
         const roofTexture = PIXI.Texture.from(resourceManager.getResource('mg_frame_roof') as string);
@@ -76,15 +76,7 @@ export class GameScene extends PIXI.Container {
           this.roofSprite2.scale.x = -1;
           this.addChild(this.roofSprite2);
         }
-        // 4. 載入LOGO
-        const logoResource = resourceManager.getResource('game_logo_cnt');
-        if (logoResource) {
-          const frameTexture = PIXI.Texture.from(logoResource);
-          const frameSprite = new PIXI.Sprite(frameTexture);
-          frameSprite.position.set(426, 582);
-          this.addChild(frameSprite);
-        }
-        // 5. 載入框架圖片（疊加在背景上）
+        // 4. 載入框架圖片（疊加在背景上）
         const frameResource = resourceManager.getResource('mg_frame');
         if (frameResource) {
           const frameTexture = PIXI.Texture.from(frameResource);
@@ -95,6 +87,14 @@ export class GameScene extends PIXI.Container {
           this.frameSprite2.position.set(1080, 692);
           this.frameSprite2.scale.x = -1;
           this.addChild(this.frameSprite2);
+        }
+        // 5. 載入LOGO
+        const logoResource = resourceManager.getResource('game_logo_cnt');
+        if (logoResource) {
+          const frameTexture = PIXI.Texture.from(logoResource);
+          const frameSprite = new PIXI.Sprite(frameTexture);
+          frameSprite.position.set(426, 582);
+          this.addChild(frameSprite);
         }
         // 6. 載入資訊背景圖片
         const infoBgResource = resourceManager.getResource('fg_info_bg');
