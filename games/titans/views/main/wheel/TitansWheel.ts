@@ -98,7 +98,7 @@ export class TitansWheel extends PIXI.Container {
     maskGraphics.drawRect(
       0,
       0,
-      this.symbolWidth * this.config.numberOfReels,
+      this.symbolWidth * this.config.numberOfReels+10,
       this.config.reelHeight
     );
     maskGraphics.endFill();

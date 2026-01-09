@@ -86,7 +86,7 @@ export class TitansSlotApp extends SlotMachineApp {
         initMessage: {
           GameToken: 'BN80',
           GameID: 7,
-          DemoOn: false,
+          DemoOn: true,
           Lang: language.toLowerCase() // 轉換為小寫，如 'zh-cn'
         }
       });
@@ -344,130 +344,6 @@ export class TitansSlotApp extends SlotMachineApp {
         
         case 11003:
           console.log('🎰 收到旋轉結果:', data);
-        //   data = {
-        //     "Code": 11003,
-        //     "Result": 0,
-        //     "RoundCode": "round_2415",
-        //     "SpinInfo": {
-        //         "GameStateType": 0,
-        //         "GameState": 2,
-        //         "WinType": 0,
-        //         "Multiplier": 1,
-        //         "ScreenOrg": [
-        //             [
-        //                 11,
-        //                 11,
-        //                 2,
-        //                 2,
-        //                 2
-        //             ],
-        //             [
-        //                 12,
-        //                 13,
-        //                 156,
-        //                 2,
-        //                 2
-        //             ],
-        //             [
-        //                 13,
-        //                 14,
-        //                 15,
-        //                 15,
-        //                 13
-        //             ],
-        //             [
-        //                 15,
-        //                 13,
-        //                 13,
-        //                 31,
-        //                 11
-        //             ],
-        //             [
-        //                 51,
-        //                 12,
-        //                 12,
-        //                 14,
-        //                 14
-        //             ],
-        //             [
-        //                 31,
-        //                 3,
-        //                 14,
-        //                 14,
-        //                 4
-        //             ]
-        //         ],
-        //         "SymbolResult": [
-        //             [
-        //                 11,
-        //                 11,
-        //                 2,
-        //                 2,
-        //                 2
-        //             ],
-        //             [
-        //                 12,
-        //                 13,
-        //                 156,
-        //                 2,
-        //                 2
-        //             ],
-        //             [
-        //                 13,
-        //                 14,
-        //                 15,
-        //                 15,
-        //                 13
-        //             ],
-        //             [
-        //                 15,
-        //                 13,
-        //                 13,
-        //                 31,
-        //                 11
-        //             ],
-        //             [
-        //                 51,
-        //                 12,
-        //                 12,
-        //                 14,
-        //                 14
-        //             ],
-        //             [
-        //                 31,
-        //                 3,
-        //                 14,
-        //                 14,
-        //                 4
-        //             ]
-        //         ],
-        //         "ScreenOutput": [],
-        //         "WinLineInfos": [],
-        //         "FGTotalTimes": 0,
-        //         "FGCurrentTimes": 0,
-        //         "FGRemainTimes": 0,
-        //         "FGMaxFlag": false,
-        //         "RndNum": [
-        //             0,
-        //             14,
-        //             4,
-        //             12,
-        //             21,
-        //             32
-        //         ],
-        //         "Win": 0,
-        //         "ExtraData": "",
-        //         "Stage": 0,
-        //         "Collection": 0,
-        //         "DemoModeRound": 0
-        //     },
-        //     "LDOption": [],
-        //     "WaitNGRespin": false,
-        //     "WinJPInfo": {
-        //         "JPLevel": 0,
-        //         "Value": 0
-        //     }
-        // }
           // 處理旋轉結果
           this.handleSpinResult(data);
           break;
