@@ -4,6 +4,7 @@ import { TitansSlotView } from './views/TitansSlotView';
 import { TitansSlotController } from './controllers/TitansSlotController';
 import { WebSocketManager, WebSocketEvent } from '@/core/WebSocketManager';
 import { SymbolMapper } from './constants/SymbolMapper';
+import { MathUtil } from '@/core/MathUtil';
 
 // Titans 拉霸應用程式配置
 export interface TitansSlotAppConfig extends SlotMachineAppConfig {
@@ -18,6 +19,7 @@ export class TitansSlotApp extends SlotMachineApp {
   private wsManager?: WebSocketManager;
   private spinStartedHandler?: () => void;
   private isWaitingRespin: boolean = false; // 是否正在等待 respin
+  private betMultiple: number = 1;
 
   constructor(config: TitansSlotAppConfig) {
     super(config);
@@ -47,11 +49,11 @@ export class TitansSlotApp extends SlotMachineApp {
 
       // 監聽 Model 的 spinStarted 事件，發送 WebSocket 訊息
       this.bindModelEvents();
-      
+
       // 設置旋轉動畫完成回調，用於發送 WebSocket 11010
       // 無論 WaitNGRespin 狀態如何，只要 11003 盤面表演完都要 call 11010
       this.TitansView.setOnSpinAnimationComplete(() => {
-        if(this.isWaitingRespin==false){
+        if (this.isWaitingRespin == false) {
           console.log('📤 動畫表演完畢，發送 11010');
           this.sendWebSocketMessage({
             code: 11010
@@ -77,7 +79,7 @@ export class TitansSlotApp extends SlotMachineApp {
       // 獲取語言參數
       const urlParams = new URLSearchParams(window.location.search);
       const language = urlParams.get('lang') || 'zh-cn';
-      
+
       // 創建 WebSocket 管理器實例
       this.wsManager = WebSocketManager.getInstance({
         url: 'wss://gsvr1.wkgm88.net/gameserver',
@@ -94,7 +96,7 @@ export class TitansSlotApp extends SlotMachineApp {
       });
       // 監聽連接事件
       this.wsManager.on(WebSocketEvent.CONNECT, (data) => {
-        console.log('✅ WebSocket 連接成功',data);
+        console.log('✅ WebSocket 連接成功', data);
       });
 
       // 監聽斷開事件
@@ -134,7 +136,7 @@ export class TitansSlotApp extends SlotMachineApp {
       const betMultiple = this.TitansModel.getCurrentBet();
       this.sendWebSocketMessage({
         code: 11002,
-        BetMultiple: betMultiple
+        BetMultiple: MathUtil.divide(betMultiple, this.betMultiple)
       });
     };
     this.TitansModel.on('spinStarted', this.spinStartedHandler);
@@ -150,42 +152,42 @@ export class TitansSlotApp extends SlotMachineApp {
     }
 
     const spinInfo = data.SpinInfo;
-    
+
     // 提取牌面結果 (SymbolResult) 並轉換符號 ID
     const serverReels: number[][] | null = spinInfo.SymbolResult;
-    
+
     // 檢查 SymbolResult 是否為 null 或 undefined
     if (!serverReels || !Array.isArray(serverReels)) {
       console.warn('⚠️  無效的牌面結果:', serverReels, 'SpinInfo:', spinInfo);
       return;
     }
-    
+
     const reels: number[][] = SymbolMapper.serverToClientArray(serverReels);
-    
+
     // 提取獲勝線編號
     const winLines: number[] = [];
     if (spinInfo.WinLineInfos && Array.isArray(spinInfo.WinLineInfos)) {
       winLines.push(...spinInfo.WinLineInfos.map((info: any) => info.LineNo || info.LineIndex || 0));
     }
-    
+
     // 提取獲勝金額
     const totalWin = spinInfo.Win || 0;
-    
+
     // 提取倍數
     const multiplier = spinInfo.Multiplier || 1;
-    
+
     // 提取詳細的獲勝連線信息並轉換符號 ID
     const winLineInfos = (spinInfo.WinLineInfos || []).map((info: any) => ({
       ...info,
       SymbolID: SymbolMapper.serverToClient(info.SymbolID || info.SymbolId || 0),
       // WinPosition 中的符號 ID 如果需要轉換，可以在這裡處理
     }));
-    
+
     // 判斷是否觸發 Bonus
     let bonusFeature: string | undefined;
     let freeSpins: number | undefined;
     let jackpotWon = false;
-    
+
     // 根據 GameState 或其他字段判斷 Bonus
     if (spinInfo.GameState === 1 || spinInfo.GameStateType === 1) {
       // 可能需要根據實際業務邏輯調整
@@ -194,13 +196,13 @@ export class TitansSlotApp extends SlotMachineApp {
         freeSpins = spinInfo.FGRemainTimes;
       }
     }
-    
-    // 檢查是否中大獎
-    if (data.WinJPInfo && data.WinJPInfo.Value > 0) {
-      jackpotWon = true;
-      bonusFeature = 'jackpot';
-    }
-    
+
+    // // 檢查是否中大獎
+    // if (data.WinJPInfo && data.WinJPInfo.Value > 0) {
+    //   jackpotWon = true;
+    //   bonusFeature = 'jackpot';
+    // }
+
     // 構建結果對象
     const result: TitansSlotResult = {
       reels,
@@ -229,26 +231,26 @@ export class TitansSlotApp extends SlotMachineApp {
       collection: spinInfo.Collection,
       demoModeRound: spinInfo.DemoModeRound
     };
-    
+
     // 檢查是否正在等待 respin，如果是則用新資料補空白（不清空牌面）
     if (this.isWaitingRespin) {
       console.log('🔄 收到 respin 資料，補空白處（不清空牌面）');
-      
+
       // 先更新餘額（但不觸發 spinCompleted 事件）
       if (result.totalWin > 0) {
         this.TitansModel['setBalance'](this.TitansModel.getBalance() + result.totalWin);
       }
-      
+
       // 更新 Model 狀態（但不觸發 spinCompleted 事件）
       this.TitansModel['stateData'].lastResult = result;
       this.TitansModel['stateData'].isSpinning = false;
-      
+
       // 使用 fillNewSymbols 補空白（會觸發掉落動畫）
       // 等待掉落動畫完成後，直接調用 Controller 的 respin 處理方法（不清空盤面）
       const fastDrop = this.TitansController?.getTurboEnabled() || false;
       this.TitansView.getMainGame().wheel.fillNewSymbols(reels, async () => {
         console.log('🔄 fillNewSymbols 完成，處理 respin 獲勝檢查（不清空盤面）');
-        
+
         // 如果 WaitNGRespin=true，設置 removeWinSymbols 完成後的回調，用於發送下一次 11002
         // 注意：必須在 handleRespinResult 之前設置，因為 handleRespinResult 會調用 removeWinSymbolsAndWait
         if (result.WaitNGRespin === true) {
@@ -259,16 +261,16 @@ export class TitansSlotApp extends SlotMachineApp {
             const betMultiple = this.TitansModel.getCurrentBet();
             this.sendWebSocketMessage({
               code: 11002,
-              BetMultiple: betMultiple
+              BetMultiple: MathUtil.divide(betMultiple, this.betMultiple)
             });
           });
         }
-        
+
         // 直接調用 Controller 的 respin 處理方法，不觸發 spinCompleted 事件
         // 這樣可以避免 stopSpinAnimation 清空盤面的問題
         await this.TitansController.handleRespinResult(result);
-        
-        
+
+
         // 根據 WaitNGRespin 狀態決定是否保持 isWaitingRespin
         if (result.WaitNGRespin === true) {
           console.log('🔄 WaitNGRespin=true，保持 isWaitingRespin=true，等待收到 11011 後再發送下一次 11002');
@@ -284,18 +286,18 @@ export class TitansSlotApp extends SlotMachineApp {
           });
         }
       }, fastDrop);
-      
+
       return; // respin 時直接返回，不執行後續的 WaitNGRespin 檢查
     }
-    
+
     // 設置結果到 Model（Model 會自動處理餘額更新）
     this.TitansModel.setSpinResult(result);
-    
+
     // 檢查 WaitNGRespin 參數
     if (data.WaitNGRespin === true) {
       console.log('🔄 WaitNGRespin 為 true，等待 removeWinSymbols 完成後自動 spin');
       this.isWaitingRespin = true;
-      
+
       // 設置回調，當 removeWinSymbols 完成後自動發送 spin 請求
       this.TitansView.getMainGame().wheel.setOnRemoveWinComplete(() => {
         console.log('🔄 removeWinSymbols 完成，自動發送 respin 請求（不清空牌面）');
@@ -303,7 +305,7 @@ export class TitansSlotApp extends SlotMachineApp {
         const betMultiple = this.TitansModel.getCurrentBet();
         this.sendWebSocketMessage({
           code: 11002,
-          BetMultiple: betMultiple
+          BetMultiple: MathUtil.divide(betMultiple, this.betMultiple)
         });
       });
     } else {
@@ -329,13 +331,23 @@ export class TitansSlotApp extends SlotMachineApp {
           console.log('🔐 收到投注設定:', data);
           // 設置 BetMultiples 到 betList
           if (data.BetMultiples && Array.isArray(data.BetMultiples) && data.BetMultiples.length > 0) {
-            this.TitansModel.setBetList(data.BetMultiples);
-            // 預設下注金額為陣列第一個元素
-            const defaultBet = data.BetMultiples[0];
+            // 獲取換算參數
+            const BetUnit = data.BetUnit || 1;
+            const Line = data.Line || 1;
+            const MoneyFractionMultiple = data.MoneyFractionMultiple || 1;
+            this.betMultiple = BetUnit * Line / MoneyFractionMultiple;
+            // 對 BetMultiples 進行換算：BetMultiples * BetUnit * Line / MoneyFractionMultiple
+            const convertedBetMultiples = data.BetMultiples.map((betMultiple: number) => {
+              return MathUtil.multiply(betMultiple, this.betMultiple);
+            });
+
+            this.TitansModel.setBetList(convertedBetMultiples);
+            // 預設下注金額為陣列第一個元素（換算後）
+            const defaultBet = convertedBetMultiples[0];
             this.TitansModel.setBet(defaultBet);
             // 呼叫 MainGame.createBetPanel，並傳入回調函數以更新 Model 的 currentBet
             this.TitansView.getMainGame().createBetPanel(
-              data.BetMultiples,
+              convertedBetMultiples,
               (betAmount: number) => {
                 // 當用戶選擇投注金額時，更新 Model
                 this.TitansModel.setBet(betAmount);
@@ -343,17 +355,17 @@ export class TitansSlotApp extends SlotMachineApp {
             );
           }
           break;
-        
+
         case 11003:
           console.log('🎰 收到旋轉結果:', data);
           // 處理旋轉結果
           this.handleSpinResult(data);
           break;
-        
+
         case -2:
           // 心跳回應（已在 WebSocketManager 中處理，不會到達這裡）
           break;
-        
+
         default:
           console.log('📨 收到其他消息 Code:', data.Code, data);
       }
@@ -381,19 +393,19 @@ export class TitansSlotApp extends SlotMachineApp {
   // 重寫銷毀方法
   override destroy(): void {
     console.log('🗑️  銷毀 Titans 拉霸組件...');
-    
+
     // 移除 Model 事件監聽器
     if (this.spinStartedHandler) {
       this.TitansModel.off('spinStarted', this.spinStartedHandler);
       this.spinStartedHandler = undefined;
     }
-    
+
     if (this.wsManager) {
       this.wsManager.removeAllListeners();
       // 不調用 disconnect() - 讓後端決定何時關閉連接
       this.wsManager = undefined;
     }
-    
+
     this.TitansController.destroy();
     super.destroy();
     console.log('✅ Titans 拉霸應用程式已銷毀');
