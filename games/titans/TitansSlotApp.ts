@@ -19,7 +19,39 @@ export class TitansSlotApp extends SlotMachineApp {
   private wsManager?: WebSocketManager;
   private spinStartedHandler?: () => void;
   private isWaitingRespin: boolean = false; // 是否正在等待 respin
-  private betMultiple: number = 1;
+  private betMultiple: number = 1; // 用於 BetMultiples/BetMultiple 轉換：BetUnit * Line / MoneyFractionMultiple
+  private moneyFractionMultiple: number = 1; // 用於 Balance/Win 轉換
+  private pendingServerBalance: number | null = null; // 暫存 1005 的 Balance（服務器金額）
+
+  /**
+   * 將服務器金額轉換為客戶端金額（用於 BetMultiples/BetMultiple）
+   * 轉換公式：serverAmount * betMultiple
+   * @param serverAmount 服務器金額
+   * @returns 客戶端金額
+   */
+  private convertBetServerToClient(serverAmount: number): number {
+    return MathUtil.multiply(serverAmount, this.betMultiple);
+  }
+
+  /**
+   * 將客戶端金額轉換為服務器金額（用於 BetMultiples/BetMultiple）
+   * 轉換公式：clientAmount / betMultiple
+   * @param clientAmount 客戶端金額
+   * @returns 服務器金額
+   */
+  private convertBetClientToServer(clientAmount: number): number {
+    return MathUtil.divide(clientAmount, this.betMultiple);
+  }
+
+  /**
+   * 將服務器金額轉換為客戶端金額（用於 Balance/Win）
+   * 轉換公式：serverAmount / MoneyFractionMultiple
+   * @param serverAmount 服務器金額
+   * @returns 客戶端金額
+   */
+  private convertMoneyServerToClient(serverAmount: number): number {
+    return MathUtil.divide(serverAmount, this.moneyFractionMultiple);
+  }
 
   constructor(config: TitansSlotAppConfig) {
     super(config);
@@ -134,9 +166,15 @@ export class TitansSlotApp extends SlotMachineApp {
     // 監聽旋轉開始事件，發送 WebSocket 訊息
     this.spinStartedHandler = () => {
       const betMultiple = this.TitansModel.getCurrentBet();
+
+      // 在發送 11002 時扣除投注金額
+      const currentBalance = this.TitansModel.getBalance();
+      const newBalance = MathUtil.subtract(currentBalance, betMultiple);
+      this.TitansModel.setBalance(newBalance);
+
       this.sendWebSocketMessage({
         code: 11002,
-        BetMultiple: MathUtil.divide(betMultiple, this.betMultiple)
+        BetMultiple: this.convertBetClientToServer(betMultiple)
       });
     };
     this.TitansModel.on('spinStarted', this.spinStartedHandler);
@@ -170,16 +208,19 @@ export class TitansSlotApp extends SlotMachineApp {
       winLines.push(...spinInfo.WinLineInfos.map((info: any) => info.LineNo || info.LineIndex || 0));
     }
 
-    // 提取獲勝金額
-    const totalWin = spinInfo.Win || 0;
+    // 提取獲勝金額並轉換為客戶端金額（只除以 MoneyFractionMultiple）
+    const totalWin = this.convertMoneyServerToClient(spinInfo.Win || 0);
 
     // 提取倍數
     const multiplier = spinInfo.Multiplier || 1;
 
-    // 提取詳細的獲勝連線信息並轉換符號 ID
+    // 提取詳細的獲勝連線信息並轉換符號 ID 和金額
     const winLineInfos = (spinInfo.WinLineInfos || []).map((info: any) => ({
       ...info,
       SymbolID: SymbolMapper.serverToClient(info.SymbolID || info.SymbolId || 0),
+      // 轉換金額字段為客戶端金額（只除以 MoneyFractionMultiple）
+      Win: this.convertMoneyServerToClient(info.Win || 0),
+      WinOrg: this.convertMoneyServerToClient(info.WinOrg || 0),
       // WinPosition 中的符號 ID 如果需要轉換，可以在這裡處理
     }));
 
@@ -232,6 +273,8 @@ export class TitansSlotApp extends SlotMachineApp {
       demoModeRound: spinInfo.DemoModeRound
     };
 
+    this.TitansView.updateWinAmount(result.totalWin);
+
     // 檢查是否正在等待 respin，如果是則用新資料補空白（不清空牌面）
     if (this.isWaitingRespin) {
       console.log('🔄 收到 respin 資料，補空白處（不清空牌面）');
@@ -261,7 +304,7 @@ export class TitansSlotApp extends SlotMachineApp {
             const betMultiple = this.TitansModel.getCurrentBet();
             this.sendWebSocketMessage({
               code: 11002,
-              BetMultiple: MathUtil.divide(betMultiple, this.betMultiple)
+              BetMultiple: this.convertBetClientToServer(betMultiple)
             });
           });
         }
@@ -305,7 +348,7 @@ export class TitansSlotApp extends SlotMachineApp {
         const betMultiple = this.TitansModel.getCurrentBet();
         this.sendWebSocketMessage({
           code: 11002,
-          BetMultiple: MathUtil.divide(betMultiple, this.betMultiple)
+          BetMultiple: this.convertBetClientToServer(betMultiple)
         });
       });
     } else {
@@ -322,9 +365,8 @@ export class TitansSlotApp extends SlotMachineApp {
     if (typeof data === 'object' && typeof data.Code === 'number') {
       switch (data.Code) {
         case 1005:
-          // 初始化
           if (data.Balance !== undefined && data.Balance > 0) {
-            this.TitansModel.setBalance(data.Balance);
+            this.pendingServerBalance = data.Balance;
           }
           break;
         case 11001:
@@ -335,10 +377,22 @@ export class TitansSlotApp extends SlotMachineApp {
             const BetUnit = data.BetUnit || 1;
             const Line = data.Line || 1;
             const MoneyFractionMultiple = data.MoneyFractionMultiple || 1;
-            this.betMultiple = BetUnit * Line / MoneyFractionMultiple;
-            // 對 BetMultiples 進行換算：BetMultiples * BetUnit * Line / MoneyFractionMultiple
+
+            // 設置轉換倍數
+            this.moneyFractionMultiple = MoneyFractionMultiple; // 用於 Balance/Win 轉換
+            this.betMultiple = BetUnit * Line / MoneyFractionMultiple; // 用於 BetMultiples/BetMultiple 轉換
+
+            // 如果有暫存的 Balance，現在轉換並設置（只除以 MoneyFractionMultiple）
+            if (this.pendingServerBalance !== null) {
+              const clientBalance = this.convertMoneyServerToClient(this.pendingServerBalance);
+              this.TitansModel.setBalance(clientBalance);
+              console.log('💰 設置客戶端餘額:', clientBalance, '(服務器餘額:', this.pendingServerBalance, ')');
+              this.pendingServerBalance = null; // 清除暫存
+            }
+
+            // 對 BetMultiples 進行換算：BetMultiples * betMultiple (BetUnit * Line / MoneyFractionMultiple)
             const convertedBetMultiples = data.BetMultiples.map((betMultiple: number) => {
-              return MathUtil.multiply(betMultiple, this.betMultiple);
+              return this.convertBetServerToClient(betMultiple);
             });
 
             this.TitansModel.setBetList(convertedBetMultiples);
@@ -360,6 +414,14 @@ export class TitansSlotApp extends SlotMachineApp {
           console.log('🎰 收到旋轉結果:', data);
           // 處理旋轉結果
           this.handleSpinResult(data);
+          break;
+
+        case 11011:
+          if (data.Balance !== null && data.Balance !== undefined) {
+            const clientBalance = this.convertMoneyServerToClient(data.Balance);
+            this.TitansModel.setBalance(clientBalance);
+            this.TitansView.updateWinAmount(0);
+          }
           break;
 
         case -2:

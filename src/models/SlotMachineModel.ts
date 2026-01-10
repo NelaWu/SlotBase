@@ -25,7 +25,9 @@ export class SlotMachineModel extends BaseModel {
       errorRetryDelay: 3000,
       ...config
     };
-    
+
+    this.autoSpinDelay = this.config.autoSpinDelay || 2000;
+
     this.stateData = {
       isSpinning: false,
       betList: [],
@@ -87,15 +89,14 @@ export class SlotMachineModel extends BaseModel {
 
   // 檢查是否能夠開始轉動
   canSpin(): boolean {
-    return !this.stateData.isSpinning && 
-           this.getBalance() >= this.getCurrentBet();
+    return !this.stateData.isSpinning &&
+      this.getBalance() >= this.getCurrentBet();
   }
 
   // 開始轉動
   startSpin(): void {
     if (this.canSpin()) {
       this.stateData.isSpinning = true;
-      this.setBalance(this.getBalance() - this.getCurrentBet());
       this.emit('spinStarted');
     } else {
       this.emit('error', '無法開始轉動');
@@ -106,11 +107,7 @@ export class SlotMachineModel extends BaseModel {
   setSpinResult(result: SpinResult): void {
     this.stateData.lastResult = result;
     this.stateData.isSpinning = false;
-    
-    if (result.totalWin > 0) {
-      this.setBalance(this.getBalance() + result.totalWin);
-    }
-    
+
     this.emit('spinCompleted', result);
   }
 
@@ -168,8 +165,8 @@ export class SlotMachineModel extends BaseModel {
     this.stateData = {
       isSpinning: false,
       betList: [],
-      currentBet: 10,
-      balance: 1000,
+      currentBet: 0,
+      balance: 0,
       loadingProgress: 0
     };
     this.emit('gameReset');

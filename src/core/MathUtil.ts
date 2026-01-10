@@ -26,4 +26,8 @@ export class MathUtil {
     static divide(a: number, b: number, precision: number = 12): number {
         return parseFloat((a / b).toPrecision(precision));
     }
+
+    static subtract(a: number, b: number, precision: number = 12): number {
+        return parseFloat((a - b).toPrecision(precision));
+    }
 }

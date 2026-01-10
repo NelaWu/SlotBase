@@ -109,11 +109,11 @@ export class MainGame extends PIXI.Container {
       numberOfReels: 6,
       symbolsPerReel: 5
     });
-    
+
     // 設置輪盤位置
     this.wheel.x = 36;
     this.wheel.y = 715;
-    
+
     this.addChild(this.wheel);
   }
 
@@ -124,7 +124,7 @@ export class MainGame extends PIXI.Container {
       baseName: 'spin_btn',
       anchor: 0.5
     });
-    
+
     const spinSpine = Spine.from({
       atlas: 'Spin_Btn_atlas',
       skeleton: 'Spin_Btn_skel',
@@ -133,10 +133,10 @@ export class MainGame extends PIXI.Container {
     this.spinButton.addChildAt(spinSpine, 1);
     spinSpine.state.setAnimation(0, "Idle", true);
 
-    const spineLogo:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('spin_btn_logo') as string));
+    const spineLogo: PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('spin_btn_logo') as string));
     spineLogo.anchor.set(0.5);
     this.spinButton.addChild(spineLogo);
-    const spineShadow:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('spin_btn_shadow') as string));
+    const spineShadow: PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('spin_btn_shadow') as string));
     spineShadow.anchor.set(0.5);
     this.spinButton.addChildAt(spineShadow, 0);
     this.betButtonContainer.addChild(this.spinButton);
@@ -230,35 +230,35 @@ export class MainGame extends PIXI.Container {
     };
 
     // 餘額顯示
-    const balanceIcon:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('wallet_ui') as string));
-    balanceIcon.position.set(15,1536);
+    const balanceIcon: PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('wallet_ui') as string));
+    balanceIcon.position.set(15, 1536);
     this.addChild(balanceIcon);
     this.balanceText = new PIXI.Text({
       text: '0',
       style: textStyle
     });
-    this.balanceText.x = 75;  
+    this.balanceText.x = 75;
     this.balanceText.y = 1540;
     this.addChild(this.balanceText);
 
     // 投注顯示
-    const betIcon:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('multiple_ui') as string));
-    betIcon.position.set(376,1539);
+    const betIcon: PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('multiple_ui') as string));
+    betIcon.position.set(376, 1539);
     this.addChild(betIcon);
     this.betText = new PIXI.Text({
       text: '0',
       style: textStyle
     });
-    this.betText.x = 432;   
+    this.betText.x = 432;
     this.betText.y = 1540;
     this.addChild(this.betText);
-    
+
     // 點擊betBackground開啟betPanel
     const betBackground = new PIXI.Graphics();
     betBackground.beginFill(0x000000, 0);
     betBackground.drawRect(0, 0, 350, 50);
     betBackground.endFill();
-    betBackground.position.set(365,1535);
+    betBackground.position.set(365, 1535);
     betBackground.eventMode = 'static';
     betBackground.cursor = 'pointer';
     betBackground.hitArea = new PIXI.Rectangle(0, 0, 350, 50);
@@ -267,12 +267,12 @@ export class MainGame extends PIXI.Container {
         this.betPanel.show();
       }
     });
-    
+
     this.addChild(betBackground);
 
     // 獲勝金額顯示（底部）
-    const winIcon:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('trophy_ui') as string));
-    winIcon.position.set(723,1539);
+    const winIcon: PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('trophy_ui') as string));
+    winIcon.position.set(723, 1539);
     this.addChild(winIcon);
     this.winText = new PIXI.Text({
       text: '0',
@@ -364,7 +364,7 @@ export class MainGame extends PIXI.Container {
     this.multiBallSpine.label = 'multiBallSpine';
     this.addChild(this.multiBallSpine);
     this.multiBallSpine.position.set(550, 950);
-    console.log('multiBallSpine',this.multiBallSpine);
+    console.log('multiBallSpine', this.multiBallSpine);
     // this.multiBallSpine.skeleton.setSkinByName("Lv2");
     // this.multiBallSpine.state.setAnimation(0, "1-4", true);
   }
@@ -380,11 +380,11 @@ export class MainGame extends PIXI.Container {
     this.addChild(this.betPanel);
   }
 
-  public showBigWin(money:string, bet?:number):void{
-    this.bigAnimationManager.showBigWin(money,bet);
+  public showBigWin(money: string, bet?: number): void {
+    this.bigAnimationManager.showBigWin(money, bet);
   }
 
-  public playMultiBallAnimation():void{
+  public playMultiBallAnimation(): void {
     this.gameScene.playMultiBallAnimation();
   }
 }

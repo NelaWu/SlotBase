@@ -6,7 +6,7 @@ import { GameEventEnum } from '../enum/gameEnum';
 export class TitansSlotController extends BaseController {
   protected declare model: TitansSlotModel;
   protected declare view: TitansSlotView;
-  
+
   // 自動旋轉相關
   private isAutoSpinEnabled: boolean = false;
   private isTurboEnabled: boolean = false;
@@ -14,7 +14,7 @@ export class TitansSlotController extends BaseController {
   private winAnimationTimer?: NodeJS.Timeout;
   private readonly WIN_ANIMATION_DURATION = 2000; // 每次獲勝動畫循環的持續時間(毫秒)
   private readonly WIN_ANIMATION_PLAY_COUNT = 2; // 需要播放的次數
-  
+
   // 【新增】連鎖 Spin 相關
   private isProcessingCascade: boolean = false; // 是否正在處理連鎖
   private winAnimationCompleteCallback?: () => void; // 獲勝動畫完成回調
@@ -66,12 +66,12 @@ export class TitansSlotController extends BaseController {
   // 初始化後更新顯示
   async initialize(): Promise<void> {
     await super.initialize();
-    
+
     // 初始化顯示
     this.view.updateBalance(this.model.getBalance());
     this.view.updateBet(this.model.getCurrentBet());
     this.view.updateFreeSpins(this.model.getFreeSpinsRemaining());
-    
+
     this.log('Titans 拉霸 Controller 初始化完成');
   }
 
@@ -87,10 +87,10 @@ export class TitansSlotController extends BaseController {
    */
   private onSpinCompleted(result: TitansSlotResult): void {
     this.log('旋轉完成', result);
-    
+
     // 停止旋轉動畫，並在清空完成後執行後續邏輯
     this.view.stopSpinAnimation(
-      result.reels, 
+      result.reels,
       () => {
         // 牌面清空完成後執行這些邏輯
         this.executeAfterClearComplete(result);
@@ -98,7 +98,7 @@ export class TitansSlotController extends BaseController {
       async () => {
         // 符號掉落完成後的回調 - 開始處理獲勝和連鎖
         await this.executeAfterDropComplete(result);
-      }, 
+      },
       this.isTurboEnabled
     );
   }
@@ -108,10 +108,11 @@ export class TitansSlotController extends BaseController {
    */
   private executeAfterClearComplete(result: TitansSlotResult): void {
     console.log('executeAfterClearComplete', result);
-    
+
+    //to do 改為動畫加總？或是動畫表演完再出現
     // 更新獲勝金額顯示
     this.view.updateWinAmount(result.totalWin);
-    
+
     // 檢查是否有倍數球(ID > 50)，如果有則播放倍數球動畫
     const hasMultiBall = result.reels.some(col => col.some(symbolId => symbolId > 50));
     if (hasMultiBall) {
@@ -139,18 +140,18 @@ export class TitansSlotController extends BaseController {
    */
   private async executeAfterDropComplete(result: TitansSlotResult): Promise<void> {
     console.log('executeAfterDropComplete - 符號掉落完成', result);
-    
+
     // 標記開始處理連鎖
     this.isProcessingCascade = true;
-    
+
     try {
       // 處理當前結果的獲勝動畫和連鎖
       await this.processWinAndCascade(result);
-      
+
       // 連鎖處理完成
       this.isProcessingCascade = false;
       this.log('✅ 所有連鎖處理完成');
-      
+
       // 根據是否為自動模式決定後續動作
       if (this.isAutoSpinEnabled) {
         // 自動模式：觸發下一次旋轉
@@ -173,26 +174,26 @@ export class TitansSlotController extends BaseController {
    */
   public async handleRespinResult(result: TitansSlotResult): Promise<void> {
     console.log('🔄 handleRespinResult - 處理 respin 結果（不清空盤面）', result);
-    
+
     // 標記開始處理連鎖
     this.isProcessingCascade = true;
-    
+
     try {
       const hasWin = result.winLineInfos && result.winLineInfos.length > 0;
-      
+
       // 1. 播放獲勝動畫並等待完成（如果有獲勝）
       if (hasWin) {
         this.log('🎯 播放獲勝動畫');
         this.view.playWinAnimation(result.winLineInfos!);
-        
+
         this.log('⏳ 等待獲勝動畫播放完成');
         await this.waitForWinAnimationComplete();
-        
+
         // 2. 消除得獎符號並等待動畫完成
         this.log('🗑️ 消除得獎符號');
         await this.removeWinSymbolsAndWait();
       }
-      
+
       // 3. 檢查是否需要連鎖（WaitNGRespin）
       // 如果 WaitNGRespin 為 true，需要發送下一次 respin 請求（11002）
       if (result.WaitNGRespin) {
@@ -204,11 +205,11 @@ export class TitansSlotController extends BaseController {
       } else {
         this.log('✅ WaitNGRespin=false，respin 流程結束');
       }
-      
+
       // 連鎖處理完成
       this.isProcessingCascade = false;
       this.log('✅ respin 連鎖處理完成');
-      
+
       // 根據是否為自動模式決定後續動作
       if (this.isAutoSpinEnabled) {
         // 自動模式：觸發下一次旋轉
@@ -225,17 +226,17 @@ export class TitansSlotController extends BaseController {
    */
   private async processWinAndCascade(result: TitansSlotResult): Promise<void> {
     const hasWin = result.winLineInfos && result.winLineInfos.length > 0;
-    
+
     // 1. 等待獲勝動畫播放完成（如果有獲勝）
     if (hasWin) {
       this.log('⏳ 等待獲勝動畫播放完成');
       await this.waitForWinAnimationComplete();
-      
+
       // 2. 消除得獎符號並等待動畫完成
       this.log('🗑️ 消除得獎符號');
       await this.removeWinSymbolsAndWait();
     }
-    
+
     // 3. 檢查是否需要連鎖（WaitNGRespin）
     if (result.WaitNGRespin) {
       this.log('🔄 檢測到 WaitNGRespin=true，開始連鎖 Spin');
@@ -251,26 +252,26 @@ export class TitansSlotController extends BaseController {
   private async processCascadeSpin(): Promise<void> {
     // 發送連鎖 Spin 請求
     const cascadeResult = await this.model.requestCascadeSpin();
-    
+
     if (!cascadeResult) {
       this.log('❌ 連鎖 Spin 請求失敗');
       return;
     }
-    
-    this.log('📦 連鎖 Spin 結果:', cascadeResult);
-    
+
+    this.log('📦 連鎖 Spin 結果:', cascadeResult, cascadeResult.totalWin);
+
     // 更新累計獲勝金額
     this.view.updateWinAmount(cascadeResult.totalWin);
-    
+
     // 補充新符號到空位
     await this.fillNewSymbolsAndWait(cascadeResult.newSymbols || cascadeResult.reels);
-    
+
     // 播放獲勝動畫（如果連鎖有中獎）
     if (cascadeResult.winLineInfos && cascadeResult.winLineInfos.length > 0) {
       this.log('🎯 連鎖中獎，播放獲勝動畫');
       this.view.playWinAnimation(cascadeResult.winLineInfos);
     }
-    
+
     // 遞迴處理新的獲勝和連鎖
     await this.processWinAndCascade(cascadeResult);
   }
@@ -286,7 +287,7 @@ export class TitansSlotController extends BaseController {
         this.winAnimationCompleteCallback = undefined;
         resolve();
       };
-      
+
       // 當 resolve 時清除超時
       this.winAnimationCompleteCallback = () => {
         this.log('✅ 獲勝動畫播放完成');
@@ -302,10 +303,10 @@ export class TitansSlotController extends BaseController {
   private removeWinSymbolsAndWait(): Promise<void> {
     return new Promise((resolve) => {
       const wheel = this.view.getMainGame().wheel;
-      
+
       // 保存原有的回調（如果有的話）
       const existingCallback = (wheel as any).removeWinCompleteCallback;
-      
+
       // 設置消除完成回調（會先執行原有回調，然後 resolve）
       wheel.setOnRemoveWinComplete(() => {
         this.log('✅ 得獎符號消除完成');
@@ -320,7 +321,7 @@ export class TitansSlotController extends BaseController {
         }
         resolve();
       });
-      
+
       // playWinAnimations 已經在內部會自動觸發 removeWinSymbols
       // 所以這裡只需要等待回調即可
     });
@@ -333,9 +334,9 @@ export class TitansSlotController extends BaseController {
     return new Promise((resolve) => {
       const wheel = this.view.getMainGame().wheel;
       const fastDrop = this.isTurboEnabled;
-      
+
       this.log('📥 開始補充新符號:', symbolIds);
-      
+
       wheel.fillNewSymbols(
         symbolIds,
         () => {
@@ -385,7 +386,7 @@ export class TitansSlotController extends BaseController {
     // 檢查 big win 條件：totalWin / bet > 20
     const bet = this.model.getCurrentBet();
     const isBigWin = bet > 0 && result.totalWin / bet > 20;
-    
+
     // if (isBigWin) {
     //   this.log(`達成 Big Win 條件！獲勝金額: ${result.totalWin}, 投注: ${bet}, 倍數: ${result.totalWin / bet}`);
     //   
@@ -397,8 +398,8 @@ export class TitansSlotController extends BaseController {
     //     this.triggerAutoSpin();
     //   });
     // } else {
-      this.log('未達成 Big Win 條件，直接觸發自動旋轉');
-      this.triggerAutoSpin();
+    this.log('未達成 Big Win 條件，直接觸發自動旋轉');
+    this.triggerAutoSpin();
     // }
   }
 
@@ -474,13 +475,13 @@ export class TitansSlotController extends BaseController {
       this.log('手動旋轉：已關閉自動旋轉模式');
       return;
     }
-    
+
     // 【新增】如果正在處理連鎖，禁止手動旋轉
     if (this.isProcessingCascade) {
       this.log('正在處理連鎖中，無法手動旋轉');
       return;
     }
-    
+
     if (this.model.canSpin()) {
       this.model.startSpin();
     } else {
@@ -498,7 +499,7 @@ export class TitansSlotController extends BaseController {
       this.log('正在處理連鎖中，無法切換自動模式');
       return;
     }
-    
+
     // 切換自動旋轉狀態
     this.setAutoSpinEnabled(!this.isAutoSpinEnabled);
   }
@@ -513,7 +514,7 @@ export class TitansSlotController extends BaseController {
    */
   private setAutoSpinEnabled(enabled: boolean): void {
     this.isAutoSpinEnabled = enabled;
-    
+
     if (enabled) {
       this.log('自動旋轉已啟用');
       // 如果當前可以旋轉，立即開始第一次自動旋轉
