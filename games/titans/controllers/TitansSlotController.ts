@@ -219,8 +219,6 @@ export class TitansSlotController extends BaseController {
         this.log('⚠️  需要在 App 層發送 11002 請求');
       } else {
         this.log('✅ WaitNGRespin=false，respin 流程結束', data);
-        
-        
         // WaitNGRespin=false 時重置累計值
         const finalTotalWin = this.accumulatedTotalWin;
         this.accumulatedTotalWin = 0;
@@ -229,9 +227,10 @@ export class TitansSlotController extends BaseController {
         if (finalTotalWin > 0) {
           const multiplierBallPositions = this.findMultiplierBalls(result.reels);
           if (multiplierBallPositions.length > 0) {
-            // 播放所有倍數球動畫（會依序播放）
+            // 播放所有倍數球動畫（會依序播放）並等待完成
             this.log(`🎯 播放倍數球動畫陣列，共 ${multiplierBallPositions.length} 個`);
-            this.view.getMainGame().playMultiBallBigAnimation(multiplierBallPositions);
+            await this.view.getMainGame().playMultiBallBigAnimation(multiplierBallPositions);
+            this.log('✅ 倍數球動畫播放完成');
           }
         }
       }

@@ -34,6 +34,7 @@ export class MainGame extends PIXI.Container {
   public multiBallSpine!: Spine;
   private multiBallAnimationQueue: Array<{ symbolId: number; pos: string }> = []; // 倍數球動畫隊列
   private isPlayingMultiBallAnimation: boolean = false; // 是否正在播放倍數球動畫
+  private multiBallAnimationResolve?: () => void; // 動畫完成時的 resolve 回調
 
   constructor() {
     super();
@@ -390,6 +391,13 @@ export class MainGame extends PIXI.Container {
     this.gameScene.playMultiBallAnimation();
   }
 
+  public showBGWinBar(visible: boolean): void {
+    this.gameScene.showBGWinBar(visible);
+  }
+  public playBGWinBar(visible: boolean,money: number,multiplier: number): void {
+    this.gameScene.playBGWinBar(visible,money,multiplier);
+  }
+
   /**
    * 根據 symbolId 映射到等級
    * @param symbolId 符號 ID
@@ -416,32 +424,45 @@ export class MainGame extends PIXI.Container {
   /**
    * 播放倍數球動畫（支持陣列，會依序播放）
    * @param animations 動畫陣列，每個元素包含 symbolId 和 pos
+   * @returns Promise，當所有動畫播放完成時 resolve
    */
-  public playMultiBallBigAnimation(animations: Array<{ symbolId: number; pos: string }> | { symbolId: number; pos: string }): void {
-    // 如果傳入的是單個對象，轉換為陣列
-    const animationArray = Array.isArray(animations) ? animations : [animations];
-    
-    if (animationArray.length === 0) {
-      console.warn('⚠️  倍數球動畫陣列為空');
-      return;
-    }
+  public playMultiBallBigAnimation(animations: Array<{ symbolId: number; pos: string }> | { symbolId: number; pos: string }): Promise<void> {
+    return new Promise((resolve) => {
+      // 如果傳入的是單個對象，轉換為陣列
+      const animationArray = Array.isArray(animations) ? animations : [animations];
+      
+      if (animationArray.length === 0) {
+        console.warn('⚠️  倍數球動畫陣列為空');
+        resolve();
+        return;
+      }
 
-    // 將動畫添加到隊列
-    this.multiBallAnimationQueue.push(...animationArray);
+      // 將動畫添加到隊列
+      this.multiBallAnimationQueue.push(...animationArray);
 
-    // 如果當前沒有在播放動畫，開始播放
-    if (!this.isPlayingMultiBallAnimation) {
-      this.playNextMultiBallAnimation();
-    }
+      // 保存 resolve 回調（如果已經有動畫在播放，會覆蓋之前的 resolve，因為我們要等待所有動畫完成）
+      this.multiBallAnimationResolve = resolve;
+
+      // 如果當前沒有在播放動畫，開始播放
+      if (!this.isPlayingMultiBallAnimation) {
+        this.playNextMultiBallAnimation();
+      }
+    });
   }
 
   /**
    * 播放下一個倍數球動畫
    */
   private playNextMultiBallAnimation(): void {
-    // 如果隊列為空，停止播放
+    // 如果隊列為空，停止播放並 resolve Promise
     if (this.multiBallAnimationQueue.length === 0) {
       this.isPlayingMultiBallAnimation = false;
+      // 如果有等待的 resolve 回調，調用它
+      if (this.multiBallAnimationResolve) {
+        const resolve = this.multiBallAnimationResolve;
+        this.multiBallAnimationResolve = undefined;
+        resolve();
+      }
       return;
     }
 

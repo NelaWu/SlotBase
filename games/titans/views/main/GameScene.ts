@@ -10,8 +10,10 @@ export class GameScene extends PIXI.Container {
   private roofSprite2?: PIXI.Sprite;
   private frameSprite1?: PIXI.Sprite;
   private frameSprite2?: PIXI.Sprite;
+  private logoSprite?: PIXI.Sprite;
   private characterSpine?: Spine;
   private multiBallBigSpine?: Spine;
+  private bgWinBarSpine?: Spine;
   constructor() {
     super();
     this.init();
@@ -93,10 +95,18 @@ export class GameScene extends PIXI.Container {
     const logoResource = resourceManager.getResource('game_logo_cnt');
     if (logoResource) {
       const frameTexture = PIXI.Texture.from(logoResource);
-      const frameSprite = new PIXI.Sprite(frameTexture);
-      frameSprite.position.set(426, 582);
-      this.addChild(frameSprite);
+      this.logoSprite = new PIXI.Sprite(frameTexture);
+      this.logoSprite.position.set(426, 582);
+      this.addChild(this.logoSprite);
     }
+    this.bgWinBarSpine = Spine.from({
+      atlas: 'BG_Win_Bar_atlas',
+      skeleton: 'BG_Win_Bar_skel',
+    });
+    this.bgWinBarSpine.label = 'bgWinBarSpine';
+    this.addChild(this.bgWinBarSpine);
+    this.bgWinBarSpine.position.set(540, 960);
+    console.log('bgWinBarSpine',this.bgWinBarSpine);
     // 6. 載入資訊背景圖片
     const infoBgResource = resourceManager.getResource('fg_info_bg');
     if (infoBgResource) {
@@ -117,6 +127,7 @@ export class GameScene extends PIXI.Container {
     this.multiBallBigSpine.skeleton.setSkinByName("Lv1");
     // this.multiBallBigSpine.state.setAnimation(0, "LV1_UP2", true);
 
+    this.setMG();
   }
   setFG(): void {
     const resourceManager = ResourceManager.getInstance();
@@ -133,6 +144,7 @@ export class GameScene extends PIXI.Container {
     this.frameSprite1!.texture = PIXI.Texture.from(frameTexture);
     this.frameSprite2!.texture = PIXI.Texture.from(frameTexture);
     this.characterSpine!.skeleton.setSkinByName("Fg");
+    this.bgWinBarSpine!.visible = true;
   }
 
   setMG(): void {
@@ -150,11 +162,22 @@ export class GameScene extends PIXI.Container {
     this.frameSprite1!.texture = PIXI.Texture.from(frameTexture);
     this.frameSprite2!.texture = PIXI.Texture.from(frameTexture);
     this.characterSpine!.skeleton.setSkinByName("Mg");
+    this.bgWinBarSpine!.visible = false;
   }
 
   public playMultiBallAnimation(): void {
     // 播放 Multiplier_Low 動畫，完成後自動播放 Idle 動畫
     this.characterSpine!.state.setAnimation(0, "Multiplier_Low", false);
     this.characterSpine!.state.addAnimation(0, "Idle", true, 0);
+  }
+
+  public showBGWinBar(visible: boolean): void {
+    this.bgWinBarSpine!.visible = visible;
+    this.logoSprite!.visible = !visible;
+  }
+
+  public playBGWinBar(visible: boolean,money: number,multiplier: number): void {
+    this.bgWinBarSpine!.visible = visible;
+    this.logoSprite!.visible = !visible;
   }
 }

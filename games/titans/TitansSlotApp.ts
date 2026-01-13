@@ -22,6 +22,8 @@ export class TitansSlotApp extends SlotMachineApp {
   private betMultiple: number = 1; // 用於 BetMultiples/BetMultiple 轉換：BetUnit * Line / MoneyFractionMultiple
   private moneyFractionMultiple: number = 1; // 用於 Balance/Win 轉換
   private pendingServerBalance: number | null = null; // 暫存 1005 的 Balance（服務器金額）
+  private useMockData: boolean = true; // 是否使用假資料測試
+  private mockDataIndex: number = 0; // 假資料索引
 
   /**
    * 將服務器金額轉換為客戶端金額（用於 BetMultiples/BetMultiple）
@@ -184,6 +186,7 @@ export class TitansSlotApp extends SlotMachineApp {
    * 處理旋轉結果 (Code 11003)
    */
   private handleSpinResult(data: any): void {
+    this.TitansView.getMainGame().showBGWinBar(true);
     if (!data.SpinInfo) {
       console.warn('⚠️  旋轉結果缺少 SpinInfo');
       return;
@@ -274,7 +277,6 @@ export class TitansSlotApp extends SlotMachineApp {
     };
 
     this.TitansView.updateWinAmount(result.totalWin);
-
     // 檢查是否正在等待 respin，如果是則用新資料補空白（不清空牌面）
     if (this.isWaitingRespin) {
       console.log('🔄 收到 respin 資料，補空白處（不清空牌面）');
@@ -296,7 +298,7 @@ export class TitansSlotApp extends SlotMachineApp {
 
         // 如果 WaitNGRespin=true，設置 removeWinSymbols 完成後的回調，用於發送下一次 11002
         // 注意：必須在 handleRespinResult 之前設置，因為 handleRespinResult 會調用 removeWinSymbolsAndWait
-        if (result.WaitNGRespin === true) {
+        if (data.WaitNGRespin === true) {
           console.log('🔄 WaitNGRespin=true，設置 removeWinSymbols 完成後的回調');
           this.TitansView.getMainGame().wheel.setOnRemoveWinComplete(() => {
             console.log('🔄 removeWinSymbols 完成，自動發送 respin 請求（不清空牌面）');
@@ -309,13 +311,56 @@ export class TitansSlotApp extends SlotMachineApp {
           });
         }
 
+        // 構建完整的 result 對象（與 handleSpinResult 中的處理一致）
+        const respinSpinInfo = data.SpinInfo;
+        const respinServerReels: number[][] | null = respinSpinInfo.SymbolResult;
+        
+        if (!respinServerReels || !Array.isArray(respinServerReels)) {
+          console.warn('⚠️  respin 無效的牌面結果:', respinServerReels);
+          return;
+        }
+
+        const respinReels: number[][] = SymbolMapper.serverToClientArray(respinServerReels);
+        const respinTotalWin = this.convertMoneyServerToClient(respinSpinInfo.Win || 0);
+        const respinWinLineInfos = (respinSpinInfo.WinLineInfos || []).map((info: any) => ({
+          ...info,
+          SymbolID: SymbolMapper.serverToClient(info.SymbolID || info.SymbolId || 0),
+          Win: this.convertMoneyServerToClient(info.Win || 0),
+          WinOrg: this.convertMoneyServerToClient(info.WinOrg || 0),
+        }));
+
+        const respinResult: TitansSlotResult = {
+          reels: respinReels,
+          winLines: respinWinLineInfos.map((info: any) => info.LineNo || 0),
+          totalWin: respinTotalWin,
+          multiplier: respinSpinInfo.Multiplier || 1,
+          bonusTriggered: false,
+          winLineInfos: respinWinLineInfos,
+          serverSpinInfo: respinSpinInfo as any,
+          gameStateType: respinSpinInfo.GameStateType,
+          gameState: respinSpinInfo.GameState,
+          winType: respinSpinInfo.WinType,
+          screenOrg: respinSpinInfo.ScreenOrg,
+          screenOutput: respinSpinInfo.ScreenOutput,
+          fgTotalTimes: respinSpinInfo.FGTotalTimes,
+          fgCurrentTimes: respinSpinInfo.FGCurrentTimes,
+          fgRemainTimes: respinSpinInfo.FGRemainTimes,
+          fgMaxFlag: respinSpinInfo.FGMaxFlag,
+          rndNum: respinSpinInfo.RndNum,
+          extraData: respinSpinInfo.ExtraData,
+          stage: respinSpinInfo.Stage,
+          collection: respinSpinInfo.Collection,
+          demoModeRound: respinSpinInfo.DemoModeRound,
+          WaitNGRespin: data.WaitNGRespin
+        };
+
         // 直接調用 Controller 的 respin 處理方法，不觸發 spinCompleted 事件
         // 這樣可以避免 stopSpinAnimation 清空盤面的問題
-        await this.TitansController.handleRespinResult(result);
+        await this.TitansController.handleRespinResult({ ...data, result: respinResult });
 
 
         // 根據 WaitNGRespin 狀態決定是否保持 isWaitingRespin
-        if (result.WaitNGRespin === true) {
+        if (data.WaitNGRespin === true) {
           console.log('🔄 WaitNGRespin=true，保持 isWaitingRespin=true，等待收到 11011 後再發送下一次 11002');
           // 保持 isWaitingRespin = true，等待收到 11011 後再發送 11002
           this.isWaitingRespin = true;
@@ -412,11 +457,22 @@ export class TitansSlotApp extends SlotMachineApp {
 
         case 11003:
           console.log('🎰 收到旋轉結果:', data);
+          
+          // 假資料測試（按 F12 控制台輸入：window.TitansSlotApp.setUseMockData(true) 啟用）
+          if (this.useMockData) {
+            const mockData = this.getMockData();
+            if (mockData) {
+              console.log('🧪 使用假資料測試:', mockData);
+              data = mockData;
+            }
+          }
+          
           // 處理旋轉結果
           this.handleSpinResult(data);
           break;
 
         case 11011:
+          this.TitansView.getMainGame().showBGWinBar(false);
           if (data.Balance !== null && data.Balance !== undefined) {
             const clientBalance = this.convertMoneyServerToClient(data.Balance);
             this.TitansModel.setBalance(clientBalance);
@@ -554,6 +610,151 @@ export class TitansSlotApp extends SlotMachineApp {
       console.warn('⚠️  WebSocket 未連接，無法發送消息');
       return false;
     }
+  }
+
+  /**
+   * 獲取假資料（用於測試）
+   */
+  private getMockData(): any | null {
+    const mockDataList = [
+      // 第一筆：有獲勝，WaitNGRespin=true
+      {
+        "Code": 11003,
+        "Result": 0,
+        "RoundCode": "round_1781",
+        "SpinInfo": {
+          "GameStateType": 0,
+          "GameState": 2,
+          "WinType": 1,
+          "Multiplier": 28,
+          "ScreenOrg": [
+            [15, 2, 2, 12, 12],
+            [31, 12, 12, 60, 13],
+            [15, 15, 13, 13, 13],
+            [12, 12, 52, 31, 11],
+            [12, 14, 14, 15, 15],
+            [12, 12, 12, 31, 3]
+          ],
+          "SymbolResult": [
+            [15, 2, 2, 12, 12],
+            [31, 12, 12, 60, 13],
+            [15, 15, 13, 13, 13],
+            [12, 12, 52, 31, 11],
+            [12, 14, 14, 15, 15],
+            [12, 12, 12, 31, 3]
+          ],
+          "ScreenOutput": [
+            [15, 2, 2],
+            [31, 60, 13],
+            [15, 15, 13, 13, 13],
+            [52, 31, 11],
+            [14, 14, 15, 15],
+            [31, 3]
+          ],
+          "WinLineInfos": [
+            {
+              "LineNo": 1,
+              "SymbolID": 12,
+              "SymbolType": 1,
+              "SymbolCount": 10,
+              "WayCount": 0,
+              "WinPosition": [
+                [0, 3],
+                [0, 4],
+                [1, 1],
+                [1, 2],
+                [3, 0],
+                [3, 1],
+                [4, 0],
+                [5, 0],
+                [5, 1],
+                [5, 2]
+              ],
+              "Multiplier": 1,
+              "WinOrg": 240,
+              "Win": 240,
+              "WinType": 1,
+              "Odds": 24
+            }
+          ],
+          "FGTotalTimes": 0,
+          "FGCurrentTimes": 0,
+          "FGRemainTimes": 0,
+          "FGMaxFlag": false,
+          "RndNum": [5, 29, 6, 30, 23, 26],
+          "Win": 6720,
+          "ExtraData": "",
+          "Stage": 0,
+          "Collection": 0,
+          "DemoModeRound": 0
+        },
+        "LDOption": [],
+        "WaitNGRespin": true,
+        "WinJPInfo": {
+          "JPLevel": 0,
+          "Value": 0
+        }
+      },
+      // 第二筆：沒有獲勝，WaitNGRespin=false
+      {
+        "Code": 11003,
+        "Result": 0,
+        "RoundCode": "round_1781",
+        "SpinInfo": {
+          "GameStateType": 0,
+          "GameState": 2,
+          "WinType": 0,
+          "Multiplier": 28,
+          "ScreenOrg": [],
+          "SymbolResult": [
+            [2, 11, 15, 2, 2],
+            [12, 3, 31, 60, 13],
+            [15, 15, 13, 13, 13],
+            [4, 14, 52, 31, 11],
+            [12, 14, 14, 15, 15],
+            [15, 4, 4, 31, 3]
+          ],
+          "ScreenOutput": [],
+          "WinLineInfos": [],
+          "FGTotalTimes": 0,
+          "FGCurrentTimes": 0,
+          "FGRemainTimes": 0,
+          "FGMaxFlag": false,
+          "RndNum": [3, 27, 6, 28, 22, 23],
+          "Win": 0,
+          "ExtraData": "",
+          "Stage": 1,
+          "Collection": 0,
+          "DemoModeRound": 0
+        },
+        "LDOption": [],
+        "WaitNGRespin": false,
+        "WinJPInfo": {
+          "JPLevel": 0,
+          "Value": 0
+        }
+      }
+    ];
+
+    if (this.mockDataIndex >= mockDataList.length) {
+      console.log('🧪 假資料測試完成，重置索引');
+      this.mockDataIndex = 0;
+      return null;
+    }
+
+    const mockData = mockDataList[this.mockDataIndex];
+    this.mockDataIndex++;
+    return mockData;
+  }
+
+  /**
+   * 設置是否使用假資料測試
+   * 使用方法：在瀏覽器控制台輸入 window.TitansSlotApp.setUseMockData(true)
+   */
+  public setUseMockData(useMock: boolean): void {
+    this.useMockData = useMock;
+    this.mockDataIndex = 0;
+    console.log(`🧪 假資料測試模式: ${useMock ? '啟用' : '停用'}`);
   }
 }
 
