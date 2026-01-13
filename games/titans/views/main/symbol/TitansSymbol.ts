@@ -57,6 +57,7 @@ const MULTIPLIER_MAP: Record<number, number> = {
 export class TitansSymbol extends BaseSymbol {
   private spine?: Spine;
   private isSpecialSymbol:boolean = false;
+  private multiText?: BaseNumber; // 倍數文字
   
   /**
    * 根據符號 ID 獲取對應的倍數值
@@ -124,6 +125,7 @@ export class TitansSymbol extends BaseSymbol {
         atlas: `Symbol_Multi_atlas`,
         skeleton: `Symbol_Multi_skel`,
       });
+      console.log('iddddd',this.spine);
       
       this.spine.scale.set(0.5, 0.5);
       // this.addChild(this.spine);
@@ -139,19 +141,23 @@ export class TitansSymbol extends BaseSymbol {
       else{
         this.spine.skeleton.setSkinByName('Lv4');
       }
-
       // 顯示倍數文字
       const multiplierValue = this.getMultiplierValue(id);
       console.log('11003] 收到消息:show multi win',multiplierValue);
       if (multiplierValue !== null) {
-        const multiText = new BaseNumber({
+        // 如果已經存在 multiText，先移除
+        if (this.multiText && this.multiText.parent) {
+          this.removeChild(this.multiText);
+        }
+        
+        this.multiText = new BaseNumber({
           baseName: 'fg_total_multi_number',
           anchor: 0.5,
           align: 'center',
           useThousandSeparator: true
         });
-        multiText.showText(multiplierValue.toString()+'x');
-        multiText.scale.set(0, 0);
+        this.multiText.showText(multiplierValue.toString()+'x');
+        this.multiText.scale.set(0, 0);
         setTimeout(() => {
           const a:{scale:number} = {scale:2};
           gsap.to(a, {
@@ -165,10 +171,14 @@ export class TitansSymbol extends BaseSymbol {
                 this.spine!.renderable = true;
                 this.spine!.state?.setAnimation(0, "Hit", false);
               }
-              this.addChild(multiText);
+              if (this.multiText) {
+                this.addChild(this.multiText);
+              }
             },
             onUpdate: () => {
-              multiText.scale.set(a.scale, a.scale);
+              if (this.multiText) {
+                this.multiText.scale.set(a.scale, a.scale);
+              }
             }
           });
           this.spine?.state?.setAnimation(0, "Hit", false);
@@ -215,5 +225,22 @@ export class TitansSymbol extends BaseSymbol {
   public pushWin(): void {
     // 使用 hideWin 來統一處理隱藏邏輯
     this.hideWin();
+  }
+
+  /**
+   * 播放 Collect 動畫
+   */
+  public playCollect(): void {
+    if (this.spine) {
+      this.spine.visible = true;
+      this.spine.renderable = true;
+      this.sprite.visible = false;
+      if (this.multiText) {
+        this.multiText.visible = false;
+      }
+      
+      // 播放 Collect 動畫（不循環）
+      this.spine.state.setAnimation(0, "Collect", false);
+    }
   }
 }

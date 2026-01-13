@@ -452,6 +452,21 @@ export class MainGame extends PIXI.Container {
     const lv = this.getLevelFromSymbolId(animation.symbolId);
     this.multiBallSpine.skeleton.setSkinByName(lv);
     
+    // 解析 pos 格式（'reel-row'，例如 '3-1'）
+    const [reelStr, rowStr] = animation.pos.split('-');
+    const reel = parseInt(reelStr, 10);
+    const row = parseInt(rowStr, 10);
+    console.log('playNextMultiBallAnimation',reel,row);
+    
+    // 獲取對應的符號並播放 Collect 動畫
+    if (reel && row) {
+      const symbol = this.wheel.getSymbolAt(reel, row);
+      console.log('symbol',symbol);
+      if (symbol) {
+        symbol.playCollect();
+      }
+    }
+    
     // 設置動畫完成監聽器
     const listener = {
       complete: () => {
@@ -467,6 +482,7 @@ export class MainGame extends PIXI.Container {
 
     // 播放動畫（不循環）
     this.multiBallSpine.state.setAnimation(0, animation.pos, false);
+    
   }
 }
 

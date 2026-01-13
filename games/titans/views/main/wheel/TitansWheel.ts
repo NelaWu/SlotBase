@@ -542,6 +542,29 @@ export class TitansWheel extends PIXI.Container {
     return this.isAnimating;
   }
 
+  /**
+   * 根據位置獲取符號（pos 格式：'reel-row'，從1開始）
+   * @param reel 列索引（從1開始）
+   * @param row 行索引（從1開始）
+   * @returns 符號實例，如果不存在則返回 undefined
+   */
+  public getSymbolAt(reel: number, row: number): TitansSymbol | undefined {
+    // 轉換為陣列索引（從0開始）
+    const colIndex = reel - 1;
+    const rowIndex = row - 1;
+    
+    if (colIndex < 0 || colIndex >= this.symbolStates.length) {
+      return undefined;
+    }
+    
+    const col = this.symbolStates[colIndex];
+    if (!col || rowIndex < 0 || rowIndex >= col.length) {
+      return undefined;
+    }
+    
+    return col[rowIndex]?.symbol;
+  }
+
   public getClearAnimationTime(): number {
     if (!this.hasVisibleSymbols() || !this.symbolStates || this.symbolStates.length === 0) {
       return 0;
