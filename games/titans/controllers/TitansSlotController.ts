@@ -18,6 +18,7 @@ export class TitansSlotController extends BaseController {
   // 【新增】連鎖 Spin 相關
   private isProcessingCascade: boolean = false; // 是否正在處理連鎖
   private winAnimationCompleteCallback?: () => void; // 獲勝動畫完成回調
+  private accumulatedTotalWin: number = 0; // 累計盤面的 totalWin
 
   constructor(model: TitansSlotModel, view: TitansSlotView) {
     super(model, view);
@@ -79,6 +80,8 @@ export class TitansSlotController extends BaseController {
 
   private onSpinStarted(): void {
     this.log('開始旋轉');
+    // 開始新的 spin 時重置累計值（確保每次新的 spin 流程都從零開始）
+    this.accumulatedTotalWin = 0;
     this.view.startSpinAnimation(this.isTurboEnabled);
   }
 
@@ -143,6 +146,7 @@ export class TitansSlotController extends BaseController {
 
     // 標記開始處理連鎖
     this.isProcessingCascade = true;
+    this.accumulatedTotalWin = result.totalWin || 0;
 
     try {
       // 處理當前結果的獲勝動畫和連鎖
@@ -172,7 +176,14 @@ export class TitansSlotController extends BaseController {
   /**
    * 【新增】處理 respin 結果（不清空盤面，直接處理獲勝檢查）
    */
-  public async handleRespinResult(result: TitansSlotResult): Promise<void> {
+  public async handleRespinResult(data: any): Promise<void> {
+    // 從 data.result 獲取已經構建好的 result 對象（由 TitansSlotApp 構建）
+    const result: TitansSlotResult = data.result;
+    if (!result) {
+      console.warn('⚠️  respin 結果缺少 result 對象');
+      return;
+    }
+
     console.log('🔄 handleRespinResult - 處理 respin 結果（不清空盤面）', result);
 
     // 標記開始處理連鎖
@@ -194,16 +205,35 @@ export class TitansSlotController extends BaseController {
         await this.removeWinSymbolsAndWait();
       }
 
+      // 累計 totalWin
+      this.accumulatedTotalWin += result.totalWin || 0;
+      
+      console.log('finalTotalWin',this.accumulatedTotalWin,result);
       // 3. 檢查是否需要連鎖（WaitNGRespin）
       // 如果 WaitNGRespin 為 true，需要發送下一次 respin 請求（11002）
-      if (result.WaitNGRespin) {
+      if (data.WaitNGRespin) {
         this.log('🔄 檢測到 WaitNGRespin=true，發送下一次 respin 請求（11002）');
         // 通過 App 發送 WebSocket 請求（因為 Controller 沒有直接訪問 WebSocket 的權限）
         // 這裡需要通過事件或回調來發送請求
         // 暫時先記錄日誌，實際發送請求應該在 App 層處理
         this.log('⚠️  需要在 App 層發送 11002 請求');
       } else {
-        this.log('✅ WaitNGRespin=false，respin 流程結束');
+        this.log('✅ WaitNGRespin=false，respin 流程結束', data);
+        
+        
+        // WaitNGRespin=false 時重置累計值
+        const finalTotalWin = this.accumulatedTotalWin;
+        this.accumulatedTotalWin = 0;
+        
+        // 檢查是否有倍數球且有贏得分數
+        if (finalTotalWin > 0) {
+          const multiplierBallPositions = this.findMultiplierBalls(result.reels);
+          if (multiplierBallPositions.length > 0) {
+            // 播放所有倍數球動畫（會依序播放）
+            this.log(`🎯 播放倍數球動畫陣列，共 ${multiplierBallPositions.length} 個`);
+            this.view.getMainGame().playMultiBallBigAnimation(multiplierBallPositions);
+          }
+        }
       }
 
       // 連鎖處理完成
@@ -222,7 +252,7 @@ export class TitansSlotController extends BaseController {
   }
 
   /**
-   * 【修改】處理獲勝動畫和連鎖邏輯（遞迴）
+   * 處理獲勝動畫和連鎖邏輯（遞迴）
    */
   private async processWinAndCascade(result: TitansSlotResult): Promise<void> {
     const hasWin = result.winLineInfos && result.winLineInfos.length > 0;
@@ -237,12 +267,29 @@ export class TitansSlotController extends BaseController {
       await this.removeWinSymbolsAndWait();
     }
 
+    // 累計 totalWin
+    this.accumulatedTotalWin += result.totalWin || 0;
+
     // 3. 檢查是否需要連鎖（WaitNGRespin）
     if (result.WaitNGRespin) {
       this.log('🔄 檢測到 WaitNGRespin=true，開始連鎖 Spin');
       await this.processCascadeSpin();
     } else {
-      this.log('✅ WaitNGRespin=false，本輪結束');
+      this.log('✅ WaitNGRespin=false，本輪結束'+this.accumulatedTotalWin, result,this.accumulatedTotalWin);
+      
+      // WaitNGRespin=false 時重置累計值
+      const finalTotalWin = this.accumulatedTotalWin;
+      this.accumulatedTotalWin = 0;
+      
+      // 檢查是否有倍數球且有贏得分數
+      if (finalTotalWin > 0) {
+        const multiplierBallPositions = this.findMultiplierBalls(result.reels);
+        if (multiplierBallPositions.length > 0) {
+          // 播放所有倍數球動畫（會依序播放）
+          this.log(`🎯 播放倍數球動畫陣列，共 ${multiplierBallPositions.length} 個`);
+          this.view.getMainGame().playMultiBallBigAnimation(multiplierBallPositions);
+        }
+      }
     }
   }
 
@@ -584,6 +631,31 @@ export class TitansSlotController extends BaseController {
   public addBalance(amount: number): void {
     const newBalance = this.model.getBalance() + amount;
     this.model.setBalance(newBalance);
+  }
+
+  /**
+   * 查找牌面中的倍數球位置
+   * @param reels 符號陣列
+   * @returns 倍數球位置陣列，包含 symbolId 和 pos（格式：'reel-row'，從1開始）
+   */
+  private findMultiplierBalls(reels: number[][]): Array<{ symbolId: number; pos: string }> {
+    const multiplierBalls: Array<{ symbolId: number; pos: string }> = [];
+    
+    // 倍數球的 symbolId 範圍：51-70 或 151-170
+    for (let reelIndex = 0; reelIndex < reels.length; reelIndex++) {
+      const reel = reels[reelIndex];
+      for (let rowIndex = 0; rowIndex < reel.length; rowIndex++) {
+        const symbolId = reel[rowIndex];
+        // 檢查是否為倍數球（51-70 或 151-170）
+        if ((symbolId >= 51 && symbolId <= 70) || (symbolId >= 151 && symbolId <= 170)) {
+          // pos 格式：'reel-row'，從1開始（所以索引+1）
+          const pos = `${reelIndex + 1}-${rowIndex + 1}`;
+          multiplierBalls.push({ symbolId, pos });
+        }
+      }
+    }
+    
+    return multiplierBalls;
   }
 
   // 觸發測試 Bonus

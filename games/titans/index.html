@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>⚡ Titans 拉霸遊戲</title>
+  <title>Nela崩潰之拉霸遊戲巨作</title>
   <style>
     * {
       margin: 0;
@@ -56,8 +57,13 @@
     }
 
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
     .hidden {
@@ -65,9 +71,10 @@
     }
   </style>
 </head>
+
 <body>
   <div id="game-container"></div>
-  
+
   <div id="loading">
     <div class="spinner"></div>
     <h2>⚡ 載入 Titans 拉霸遊戲...</h2>
@@ -76,5 +83,5 @@
 
   <script type="module" src="./main.ts"></script>
 </body>
-</html>
 
+</html>

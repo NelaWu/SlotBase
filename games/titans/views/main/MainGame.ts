@@ -32,6 +32,8 @@ export class MainGame extends PIXI.Container {
   public bigAnimationManager!: BigAnimationManager;
   public betPanel!: BetPanel;
   public multiBallSpine!: Spine;
+  private multiBallAnimationQueue: Array<{ symbolId: number; pos: string }> = []; // 倍數球動畫隊列
+  private isPlayingMultiBallAnimation: boolean = false; // 是否正在播放倍數球動畫
 
   constructor() {
     super();
@@ -365,8 +367,8 @@ export class MainGame extends PIXI.Container {
     this.addChild(this.multiBallSpine);
     this.multiBallSpine.position.set(550, 950);
     console.log('multiBallSpine', this.multiBallSpine);
-    // this.multiBallSpine.skeleton.setSkinByName("Lv2");
-    // this.multiBallSpine.state.setAnimation(0, "1-4", true);
+    // 使用 symbolId 51 來顯示 Lv1（符合 51-55 或 151-155 範圍）
+    // this.playMultiBallBigAnimation(51, '1-4');
   }
 
   public createBetPanel(betlist: number[], onBetSelected?: (betAmount: number) => void): void {
@@ -386,6 +388,85 @@ export class MainGame extends PIXI.Container {
 
   public playMultiBallAnimation(): void {
     this.gameScene.playMultiBallAnimation();
+  }
+
+  /**
+   * 根據 symbolId 映射到等級
+   * @param symbolId 符號 ID
+   * @returns 等級字串 (Lv1, Lv2, Lv3, Lv4)
+   */
+  private getLevelFromSymbolId(symbolId: number): string {
+    // 處理 151-170 範圍（減去 100 後與 51-70 範圍相同）
+    const normalizedId = symbolId >= 151 ? symbolId - 100 : symbolId;
+    
+    if (normalizedId >= 51 && normalizedId <= 55) {
+      return 'Lv1';
+    } else if (normalizedId >= 56 && normalizedId <= 60) {
+      return 'Lv2';
+    } else if (normalizedId >= 61 && normalizedId <= 65) {
+      return 'Lv3';
+    } else if (normalizedId >= 66 && normalizedId <= 70) {
+      return 'Lv4';
+    }
+    
+    // 預設返回 Lv1（如果不在範圍內）
+    return 'Lv1';
+  }
+
+  /**
+   * 播放倍數球動畫（支持陣列，會依序播放）
+   * @param animations 動畫陣列，每個元素包含 symbolId 和 pos
+   */
+  public playMultiBallBigAnimation(animations: Array<{ symbolId: number; pos: string }> | { symbolId: number; pos: string }): void {
+    // 如果傳入的是單個對象，轉換為陣列
+    const animationArray = Array.isArray(animations) ? animations : [animations];
+    
+    if (animationArray.length === 0) {
+      console.warn('⚠️  倍數球動畫陣列為空');
+      return;
+    }
+
+    // 將動畫添加到隊列
+    this.multiBallAnimationQueue.push(...animationArray);
+
+    // 如果當前沒有在播放動畫，開始播放
+    if (!this.isPlayingMultiBallAnimation) {
+      this.playNextMultiBallAnimation();
+    }
+  }
+
+  /**
+   * 播放下一個倍數球動畫
+   */
+  private playNextMultiBallAnimation(): void {
+    // 如果隊列為空，停止播放
+    if (this.multiBallAnimationQueue.length === 0) {
+      this.isPlayingMultiBallAnimation = false;
+      return;
+    }
+
+    // 從隊列中取出第一個動畫
+    const animation = this.multiBallAnimationQueue.shift()!;
+    this.isPlayingMultiBallAnimation = true;
+
+    const lv = this.getLevelFromSymbolId(animation.symbolId);
+    this.multiBallSpine.skeleton.setSkinByName(lv);
+    
+    // 設置動畫完成監聽器
+    const listener = {
+      complete: () => {
+        // 移除監聽器
+        this.multiBallSpine.state.removeListener(listener);
+        
+        // 播放下一個動畫
+        this.playNextMultiBallAnimation();
+      }
+    };
+    
+    this.multiBallSpine.state.addListener(listener);
+
+    // 播放動畫（不循環）
+    this.multiBallSpine.state.setAnimation(0, animation.pos, false);
   }
 }
 

@@ -602,7 +602,6 @@ export class TitansWheel extends PIXI.Container {
     winSymbols.forEach((state) => {
       state.symbol.showWin(() => {
         completedCount++;
-        console.log(`[Wheel] 符號動畫完成: ${completedCount}/${totalAnimations}`);
         
         // 【修改】當所有符號動畫都完成時
         if (completedCount >= totalAnimations) {
