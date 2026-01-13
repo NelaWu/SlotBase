@@ -56,6 +56,7 @@ const MULTIPLIER_MAP: Record<number, number> = {
  */
 export class TitansSymbol extends BaseSymbol {
   private spine?: Spine;
+  private explosionSpine?: Spine;
   private isSpecialSymbol:boolean = false;
   private multiText?: BaseNumber; // 倍數文字
   
@@ -117,6 +118,14 @@ export class TitansSymbol extends BaseSymbol {
       });
       this.spine.scale.set(0.5, 0.5);
       this.addChild(this.spine); 
+
+      this.explosionSpine = Spine.from({
+        atlas: `Symbol_Explosion_atlas`,
+        skeleton: `Symbol_Explosion_skel`,
+      });
+      this.explosionSpine.scale.set(0.5, 0.5);
+      this.addChild(this.explosionSpine);
+      
       this.hideWin();
     }
     else{
@@ -197,14 +206,45 @@ export class TitansSymbol extends BaseSymbol {
       const trackEntry = this.spine.state.setAnimation(0, "Win", false);
       trackEntry.listener = {
         complete: () => {
-          if (this.spine) {
-            this.spine.visible = false;
-            this.spine.renderable = false;
-          }
-          this.sprite.visible = true;
-          // 調用完成回調
-          if (onComplete) {
-            onComplete();
+          // Win 動畫完成後，播放 Explosion 動畫
+          if (this.explosionSpine) {
+            // 隱藏 spine
+            if (this.spine) {
+              this.spine.visible = false;
+              this.spine.renderable = false;
+            }
+            
+            // 顯示並播放 Explosion 動畫
+            this.explosionSpine.visible = true;
+            this.explosionSpine.renderable = true;
+            const explosionTrackEntry = this.explosionSpine.state.setAnimation(0, "Explosion", false);
+            
+            explosionTrackEntry.listener = {
+              complete: () => {
+                // Explosion 動畫完成後，隱藏 explosionSpine 並顯示 sprite
+                if (this.explosionSpine) {
+                  this.explosionSpine.visible = false;
+                  this.explosionSpine.renderable = false;
+                }
+                this.sprite.visible = true;
+                
+                // 調用完成回調
+                if (onComplete) {
+                  onComplete();
+                }
+              }
+            };
+          } else {
+            // 如果沒有 explosionSpine，直接完成
+            if (this.spine) {
+              this.spine.visible = false;
+              this.spine.renderable = false;
+            }
+            this.sprite.visible = true;
+            // 調用完成回調
+            if (onComplete) {
+              onComplete();
+            }
           }
         }
       };
