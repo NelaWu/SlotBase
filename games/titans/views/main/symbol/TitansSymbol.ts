@@ -4,52 +4,7 @@ import * as PIXI from 'pixi.js';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { BaseNumber } from '@/views/components/BaseNumber';
 import gsap from 'gsap';
-
-/**
- * 倍數 ID 映射表
- */
-const MULTIPLIER_MAP: Record<number, number> = {
-  51: 2,
-  52: 3,
-  53: 4,
-  54: 6,
-  55: 8,
-  56: 10,
-  57: 12,
-  58: 15,
-  59: 18,
-  60: 25,
-  61: 50,
-  62: 55,
-  63: 60,
-  64: 65,
-  65: 80,
-  66: 100,
-  67: 150,
-  68: 200,
-  69: 250,
-  70: 500,
-  151:2,
-  152:3,
-  153:4,
-  154:6,
-  155:8,
-  156:10,
-  157:12,
-  158:15,
-  159:18,
-  160:25,
-  161:50,
-  162:55,
-  163:60,
-  164:65,
-  165:80,
-  166:100,
-  167:150,
-  168:200,
-  169:250,
-  170:500,
-};
+import { getMultiplierFromSymbolId } from '../../../constants/MultiplierMap';
 
 /**
  * Titans 遊戲的符號類別
@@ -64,7 +19,7 @@ export class TitansSymbol extends BaseSymbol {
    * 根據符號 ID 獲取對應的倍數值
    */
   private getMultiplierValue(id: number): number | null {
-    return MULTIPLIER_MAP[id] || null;
+    return getMultiplierFromSymbolId(id);
   }
   public setSymbol(id: number): void {
     this.sprite.visible = false;

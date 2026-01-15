@@ -22,7 +22,7 @@ export class TitansSlotApp extends SlotMachineApp {
   private betMultiple: number = 1; // 用於 BetMultiples/BetMultiple 轉換：BetUnit * Line / MoneyFractionMultiple
   private moneyFractionMultiple: number = 1; // 用於 Balance/Win 轉換
   private pendingServerBalance: number | null = null; // 暫存 1005 的 Balance（服務器金額）
-  private useMockData: boolean = false; // 是否使用假資料測試
+  private useMockData: boolean = true; // 是否使用假資料測試
   private mockDataIndex: number = 0; // 假資料索引
 
   /**
@@ -117,6 +117,7 @@ export class TitansSlotApp extends SlotMachineApp {
       // 創建 WebSocket 管理器實例
       this.wsManager = WebSocketManager.getInstance({
         url: 'wss://gsvr1.wkgm88.net/gameserver',
+        // url: 'wss://7c88ea38ff35.ngrok-free.app/gameserver',
         reconnectInterval: 3000,        // 3秒重連間隔
         maxReconnectAttempts: -1,      // 無限重連
         heartbeatInterval: 5000,      // 30秒心跳（確保 > 0 才會發送心跳）
@@ -186,7 +187,6 @@ export class TitansSlotApp extends SlotMachineApp {
    * 處理旋轉結果 (Code 11003)
    */
   private handleSpinResult(data: any): void {
-    this.TitansView.getMainGame().showBGWinBar(true);
     if (!data.SpinInfo) {
       console.warn('⚠️  旋轉結果缺少 SpinInfo');
       return;
@@ -277,6 +277,7 @@ export class TitansSlotApp extends SlotMachineApp {
     };
 
     this.TitansView.updateWinAmount(result.totalWin);
+
     // 檢查是否正在等待 respin，如果是則用新資料補空白（不清空牌面）
     if (this.isWaitingRespin) {
       console.log('🔄 收到 respin 資料，補空白處（不清空牌面）');

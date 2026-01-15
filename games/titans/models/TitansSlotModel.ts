@@ -43,7 +43,7 @@ export interface ServerSpinInfo {
   Stage: number;
   Collection: number;
   DemoModeRound: number;
-  WaitNGRespin?: boolean; // 【新增】是否需要連鎖
+  WaitNGRespin?: boolean; // 是否需要連鎖
 }
 
 // Titans 拉霸結果

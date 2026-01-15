@@ -134,6 +134,7 @@ export class TitansSlotView extends BaseView {
     if (!winLineInfos || winLineInfos.length === 0) {
       return;
     }
+    this.mainGame.showBGWinBar(true);
     // 調用 Wheel 的共用方法來播放獲勝動畫
     this.mainGame.wheel.playWinAnimations(winLineInfos);
   }
@@ -169,6 +170,7 @@ export class TitansSlotView extends BaseView {
     } else {
       this.mainGame.winText.text = '0';
     }
+    this.mainGame.playBGWinMoney(winAmount);
   }
 
   // 更新免費旋轉顯示

@@ -25,6 +25,10 @@ export class BaseNumber extends PIXI.Container {
   private currentText: string = ''; // 保存當前顯示的文字（未格式化）
   private formattedText: string = ''; // 保存格式化後的字串（用於布局）
 
+  public getText(): string {
+    return this.currentText;
+  }
+
   constructor(options: BaseNumberOptions) {
     super();
     this.baseName = options.baseName;

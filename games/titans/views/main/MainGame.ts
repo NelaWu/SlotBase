@@ -7,6 +7,7 @@ import { GameScene } from './GameScene';
 import { BigAnimationManager } from './bigAnimation/BigAnimationManager';
 import { BetPanel } from './BetPanel';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
+import { getMultiplierFromSymbolId } from '../../constants/MultiplierMap';
 
 export class MainGame extends PIXI.Container {
   public gameScene!: GameScene;
@@ -394,8 +395,8 @@ export class MainGame extends PIXI.Container {
   public showBGWinBar(visible: boolean): void {
     this.gameScene.showBGWinBar(visible);
   }
-  public playBGWinBar(visible: boolean,money: number,multiplier: number): void {
-    this.gameScene.playBGWinBar(visible,money,multiplier);
+  public playBGWinMoney(money: number): void {
+    this.gameScene.playBGWinMoney(money);
   }
 
   /**
@@ -453,10 +454,11 @@ export class MainGame extends PIXI.Container {
   /**
    * 播放下一個倍數球動畫
    */
-  private playNextMultiBallAnimation(): void {
+  private async playNextMultiBallAnimation(): Promise<void> {
     // 如果隊列為空，停止播放並 resolve Promise
     if (this.multiBallAnimationQueue.length === 0) {
       this.isPlayingMultiBallAnimation = false;
+      await this.gameScene.playBGWinTotal();
       // 如果有等待的 resolve 回調，調用它
       if (this.multiBallAnimationResolve) {
         const resolve = this.multiBallAnimationResolve;
@@ -476,15 +478,13 @@ export class MainGame extends PIXI.Container {
     // 解析 pos 格式（'reel-row'，例如 '3-1'）
     const [reelStr, rowStr] = animation.pos.split('-');
     const reel = parseInt(reelStr, 10);
-    const row = parseInt(rowStr, 10);
-    console.log('playNextMultiBallAnimation',reel,row);
-    
+    const row = parseInt(rowStr, 10);    
     // 獲取對應的符號並播放 Collect 動畫
     if (reel && row) {
       const symbol = this.wheel.getSymbolAt(reel, row);
-      console.log('symbol',symbol);
       if (symbol) {
         symbol.playCollect();
+        this.gameScene.playBGWinMultiplier(getMultiplierFromSymbolId(animation.symbolId) || 0);
       }
     }
     

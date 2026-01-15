@@ -1,0 +1,70 @@
+{
+  "hash": "612503a8",
+  "configHash": "b4419664",
+  "lockfileHash": "a02d3d8b",
+  "browserHash": "cd7c7056",
+  "optimized": {
+    "@esotericsoftware/spine-pixi-v8": {
+      "src": "../../node_modules/.pnpm/@esotericsoftware+spine-pixi-v8@4.2.96_pixi.js@8.14.0/node_modules/@esotericsoftware/spine-pixi-v8/dist/index.js",
+      "file": "@esotericsoftware_spine-pixi-v8.js",
+      "fileHash": "985352a3",
+      "needsInterop": false
+    },
+    "pixi.js": {
+      "src": "../../node_modules/.pnpm/pixi.js@8.14.0/node_modules/pixi.js/lib/index.mjs",
+      "file": "pixi__js.js",
+      "fileHash": "2d3f4a64",
+      "needsInterop": false
+    },
+    "gsap": {
+      "src": "../../node_modules/.pnpm/gsap@3.13.0/node_modules/gsap/index.js",
+      "file": "gsap.js",
+      "fileHash": "84a6d2b3",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-UCDFGG7Z": {
+      "file": "chunk-UCDFGG7Z.js"
+    },
+    "browserAll-KYOIMZC2": {
+      "file": "browserAll-KYOIMZC2.js"
+    },
+    "chunk-MKRKGLOC": {
+      "file": "chunk-MKRKGLOC.js"
+    },
+    "webworkerAll-KBEZVKZC": {
+      "file": "webworkerAll-KBEZVKZC.js"
+    },
+    "chunk-MW7G3TMM": {
+      "file": "chunk-MW7G3TMM.js"
+    },
+    "chunk-6NYBTDQ4": {
+      "file": "chunk-6NYBTDQ4.js"
+    },
+    "WebGPURenderer-NIAUJB3T": {
+      "file": "WebGPURenderer-NIAUJB3T.js"
+    },
+    "chunk-NODOCOY2": {
+      "file": "chunk-NODOCOY2.js"
+    },
+    "chunk-CZPAV3QY": {
+      "file": "chunk-CZPAV3QY.js"
+    },
+    "WebGLRenderer-ERWC6HN5": {
+      "file": "WebGLRenderer-ERWC6HN5.js"
+    },
+    "chunk-2LVO7L5H": {
+      "file": "chunk-2LVO7L5H.js"
+    },
+    "chunk-5V52WG3O": {
+      "file": "chunk-5V52WG3O.js"
+    },
+    "chunk-G4HFVL32": {
+      "file": "chunk-G4HFVL32.js"
+    },
+    "chunk-EQCVQC35": {
+      "file": "chunk-EQCVQC35.js"
+    }
+  }
+}

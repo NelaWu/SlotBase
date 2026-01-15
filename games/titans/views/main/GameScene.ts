@@ -1,6 +1,8 @@
 import { ResourceManager } from '@/core/ResourceManager';
+import { BaseNumber } from '@/views/components/BaseNumber';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import * as PIXI from 'pixi.js';
+import { gsap } from 'gsap';
 
 export class GameScene extends PIXI.Container {
   private bgSprites: PIXI.Sprite[] = [];
@@ -13,7 +15,12 @@ export class GameScene extends PIXI.Container {
   private logoSprite?: PIXI.Sprite;
   private characterSpine?: Spine;
   private multiBallBigSpine?: Spine;
+  private bgWinBarContainer?: PIXI.Container;
   private bgWinBarSpine?: Spine;
+  private bgWinBarMoneyText?: BaseNumber;
+  private bgWinBarMultiplierText?: BaseNumber;
+  private totalMultiplier: number = 0;
+  private winMoney: number = 0;
   constructor() {
     super();
     this.init();
@@ -99,14 +106,33 @@ export class GameScene extends PIXI.Container {
       this.logoSprite.position.set(426, 582);
       this.addChild(this.logoSprite);
     }
+    this.bgWinBarContainer = new PIXI.Container();
+    this.bgWinBarContainer.position.set(540, 960);
+    this.addChild(this.bgWinBarContainer);
     this.bgWinBarSpine = Spine.from({
       atlas: 'BG_Win_Bar_atlas',
       skeleton: 'BG_Win_Bar_skel',
     });
     this.bgWinBarSpine.label = 'bgWinBarSpine';
-    this.addChild(this.bgWinBarSpine);
-    this.bgWinBarSpine.position.set(540, 960);
-    console.log('bgWinBarSpine',this.bgWinBarSpine);
+    this.bgWinBarContainer.addChild(this.bgWinBarSpine);
+    this.bgWinBarMoneyText = new BaseNumber({
+      baseName: 'fg_total_multi_number',
+      anchor: 0.5,
+      align: 'center',
+      useThousandSeparator: true
+    });
+    this.bgWinBarMoneyText.position.set(0, -300);
+    // this.bgWinBarMoneyText.showText('222');
+    this.bgWinBarContainer.addChild(this.bgWinBarMoneyText);
+    this.bgWinBarMultiplierText= new BaseNumber({
+      baseName: 'fg_total_multi_number',
+      anchor: 0.5,
+      align: 'center',
+      useThousandSeparator: true
+    });
+    this.bgWinBarMultiplierText.position.set(this.bgWinBarMoneyText.width+this.bgWinBarMultiplierText.width/2, -300);
+    this.bgWinBarContainer.addChild(this.bgWinBarMultiplierText);
+
     // 6. 載入資訊背景圖片
     const infoBgResource = resourceManager.getResource('fg_info_bg');
     if (infoBgResource) {
@@ -162,7 +188,7 @@ export class GameScene extends PIXI.Container {
     this.frameSprite1!.texture = PIXI.Texture.from(frameTexture);
     this.frameSprite2!.texture = PIXI.Texture.from(frameTexture);
     this.characterSpine!.skeleton.setSkinByName("Mg");
-    this.bgWinBarSpine!.visible = false;
+    this.bgWinBarContainer!.visible = false;
   }
 
   public playMultiBallAnimation(): void {
@@ -172,12 +198,74 @@ export class GameScene extends PIXI.Container {
   }
 
   public showBGWinBar(visible: boolean): void {
-    this.bgWinBarSpine!.visible = visible;
+    this.bgWinBarContainer!.visible = visible;
     this.logoSprite!.visible = !visible;
+    this.bgWinBarMoneyText!.showText('0.00');
+    this.totalMultiplier = 0;
+    this.bgWinBarMultiplierText!.showText('');
   }
 
-  public playBGWinBar(visible: boolean,money: number,multiplier: number): void {
-    this.bgWinBarSpine!.visible = visible;
-    this.logoSprite!.visible = !visible;
+  public playBGWinMoney(money: number ): void {
+    if (money == 0 )return;
+    this.winMoney = money;
+    const m:{money:number } = {money:0};
+    gsap.to(m, {money: money, duration: 1, onUpdate: () => {
+      this.bgWinBarMoneyText!.showText(m.money.toFixed(2));
+    }});
+  }
+
+  public playBGWinMultiplier(multiplier: number): void {
+    if (multiplier == 0 )return;
+    this.totalMultiplier += multiplier;
+    this.bgWinBarMultiplierText!.showText('x'+this.totalMultiplier);
+    this.bgWinBarMultiplierText!.position.set(this.bgWinBarMoneyText!.width+this.bgWinBarMultiplierText!.width/2, -300);
+    const m:{scale:number} = {scale:2};
+    gsap.to(m, {scale:1, duration: 0.5, onUpdate: () => {
+      this.bgWinBarMultiplierText!.scale.set(m.scale, m.scale);
+    }});
+  }
+
+  /**
+   * 計分面板的的倍數球乘動畫
+   * @param money 
+   * @returns 
+   */
+  public async playBGWinTotal(): Promise<void> {
+    const money:number = this.winMoney*this.totalMultiplier;
+    const startX = this.bgWinBarMultiplierText!.position.x;
+    const startAlpha = this.bgWinBarMultiplierText!.alpha;
+    const m: { x: number; alpha: number } = { x: startX, alpha: startAlpha };
+    const scaleObj: { scale: number } = { scale: 1 };
+    
+    return new Promise<void>((resolve) => {
+      const tl = gsap.timeline({
+        onComplete: () => {
+          resolve();
+        }
+      });
+      
+      tl.to(m, {
+        x: 0,
+        alpha: 0,
+        duration: 0.5,
+        onUpdate: () => {
+          this.bgWinBarMultiplierText!.position.set(m.x, -300);
+          this.bgWinBarMultiplierText!.alpha = m.alpha;
+        }
+      });
+      tl.call(() => {
+        this.bgWinBarMoneyText!.showText(money.toFixed(2));
+      });
+      tl.to(scaleObj, {
+        scale: 1.5,
+        duration: 0.2,
+        repeat: 1, 
+        yoyo: true, 
+        onUpdate: () => {
+          this.bgWinBarMoneyText!.scale.set(scaleObj.scale, scaleObj.scale);
+        }
+      });
+      tl.to({}, { duration: 0.5 });
+    });
   }
 }
