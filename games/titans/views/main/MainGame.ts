@@ -8,6 +8,7 @@ import { BigAnimationManager } from './bigAnimation/BigAnimationManager';
 import { BetPanel } from './BetPanel';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
 import { getMultiplierFromSymbolId } from '../../constants/MultiplierMap';
+import { GameEventEnum } from '../../enum/gameEnum';
 
 export class MainGame extends PIXI.Container {
   public gameScene!: GameScene;
@@ -36,10 +37,19 @@ export class MainGame extends PIXI.Container {
   private multiBallAnimationQueue: Array<{ symbolId: number; pos: string }> = []; // 倍數球動畫隊列
   private isPlayingMultiBallAnimation: boolean = false; // 是否正在播放倍數球動畫
   private multiBallAnimationResolve?: () => void; // 動畫完成時的 resolve 回調
+  private getBetAmount?: () => number; // 獲取投注金額的函數（返回客戶端金額）
 
   constructor() {
     super();
     this.sortableChildren = true; // 啟用 z-index 排序
+  }
+
+  /**
+   * 設置獲取投注金額的函數
+   * @param getBet 函數：返回當前的投注金額（客戶端金額）
+   */
+  public setGetBetAmount(getBet: () => number): void {
+    this.getBetAmount = getBet;
   }
 
   // 初始化所有組件
@@ -200,7 +210,14 @@ export class MainGame extends PIXI.Container {
     });
     this.addChild(this.buyFreeSpinsButton);
     this.buyFreeSpinsButton.on(ButtonEvent.BUTTON_CLICKED, () => {
-      this.bigAnimationManager.showFreeSpin();
+      // 獲取當前投注金額（客戶端金額）
+      const betAmount = this.getBetAmount ? this.getBetAmount() : 0;
+      const fessSpin = this.bigAnimationManager.showFreeSpin(betAmount);
+      
+      // 監聽開始免費遊戲事件
+      fessSpin.once('bigAnimationFreeSpinStart', () => {
+        this.startFreeGame();
+      });
     });
   }
 
@@ -386,6 +403,21 @@ export class MainGame extends PIXI.Container {
 
   public showBigWin(money: string, bet?: number): void {
     this.bigAnimationManager.showBigWin(money, bet);
+  }
+
+  /**
+   * 開始免費遊戲流程
+   */
+  public startFreeGame(): void {
+    // 播放 Transition 動畫
+    const transition = this.bigAnimationManager.showTransition();
+    this.gameScene.setFG();
+    
+    // Transition 結束後切換到免費模式並自動 spin
+    transition.once(GameEventEnum.BIG_ANIMATION_TRANSITION_COMPLETE, () => {
+      // 自動 spin（會發送 11014）
+      this.emit('freeGameStarted');
+    });
   }
 
   public playMultiBallAnimation(): void {

@@ -179,15 +179,15 @@ export class TitansWheel extends PIXI.Container {
     this.symbolStates.forEach(col => {
       col.forEach(state => {
         if (state.symbol && !state.symbol.destroyed) {
-          gsap.to(state.symbol, {
-            y: this.config.reelHeight + this.symbolHeight,
-            duration: 0.17*(this.config.symbolsPerReel - state.row),
+        gsap.to(state.symbol, {
+          y: this.config.reelHeight + this.symbolHeight,
+          duration: 0.17*(this.config.symbolsPerReel - state.row),
             delay: 0.1*this.animationConfig.columnDelay/100*state.col,
-            ease: 'power2.inOut',
-            onComplete: () => {
-              state.symbol.destroy();
-            }
-          });
+          ease: 'power2.inOut',
+          onComplete: () => {
+            state.symbol.destroy();
+          }
+        });
         }
       });
     });

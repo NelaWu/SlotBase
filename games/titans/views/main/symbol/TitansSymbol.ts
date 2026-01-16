@@ -134,7 +134,7 @@ export class TitansSymbol extends BaseSymbol {
                 this.spine!.visible = true;
                 this.spine!.renderable = true;
                 this.spine!.state?.setAnimation(0, "Hit", false);
-              }
+    }
               if (this.multiText) {
                 this.addChild(this.multiText);
               }
@@ -191,14 +191,14 @@ export class TitansSymbol extends BaseSymbol {
             };
           } else {
             // 如果沒有 explosionSpine，直接完成
-            if (this.spine) {
-              this.spine.visible = false;
-              this.spine.renderable = false;
-            }
-            this.sprite.visible = true;
-            // 調用完成回調
-            if (onComplete) {
-              onComplete();
+          if (this.spine) {
+            this.spine.visible = false;
+            this.spine.renderable = false;
+          }
+          this.sprite.visible = true;
+          // 調用完成回調
+          if (onComplete) {
+            onComplete();
             }
           }
         }

@@ -35,13 +35,19 @@ export class BigAnimationManager extends PIXI.Container {
   /**
    * 顯示 FessSpin 動畫
    */
-  public showFreeSpin(): FessSpin {
+  public showFreeSpin(bet:number): FessSpin {
     this.show();
-    const fessSpin = new FessSpin();
+    const fessSpin = new FessSpin(bet);
     this.bigAnimationContainer.addChild(fessSpin);
     // 監聽關閉事件
     fessSpin.once(GameEventEnum.BIG_ANIMATION_CLOSE, () => {
+      this.bigAnimationContainer.removeChild(fessSpin);
       this.hide();
+    });
+    // 監聽開始免費遊戲事件
+    fessSpin.once(GameEventEnum.BIG_ANIMATION_FREE_SPIN_START, () => {
+      this.bigAnimationContainer.removeChild(fessSpin);
+      this.emit(GameEventEnum.BIG_ANIMATION_FREE_SPIN_START);
     });
     return fessSpin;
   }
@@ -111,13 +117,13 @@ export class BigAnimationManager extends PIXI.Container {
    * 顯示動畫容器
    */
   private show(): void {
-    this.bigAnimationContainer.visible = true;
+    this.visible = true;
   }
 
   /**
    * 隱藏動畫容器
    */
   private hide(): void {
-    this.bigAnimationContainer.visible = false;
+    this.visible = false;
   }
 }

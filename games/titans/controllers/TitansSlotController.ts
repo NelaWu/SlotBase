@@ -1,7 +1,6 @@
 import { BaseController } from '@controllers/BaseController';
 import { TitansSlotModel, TitansSlotResult } from '../models/TitansSlotModel';
 import { TitansSlotView } from '../views/TitansSlotView';
-import { GameEventEnum } from '../enum/gameEnum';
 
 export class TitansSlotController extends BaseController {
   protected declare model: TitansSlotModel;

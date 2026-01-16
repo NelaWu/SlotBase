@@ -9,12 +9,12 @@ import { BaseNumber } from '@/views/components/BaseNumber';
 export class FessSpin extends PIXI.Container  {
   private startBtn?: BaseButton
   private cancelBtn?: BaseButton
-  constructor() {
+  constructor(bet:number) {
     super();
-    this.init();
+    this.init(bet);
   }
 
-  init(): void {
+  init(bet:number): void {
     const bg = Spine.from({
       atlas: 'Buy_FG_atlas',
       skeleton: 'Buy_FG_skel',
@@ -44,7 +44,7 @@ export class FessSpin extends PIXI.Container  {
     costText.position.set(540, 1115);
     costText.scale.set(0.75);
     this.addChild(costText);
-    costText.showText('1000000');
+    costText.showText(bet);
 
     this.startBtn = new BaseButton({
       baseName: 'buyfg_bg_startbtn',
@@ -53,6 +53,9 @@ export class FessSpin extends PIXI.Container  {
       anchor: 0.5,
     });
     this.startBtn.position.set(753,1270);
+    this.startBtn.on(ButtonEvent.BUTTON_CLICKED, () => {
+      this.onStartBtnClicked();
+    });
     this.addChild(this.startBtn);
     this.cancelBtn = new BaseButton({
       baseName: 'buyfg_bg_cancelbtn',
@@ -63,7 +66,6 @@ export class FessSpin extends PIXI.Container  {
     this.cancelBtn.position.set(353,1270);
     this.cancelBtn.on(ButtonEvent.BUTTON_CLICKED, ()=>{
         this.onCloseBtnClicked();
-        
     });
     this.addChild(this.cancelBtn);
   }
@@ -71,5 +73,10 @@ export class FessSpin extends PIXI.Container  {
 
   private onCloseBtnClicked(): void {
     this.emit(GameEventEnum.BIG_ANIMATION_CLOSE);
-}
+  }
+
+  private onStartBtnClicked(): void {
+    // 發送開始免費遊戲事件
+    this.emit(GameEventEnum.BIG_ANIMATION_FREE_SPIN_START);
+  }
 }

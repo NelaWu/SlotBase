@@ -3,8 +3,6 @@ import * as PIXI from 'pixi.js';
 import { MainGame } from './main/MainGame';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
 import { WinLineInfo } from '../models/TitansSlotModel';
-import { BigWinType } from '../enum/gameEnum';
-import { BigWin } from './main/bigAnimation/BigWin';
 
 export class TitansSlotView extends BaseView {
   private mainGame!: MainGame;
@@ -276,6 +274,14 @@ export class TitansSlotView extends BaseView {
     return this.mainGame;
   }
 
+  /**
+   * 設置獲取投注金額的函數到 MainGame
+   * @param getBet 函數：返回當前的投注金額（客戶端金額）
+   */
+  public setGetBetAmount(getBet: () => number): void {
+    this.mainGame.setGetBetAmount(getBet);
+  }
+
   // 檢查畫面上是否有可見符號
   public hasVisibleSymbols(): boolean {
     return this.mainGame.wheel.hasVisibleSymbols();
@@ -283,5 +289,12 @@ export class TitansSlotView extends BaseView {
 
   public showBigWin( money:number, bet:number){
     this.mainGame.showBigWin(money.toString(),bet);
+  }
+
+  /**
+   * 開始免費遊戲流程
+   */
+  public startFreeGame(): void {
+    this.mainGame.startFreeGame();
   }
 }
