@@ -111,10 +111,6 @@ export class TitansSlotController extends BaseController {
   private executeAfterClearComplete(result: TitansSlotResult): void {
     console.log('executeAfterClearComplete', result);
 
-    //to do 改為動畫加總？或是動畫表演完再出現
-    // 更新獲勝金額顯示
-    this.view.updateWinAmount(result.totalWin);
-
     // 檢查是否有倍數球(ID > 50)，如果有則播放倍數球動畫
     const hasMultiBall = result.reels.some(col => col.some(symbolId => symbolId > 50));
     if (hasMultiBall) {
@@ -143,6 +139,7 @@ export class TitansSlotController extends BaseController {
   private async executeAfterDropComplete(result: TitansSlotResult): Promise<void> {
     console.log('executeAfterDropComplete - 符號掉落完成', result);
 
+    this.view.updateWinAmount(result.totalWin);
     // 標記開始處理連鎖
     this.isProcessingCascade = true;
     this.accumulatedTotalWin = result.totalWin || 0;
@@ -227,8 +224,8 @@ export class TitansSlotController extends BaseController {
           const multiplierBallPositions = this.findMultiplierBalls(result.reels);
           if (multiplierBallPositions.length > 0) {
             // 播放所有倍數球動畫（會依序播放）並等待完成
-            this.log(`🎯 播放倍數球動畫陣列，共 ${multiplierBallPositions.length} 個`);
-            await this.view.getMainGame().playMultiBallBigAnimation(multiplierBallPositions);
+            this.log(`🎯 播放倍數球動畫陣列，共 ${multiplierBallPositions.length} 個`,finalTotalWin,multiplierBallPositions);
+            await this.view.updateWinAmountAnimation(multiplierBallPositions);
             this.log('✅ 倍數球動畫播放完成');
           }
         }
@@ -284,8 +281,8 @@ export class TitansSlotController extends BaseController {
         const multiplierBallPositions = this.findMultiplierBalls(result.reels);
         if (multiplierBallPositions.length > 0) {
           // 播放所有倍數球動畫（會依序播放）
-          this.log(`🎯 播放倍數球動畫陣列，共 ${multiplierBallPositions.length} 個`);
-          this.view.getMainGame().playMultiBallBigAnimation(multiplierBallPositions);
+          this.log(`🎯 播放倍數球動畫陣列，共 ${multiplierBallPositions.length} 個`,finalTotalWin,multiplierBallPositions);
+          await this.view.updateWinAmountAnimation(multiplierBallPositions);
         }
       }
     }

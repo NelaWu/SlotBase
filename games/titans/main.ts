@@ -145,6 +145,7 @@ async function startTitansSlotGame() {
       { id: 'fg_total_multi_number_8', url: '/games/titans/assets/fg_total_multi_number_8.png', type: 'image' },
       { id: 'fg_total_multi_number_9', url: '/games/titans/assets/fg_total_multi_number_9.png', type: 'image' },
       { id: 'fg_total_multi_number_x', url: '/games/titans/assets/fg_total_multi_number_x.png', type: 'image' },
+      { id: 'fg_total_multi_number_.', url: '/games/titans/assets/fg_total_multi_number_..png', type: 'image' },
       // 免費結算
       { id: 'fg_summary_alart_bg', url: '/games/titans/assets/fg_summary_alart_bg.png', type: 'image' },
       { id: 'fg_summary_alart_btn_hover', url: '/games/titans/assets/fg_summary_alart_btn_hover.png', type: 'image' },

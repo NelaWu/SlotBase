@@ -3,6 +3,7 @@ import * as PIXI from 'pixi.js';
 import { MainGame } from './main/MainGame';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
 import { WinLineInfo } from '../models/TitansSlotModel';
+import { gsap } from 'gsap';
 
 export class TitansSlotView extends BaseView {
   private mainGame!: MainGame;
@@ -125,6 +126,7 @@ export class TitansSlotView extends BaseView {
         }
       }
     });
+    this.mainGame.showBGWinBar(true);
   }
 
   // 公開方法 - 播放獲勝動畫
@@ -132,7 +134,6 @@ export class TitansSlotView extends BaseView {
     if (!winLineInfos || winLineInfos.length === 0) {
       return;
     }
-    this.mainGame.showBGWinBar(true);
     // 調用 Wheel 的共用方法來播放獲勝動畫
     this.mainGame.wheel.playWinAnimations(winLineInfos);
   }
@@ -164,11 +165,24 @@ export class TitansSlotView extends BaseView {
   // 更新獲勝金額顯示（底部）
   public updateWinAmount(winAmount: number): void {
     if (winAmount > 0) {
-      this.mainGame.winText.text = `${winAmount}`;
+      const m: { money: number } = { money: 0 };
+      gsap.to(m, {
+        money: winAmount,
+        duration: 1,
+        onUpdate: () => {
+          const moneyValue = m.money.toFixed(2);
+          this.mainGame.winText.text = moneyValue;
+          this.mainGame.gameScene.playBGWinMoney(m.money);
+        }
+      });
     } else {
       this.mainGame.winText.text = '0';
+      this.mainGame.playBGWinMoney(winAmount);
     }
-    this.mainGame.playBGWinMoney(winAmount);
+  }
+
+  public async updateWinAmountAnimation(multiplierBallPositions: { symbolId: number; pos: string }[]): Promise<void> {
+    await this.mainGame.playMultiBallBigAnimation(multiplierBallPositions);
   }
 
   // 更新免費旋轉顯示

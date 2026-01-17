@@ -206,12 +206,8 @@ export class GameScene extends PIXI.Container {
   }
 
   public playBGWinMoney(money: number ): void {
-    if (money == 0 )return;
     this.winMoney = money;
-    const m:{money:number } = {money:0};
-    gsap.to(m, {money: money, duration: 1, onUpdate: () => {
-      this.bgWinBarMoneyText!.showText(m.money.toFixed(2));
-    }});
+    this.bgWinBarMoneyText!.showText(money.toFixed(2));
   }
 
   public playBGWinMultiplier(multiplier: number): void {
@@ -230,7 +226,7 @@ export class GameScene extends PIXI.Container {
    * @param money 
    * @returns 
    */
-  public async playBGWinTotal(): Promise<void> {
+  public async playBGWinTotal(onMoneyUpdate?: (money: number) => void): Promise<void> {
     const money:number = this.winMoney*this.totalMultiplier;
     const startX = this.bgWinBarMultiplierText!.position.x;
     const startAlpha = this.bgWinBarMultiplierText!.alpha;
@@ -254,7 +250,12 @@ export class GameScene extends PIXI.Container {
         }
       });
       tl.call(() => {
-        this.bgWinBarMoneyText!.showText(money.toFixed(2));
+        const moneyValue = money.toFixed(2);
+        this.bgWinBarMoneyText!.showText(moneyValue);
+        // 同時更新 winText（如果提供了回調函數）
+        if (onMoneyUpdate) {
+          onMoneyUpdate(money);
+        }
       });
       tl.to(scaleObj, {
         scale: 1.5,

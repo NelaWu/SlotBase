@@ -127,8 +127,8 @@ export class TitansSlotApp extends SlotMachineApp {
 
       // 創建 WebSocket 管理器實例
       this.wsManager = WebSocketManager.getInstance({
-        // url: 'wss://gsvr1.wkgm88.net/gameserver',
-        url: 'wss://7c88ea38ff35.ngrok-free.app/gameserver',
+        url: 'wss://gsvr1.wkgm88.net/gameserver',
+        // url: 'wss://7c88ea38ff35.ngrok-free.app/gameserver',
         reconnectInterval: 3000,        // 3秒重連間隔
         maxReconnectAttempts: -1,      // 無限重連
         heartbeatInterval: 5000,      // 30秒心跳（確保 > 0 才會發送心跳）
@@ -290,8 +290,6 @@ export class TitansSlotApp extends SlotMachineApp {
     this.freeGameRemainingSpins = spinInfo.FGRemainTimes || 0;
     this.TitansView.updateFreeSpins(this.freeGameRemainingSpins);
 
-    // 更新獲勝金額顯示
-    this.TitansView.updateWinAmount(result.totalWin);
 
     // 設置結果到 Model（會自動更新餘額）
     this.TitansModel.setSpinResult(result);
@@ -406,8 +404,6 @@ export class TitansSlotApp extends SlotMachineApp {
       collection: spinInfo.Collection,
       demoModeRound: spinInfo.DemoModeRound
     };
-
-    this.TitansView.updateWinAmount(result.totalWin);
 
     // 檢查是否正在等待 respin，如果是則用新資料補空白（不清空牌面）
     if (this.isWaitingRespin) {

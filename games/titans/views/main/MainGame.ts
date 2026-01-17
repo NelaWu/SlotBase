@@ -449,7 +449,6 @@ export class MainGame extends PIXI.Container {
     } else if (normalizedId >= 66 && normalizedId <= 70) {
       return 'Lv4';
     }
-    
     // 預設返回 Lv1（如果不在範圍內）
     return 'Lv1';
   }
@@ -490,7 +489,10 @@ export class MainGame extends PIXI.Container {
     // 如果隊列為空，停止播放並 resolve Promise
     if (this.multiBallAnimationQueue.length === 0) {
       this.isPlayingMultiBallAnimation = false;
-      await this.gameScene.playBGWinTotal();
+      await this.gameScene.playBGWinTotal((money) => {
+        // 同時更新 winText
+        this.winText.text = money.toFixed(2);
+      });
       // 如果有等待的 resolve 回調，調用它
       if (this.multiBallAnimationResolve) {
         const resolve = this.multiBallAnimationResolve;
