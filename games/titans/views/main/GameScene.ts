@@ -192,6 +192,8 @@ export class GameScene extends PIXI.Container {
   }
 
   public playMultiBallAnimation(): void {
+    console.log('playMultiBallAnimation');
+    
     // 播放 Multiplier_Low 動畫，完成後自動播放 Idle 動畫
     this.characterSpine!.state.setAnimation(0, "Multiplier_Low", false);
     this.characterSpine!.state.addAnimation(0, "Idle", true, 0);
@@ -211,8 +213,11 @@ export class GameScene extends PIXI.Container {
   }
 
   public playBGWinMultiplier(multiplier: number): void {
+    console.log('🎉 播放BGWinMultiplier', multiplier);
+    
     if (multiplier == 0 )return;
     this.totalMultiplier += multiplier;
+    this.bgWinBarMultiplierText!.visible = true;
     this.bgWinBarMultiplierText!.showText('x'+this.totalMultiplier);
     this.bgWinBarMultiplierText!.position.set(this.bgWinBarMoneyText!.width+this.bgWinBarMultiplierText!.width/2, -300);
     const m:{scale:number} = {scale:2};

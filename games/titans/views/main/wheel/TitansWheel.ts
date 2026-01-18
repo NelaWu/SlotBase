@@ -849,10 +849,10 @@ export class TitansWheel extends PIXI.Container {
     this.animate();
   }
 
-  public fillNewSymbols(symbolIds: number[][], onComplete?: () => void, fastDrop?: boolean): void {
+  public async fillNewSymbols(symbolIds: number[][], onComplete?: () => void, fastDrop?: boolean): Promise<void> {
     this.isFillingEmptySlots = true;
     this.fillEmptySlotsCompleteCallback = onComplete;
-
+    
     if (fastDrop) {
       this.animationConfig.columnDelay = 0;
     } else {
@@ -865,6 +865,38 @@ export class TitansWheel extends PIXI.Container {
       return;
     }
 
+    // 1. 先檢查盤面上是否有 symbol >= 150 的符號需要升級
+    const levelUpPromises: Promise<void>[] = [];
+    
+    for (let col = 0; col < this.config.numberOfReels; col++) {
+      const colStates = this.symbolStates[col] || [];
+      const colSymbolIds = symbolIds[col] || [];
+      
+      colStates.forEach((state) => {
+        const currentSymbolId = state.symbol.getSymbolId();
+        // 檢查是否需要升級（>= 150 且 < 170）
+        if (currentSymbolId >= 150 && currentSymbolId < 170) {
+          // 檢查對應位置的新符號 ID（根據 row 索引）
+          const newSymbolId = colSymbolIds[state.row];
+          
+          // 如果新符號 ID 存在且比當前符號 ID 大，需要升級
+          if (newSymbolId !== null && newSymbolId !== undefined && newSymbolId > currentSymbolId) {
+            console.log(`🔼 符號升級: ${currentSymbolId} -> ${newSymbolId} (位置: ${col}-${state.row})`);
+            // 先設置目標 symbolId，然後播放升級動畫
+            const targetSymbolId = newSymbolId;
+            levelUpPromises.push(state.symbol.levelUp(targetSymbolId));
+          }
+        }
+      });
+    }
+
+    // 2. 等待所有升級動畫完成
+    if (levelUpPromises.length > 0) {
+      await Promise.all(levelUpPromises);
+      console.log('✅ 所有符號升級動畫完成');
+    }
+
+    // 3. 填充新符號
     for (let col = 0; col < this.config.numberOfReels; col++) {
       const colStates = this.symbolStates[col] || [];
       const colSymbolIds = symbolIds[col] || [];
@@ -898,6 +930,7 @@ export class TitansWheel extends PIXI.Container {
       });
     }
 
+    // 4. 開始掉落動畫
     this.startCascadeAnimation();
   }
 

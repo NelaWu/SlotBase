@@ -517,6 +517,7 @@ export class MainGame extends PIXI.Container {
     if (reel && row) {
       const symbol = this.wheel.getSymbolAt(reel, row);
       if (symbol) {
+        console.log('🎉 播放Collect',reel, row,symbol);
         symbol.playCollect();
         this.gameScene.playBGWinMultiplier(getMultiplierFromSymbolId(animation.symbolId) || 0);
       }

@@ -24,7 +24,7 @@ export class TitansSlotApp extends SlotMachineApp {
   private betMultiple: number = 1; // 用於 BetMultiples/BetMultiple 轉換：BetUnit * Line / MoneyFractionMultiple
   private moneyFractionMultiple: number = 1; // 用於 Balance/Win 轉換
   private pendingServerBalance: number | null = null; // 暫存 1005 的 Balance（服務器金額）
-  private useMockData: boolean = false; // 是否使用假資料測試
+  private useMockData: boolean = true; // 是否使用假資料測試
   private mockDataIndex: number = 0; // 假資料索引
 
   /**
@@ -756,98 +756,439 @@ export class TitansSlotApp extends SlotMachineApp {
       {
         "Code": 11003,
         "Result": 0,
-        "RoundCode": "round_1781",
+        "RoundCode": "round_233",
         "SpinInfo": {
-          "GameStateType": 0,
-          "GameState": 2,
-          "WinType": 1,
-          "Multiplier": 28,
-          "ScreenOrg": [
-            [15, 2, 2, 12, 12],
-            [31, 12, 12, 60, 13],
-            [15, 15, 13, 13, 13],
-            [12, 12, 52, 31, 11],
-            [12, 14, 14, 15, 15],
-            [12, 12, 12, 31, 3]
-          ],
-          "SymbolResult": [
-            [15, 2, 2, 12, 12],
-            [31, 12, 12, 60, 13],
-            [15, 15, 13, 13, 13],
-            [12, 12, 52, 31, 11],
-            [12, 14, 14, 15, 15],
-            [12, 12, 12, 31, 3]
-          ],
-          "ScreenOutput": [
-            [15, 2, 2],
-            [31, 60, 13],
-            [15, 15, 13, 13, 13],
-            [52, 31, 11],
-            [14, 14, 15, 15],
-            [31, 3]
-          ],
-          "WinLineInfos": [
-            {
-              "LineNo": 1,
-              "SymbolID": 12,
-              "SymbolType": 1,
-              "SymbolCount": 10,
-              "WayCount": 0,
-              "WinPosition": [
-                [0, 3],
-                [0, 4],
-                [1, 1],
-                [1, 2],
-                [3, 0],
-                [3, 1],
-                [4, 0],
-                [5, 0],
-                [5, 1],
-                [5, 2]
-              ],
-              "Multiplier": 1,
-              "WinOrg": 240,
-              "Win": 240,
-              "WinType": 1,
-              "Odds": 24
-            }
-          ],
-          "FGTotalTimes": 0,
-          "FGCurrentTimes": 0,
-          "FGRemainTimes": 0,
-          "FGMaxFlag": false,
-          "RndNum": [5, 29, 6, 30, 23, 26],
-          "Win": 6720,
-          "ExtraData": "",
-          "Stage": 0,
-          "Collection": 0,
-          "DemoModeRound": 0
+            "GameStateType": 0,
+            "GameState": 2,
+            "WinType": 1,
+            "Multiplier": 12,
+            "ScreenOrg": [
+                [
+                    14,
+                    14,
+                    12,
+                    3,
+                    3
+                ],
+                [
+                    13,
+                    13,
+                    4,
+                    4,
+                    15
+                ],
+                [
+                    52,
+                    3,
+                    13,
+                    13,
+                    151
+                ],
+                [
+                    13,
+                    14,
+                    13,
+                    13,
+                    13
+                ],
+                [
+                    14,
+                    13,
+                    3,
+                    13,
+                    13
+                ],
+                [
+                    3,
+                    11,
+                    4,
+                    14,
+                    14
+                ]
+            ],
+            "SymbolResult": [
+                [
+                    14,
+                    14,
+                    12,
+                    3,
+                    3
+                ],
+                [
+                    13,
+                    13,
+                    4,
+                    4,
+                    15
+                ],
+                [
+                    52,
+                    3,
+                    13,
+                    13,
+                    151
+                ],
+                [
+                    13,
+                    14,
+                    13,
+                    13,
+                    13
+                ],
+                [
+                    14,
+                    13,
+                    3,
+                    13,
+                    13
+                ],
+                [
+                    3,
+                    11,
+                    4,
+                    14,
+                    14
+                ]
+            ],
+            "ScreenOutput": [
+                [
+                    14,
+                    14,
+                    12,
+                    3,
+                    3
+                ],
+                [
+                    4,
+                    4,
+                    15
+                ],
+                [
+                    52,
+                    3,
+                    151
+                ],
+                [
+                    14
+                ],
+                [
+                    14,
+                    3
+                ],
+                [
+                    3,
+                    11,
+                    4,
+                    14,
+                    14
+                ]
+            ],
+            "WinLineInfos": [
+                {
+                    "LineNo": 1,
+                    "SymbolID": 13,
+                    "SymbolType": 1,
+                    "SymbolCount": 11,
+                    "WayCount": 0,
+                    "WinPosition": [
+                        [
+                            1,
+                            0
+                        ],
+                        [
+                            1,
+                            1
+                        ],
+                        [
+                            2,
+                            2
+                        ],
+                        [
+                            2,
+                            3
+                        ],
+                        [
+                            3,
+                            0
+                        ],
+                        [
+                            3,
+                            2
+                        ],
+                        [
+                            3,
+                            3
+                        ],
+                        [
+                            3,
+                            4
+                        ],
+                        [
+                            4,
+                            1
+                        ],
+                        [
+                            4,
+                            3
+                        ],
+                        [
+                            4,
+                            4
+                        ]
+                    ],
+                    "Multiplier": 1,
+                    "WinOrg": 200,
+                    "Win": 200,
+                    "WinType": 1,
+                    "Odds": 20
+                }
+            ],
+            "FGTotalTimes": 0,
+            "FGCurrentTimes": 0,
+            "FGRemainTimes": 0,
+            "FGMaxFlag": false,
+            "RndNum": [
+                19,
+                42,
+                27,
+                14,
+                3,
+                31
+            ],
+            "Win": 2400,
+            "ExtraData": "",
+            "Stage": 0,
+            "Collection": 0,
+            "DemoModeRound": 0
         },
         "LDOption": [],
         "WaitNGRespin": true,
         "WinJPInfo": {
-          "JPLevel": 0,
-          "Value": 0
+            "JPLevel": 0,
+            "Value": 0
         }
-      },
+    },
       // 第二筆：沒有獲勝，WaitNGRespin=false
       {
         "Code": 11003,
         "Result": 0,
-        "RoundCode": "round_1781",
+        "RoundCode": "round_233",
         "SpinInfo": {
+            "GameStateType": 0,
+            "GameState": 2,
+            "WinType": 1,
+            "Multiplier": 12,
+            "ScreenOrg": [],
+            "SymbolResult": [
+                [
+                    14,
+                    14,
+                    12,
+                    3,
+                    3
+                ],
+                [
+                    11,
+                    2,
+                    4,
+                    4,
+                    15
+                ],
+                [
+                    14,
+                    14,
+                    52,
+                    3,
+                    152
+                ],
+                [
+                    14,
+                    15,
+                    15,
+                    13,
+                    14
+                ],
+                [
+                    11,
+                    3,
+                    11,
+                    14,
+                    3
+                ],
+                [
+                    3,
+                    11,
+                    4,
+                    14,
+                    14
+                ]
+            ],
+            "ScreenOutput": [
+                [
+                    12,
+                    3,
+                    3
+                ],
+                [
+                    11,
+                    2,
+                    4,
+                    4,
+                    15
+                ],
+                [
+                    52,
+                    3,
+                    152
+                ],
+                [
+                    15,
+                    15,
+                    13
+                ],
+                [
+                    11,
+                    3,
+                    11,
+                    3
+                ],
+                [
+                    3,
+                    11,
+                    4
+                ]
+            ],
+            "WinLineInfos": [
+                {
+                    "LineNo": 1,
+                    "SymbolID": 14,
+                    "SymbolType": 1,
+                    "SymbolCount": 9,
+                    "WayCount": 0,
+                    "WinPosition": [
+                        [
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            1
+                        ],
+                        [
+                            2,
+                            0
+                        ],
+                        [
+                            2,
+                            1
+                        ],
+                        [
+                            3,
+                            0
+                        ],
+                        [
+                            3,
+                            4
+                        ],
+                        [
+                            4,
+                            3
+                        ],
+                        [
+                            5,
+                            3
+                        ],
+                        [
+                            5,
+                            4
+                        ]
+                    ],
+                    "Multiplier": 1,
+                    "WinOrg": 80,
+                    "Win": 80,
+                    "WinType": 1,
+                    "Odds": 8
+                }
+            ],
+            "FGTotalTimes": 0,
+            "FGCurrentTimes": 0,
+            "FGRemainTimes": 0,
+            "FGMaxFlag": false,
+            "RndNum": [
+                19,
+                40,
+                25,
+                10,
+                0,
+                31
+            ],
+            "Win": 960,
+            "ExtraData": "",
+            "Stage": 1,
+            "Collection": 0,
+            "DemoModeRound": 0
+        },
+        "LDOption": [],
+        "WaitNGRespin": true,
+        "WinJPInfo": {
+            "JPLevel": 0,
+            "Value": 0
+        }
+    },
+    // 第三筆：
+    {
+      "Code": 11003,
+      "Result": 0,
+      "RoundCode": "round_233",
+      "SpinInfo": {
           "GameStateType": 0,
           "GameState": 2,
           "WinType": 0,
-          "Multiplier": 28,
+          "Multiplier": 12,
           "ScreenOrg": [],
           "SymbolResult": [
-            [2, 11, 15, 2, 2],
-            [12, 3, 31, 60, 13],
-            [15, 15, 13, 13, 13],
-            [4, 14, 52, 31, 11],
-            [12, 14, 14, 15, 15],
-            [15, 4, 4, 31, 3]
+              [
+                  11,
+                  152,
+                  1,
+                  1,
+                  12
+              ],
+              [
+                  11,
+                  2,
+                  4,
+                  4,
+                  15
+              ],
+              [
+                  14,
+                  15,
+                  15,
+                  52,
+                  154
+              ],
+              [
+                  4,
+                  4,
+                  15,
+                  15,
+                  13
+              ],
+              [
+                  12,
+                  15,
+                  2,
+                  11,
+                  11
+              ],
+              [
+                  12,
+                  4,
+                  31,
+                  11,
+                  4
+              ]
           ],
           "ScreenOutput": [],
           "WinLineInfos": [],
@@ -855,20 +1196,27 @@ export class TitansSlotApp extends SlotMachineApp {
           "FGCurrentTimes": 0,
           "FGRemainTimes": 0,
           "FGMaxFlag": false,
-          "RndNum": [3, 27, 6, 28, 22, 23],
+          "RndNum": [
+              15,
+              40,
+              20,
+              8,
+              47,
+              27
+          ],
           "Win": 0,
           "ExtraData": "",
-          "Stage": 1,
+          "Stage": 3,
           "Collection": 0,
           "DemoModeRound": 0
-        },
-        "LDOption": [],
-        "WaitNGRespin": false,
-        "WinJPInfo": {
+      },
+      "LDOption": [],
+      "WaitNGRespin": false,
+      "WinJPInfo": {
           "JPLevel": 0,
           "Value": 0
-        }
       }
+  }
     ];
 
     if (this.mockDataIndex >= mockDataList.length) {

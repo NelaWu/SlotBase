@@ -649,6 +649,7 @@ export class TitansSlotController extends BaseController {
         }
       }
     }
+    console.log('findMultiplierBalls',reels,multiplierBalls);
     
     return multiplierBalls;
   }
