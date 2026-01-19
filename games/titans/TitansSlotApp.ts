@@ -24,6 +24,7 @@ export class TitansSlotApp extends SlotMachineApp {
   private betMultiple: number = 1; // 用於 BetMultiples/BetMultiple 轉換：BetUnit * Line / MoneyFractionMultiple
   private moneyFractionMultiple: number = 1; // 用於 Balance/Win 轉換
   private pendingServerBalance: number | null = null; // 暫存 1005 的 Balance（服務器金額）
+  private totalWin: number = 0; // 總獲勝金額(11010才重置)
   private useMockData: boolean = true; // 是否使用假資料測試
   private mockDataIndex: number = 0; // 假資料索引
 
@@ -339,9 +340,11 @@ export class TitansSlotApp extends SlotMachineApp {
     if (spinInfo.WinLineInfos && Array.isArray(spinInfo.WinLineInfos)) {
       winLines.push(...spinInfo.WinLineInfos.map((info: any) => info.LineNo || info.LineIndex || 0));
     }
-
+    
+    this.totalWin += spinInfo.Win;
+    console.log('handleSpinResult',spinInfo.Win);
     // 提取獲勝金額並轉換為客戶端金額（只除以 MoneyFractionMultiple）
-    const totalWin = this.convertMoneyServerToClient(spinInfo.Win || 0);
+    const totalWin = this.convertMoneyServerToClient(this.totalWin || 0);
 
     // 提取倍數
     const multiplier = spinInfo.Multiplier || 1;
@@ -369,12 +372,6 @@ export class TitansSlotApp extends SlotMachineApp {
         freeSpins = spinInfo.FGRemainTimes;
       }
     }
-
-    // // 檢查是否中大獎
-    // if (data.WinJPInfo && data.WinJPInfo.Value > 0) {
-    //   jackpotWon = true;
-    //   bonusFeature = 'jackpot';
-    // }
 
     // 構建結果對象
     const result: TitansSlotResult = {
@@ -449,7 +446,7 @@ export class TitansSlotApp extends SlotMachineApp {
         }
 
         const respinReels: number[][] = SymbolMapper.serverToClientArray(respinServerReels);
-        const respinTotalWin = this.convertMoneyServerToClient(respinSpinInfo.Win || 0);
+        const respinTotalWin = this.convertMoneyServerToClient(this.totalWin || 0);
         const respinWinLineInfos = (respinSpinInfo.WinLineInfos || []).map((info: any) => ({
           ...info,
           SymbolID: SymbolMapper.serverToClient(info.SymbolID || info.SymbolId || 0),

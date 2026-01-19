@@ -165,7 +165,7 @@ export class TitansSlotView extends BaseView {
   // 更新獲勝金額顯示（底部）
   public updateWinAmount(winAmount: number): void {
     if (winAmount > 0) {
-      const m: { money: number } = { money: 0 };
+      const m: { money: number } = { money: Number(this.mainGame.winText.text) || 0 };
       gsap.to(m, {
         money: winAmount,
         duration: 1,

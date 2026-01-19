@@ -121,6 +121,7 @@ export class TitansSlotController extends BaseController {
     if (result.winLineInfos && result.winLineInfos.length > 0) {
       setTimeout(() => {
         this.log('🎯 播放獲勝動畫');
+        this.view.updateWinAmount(result.totalWin);
         this.view.playWinAnimation(result.winLineInfos!);
       }, 1000);
     }
@@ -191,6 +192,7 @@ export class TitansSlotController extends BaseController {
       // 1. 播放獲勝動畫並等待完成（如果有獲勝）
       if (hasWin) {
         this.log('🎯 播放獲勝動畫');
+        this.view.updateWinAmount(result.totalWin);
         this.view.playWinAnimation(result.winLineInfos!);
 
         this.log('⏳ 等待獲勝動畫播放完成');
