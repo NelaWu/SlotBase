@@ -202,6 +202,88 @@ export class TitansSlotApp extends SlotMachineApp {
       }
     };
     this.TitansModel.on('spinStarted', this.spinStartedHandler);
+
+    // 監聽加注按鈕點擊事件
+    this.TitansView.on('plusButtonClicked', () => {
+      this.handleBetIncrease();
+    });
+
+    // 監聽減注按鈕點擊事件
+    this.TitansView.on('minusButtonClicked', () => {
+      this.handleBetDecrease();
+    });
+  }
+
+  /**
+   * 處理加注按鈕點擊
+   */
+  private handleBetIncrease(): void {
+    const betList = this.TitansModel.getBetList();
+    const currentBet = this.TitansModel.getCurrentBet();
+    
+    if (betList.length === 0) {
+      console.warn('⚠️ BetList 為空，無法加注');
+      return;
+    }
+
+    // 找到當前 bet 在陣列中的索引
+    const currentIndex = betList.indexOf(currentBet);
+    
+    if (currentIndex === -1) {
+      // 如果找不到當前 bet，使用最接近的值
+      const closestIndex = betList.findIndex(bet => bet > currentBet);
+      if (closestIndex !== -1) {
+        this.TitansModel.setBet(betList[closestIndex]);
+      } else {
+        // 如果沒有更大的值，使用陣列最後一個
+        this.TitansModel.setBet(betList[betList.length - 1]);
+      }
+    } else if (currentIndex < betList.length - 1) {
+      // 如果不在最後一個，加注到下一個
+      const newBet = betList[currentIndex + 1];
+      this.TitansModel.setBet(newBet);
+    } else {
+      console.log('➕ 已達最大投注:', currentBet);
+    }
+  }
+
+  /**
+   * 處理減注按鈕點擊
+   */
+  private handleBetDecrease(): void {
+    const betList = this.TitansModel.getBetList();
+    const currentBet = this.TitansModel.getCurrentBet();
+    
+    if (betList.length === 0) {
+      console.warn('⚠️ BetList 為空，無法減注');
+      return;
+    }
+
+    // 找到當前 bet 在陣列中的索引
+    const currentIndex = betList.indexOf(currentBet);
+    
+    if (currentIndex === -1) {
+      // 如果找不到當前 bet，從後往前找最接近且小於當前 bet 的值
+      let closestIndex = -1;
+      for (let i = betList.length - 1; i >= 0; i--) {
+        if (betList[i] < currentBet) {
+          closestIndex = i;
+          break;
+        }
+      }
+      if (closestIndex !== -1) {
+        this.TitansModel.setBet(betList[closestIndex]);
+      } else {
+        // 如果沒有更小的值，使用陣列第一個
+        this.TitansModel.setBet(betList[0]);
+      }
+    } else if (currentIndex > 0) {
+      // 如果不在第一個，減注到上一個
+      const newBet = betList[currentIndex - 1];
+      this.TitansModel.setBet(newBet);
+    } else {
+      console.log('➖ 已達最小投注:', currentBet);
+    }
   }
 
   /**
