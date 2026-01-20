@@ -151,7 +151,6 @@ export class GameScene extends PIXI.Container {
     this.addChild(this.multiBallBigSpine);
     this.multiBallBigSpine.position.set(540, 960);
     this.multiBallBigSpine.skeleton.setSkinByName("Lv1");
-    // this.multiBallBigSpine.state.setAnimation(0, "LV1_UP2", true);
 
     this.setMG();
   }

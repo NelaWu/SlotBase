@@ -9,6 +9,7 @@ import { BetPanel } from './BetPanel';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
 import { getMultiplierFromSymbolId } from '../../constants/MultiplierMap';
 import { GameEventEnum } from '../../enum/gameEnum';
+import { BaseNumber } from '@/views/components/BaseNumber';
 
 export class MainGame extends PIXI.Container {
   public gameScene!: GameScene;
@@ -30,6 +31,8 @@ export class MainGame extends PIXI.Container {
   public freeSpinsText!: PIXI.Text;
   public winText!: PIXI.Text; // 獲勝金額顯示（底部）
   public betButtonContainer!: PIXI.Container;
+  public freeTimes!:BaseNumber;
+  public freeTimesText!: PIXI.Sprite;
   public settingsButtonContainer!: PIXI.Container;
   public bigAnimationManager!: BigAnimationManager;
   public betPanel!: BetPanel;
@@ -109,7 +112,9 @@ export class MainGame extends PIXI.Container {
     this.addChild(this.gameScene);
     //下方按鈕
     this.settingsButtonContainer = new PIXI.Container();
+    this.settingsButtonContainer.name = 'settingsButtonContainer';
     this.betButtonContainer = new PIXI.Container();
+    this.betButtonContainer.name = 'betButtonContainer';
     this.addChild(this.settingsButtonContainer);
     this.addChild(this.betButtonContainer);
     this.settingsButtonContainer.visible = false;
@@ -202,6 +207,21 @@ export class MainGame extends PIXI.Container {
       anchor: 0.5
     });
     this.betButtonContainer.addChild(this.minusButton);
+
+    const resourceManager = ResourceManager.getInstance();
+    this.freeTimes = new BaseNumber({
+      baseName: 'fg_info_number',
+      anchor: 0.5
+    });
+    this.freeTimes.visible = false;
+    this.betButtonContainer.addChild(this.freeTimes);
+    this.freeTimes.position.set(300, 1750);
+    this.freeTimes.showText('0');
+    this.freeTimesText = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('fg_info_text') as string));
+    this.freeTimesText.position.set(650, 1750);
+    this.freeTimesText.anchor.set(0.5);
+    this.freeTimesText.visible = false;
+    this.addChild(this.freeTimesText);
 
     // 購買免費旋轉按鈕
     this.buyFreeSpinsButton = new BaseButton({
@@ -401,6 +421,18 @@ export class MainGame extends PIXI.Container {
     this.addChild(this.betPanel);
   }
 
+  private setBetButtonType(type: 'main' | 'free'): void {
+    const isMain:boolean = type === 'main';
+    this.freeTimes.visible = !isMain;
+    this.freeTimesText.visible = !isMain;
+    this.spinButton.visible = isMain;
+    this.turboButton.visible = isMain;
+    this.autoButton.visible = isMain;
+    this.plusButton.visible = isMain;
+    this.minusButton.visible = isMain;
+  }
+
+
   public showBigWin(money: string, bet?: number): void {
     this.bigAnimationManager.showBigWin(money, bet);
   }
@@ -412,7 +444,7 @@ export class MainGame extends PIXI.Container {
     // 播放 Transition 動畫
     const transition = this.bigAnimationManager.showTransition();
     this.gameScene.setFG();
-    
+    this.setBetButtonType('free');
     // Transition 結束後切換到免費模式並自動 spin
     transition.once(GameEventEnum.BIG_ANIMATION_TRANSITION_COMPLETE, () => {
       // 自動 spin（會發送 11014）
