@@ -24,8 +24,8 @@ export class TitansSlotApp extends SlotMachineApp {
   private betMultiple: number = 1; // 用於 BetMultiples/BetMultiple 轉換：BetUnit * Line / MoneyFractionMultiple
   private moneyFractionMultiple: number = 1; // 用於 Balance/Win 轉換
   private pendingServerBalance: number | null = null; // 暫存 1005 的 Balance（服務器金額）
-  private totalWin: number = 0; // 總獲勝金額(11010才重置)
-  private useMockData: boolean = true; // 是否使用假資料測試
+  private totalWin: number = 0; // 總獲勝金額(11011才重置)
+  private useMockData: boolean = false; // 是否使用假資料測試
   private mockDataIndex: number = 0; // 假資料索引
 
   /**
@@ -605,6 +605,7 @@ export class TitansSlotApp extends SlotMachineApp {
 
         case 11011:
           this.TitansView.getMainGame().showBGWinBar(false);
+          this.totalWin = 0;
           if (data.Balance !== null && data.Balance !== undefined) {
             const clientBalance = this.convertMoneyServerToClient(data.Balance);
             this.TitansModel.setBalance(clientBalance);

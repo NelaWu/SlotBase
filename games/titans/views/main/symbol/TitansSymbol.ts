@@ -104,17 +104,18 @@ export class TitansSymbol extends BaseSymbol {
       }else if(id >= 66 && id <= 70){
         this.spine.skeleton.setSkinByName('Lv4');
       }else if(id >= 151 && id <= 155){
-        this.spine.skeleton.setSkinByName('Lv1');
+        this.spine.skeleton.setSkinByName('Lv5');
       }else if(id >= 156 && id <= 160){
-        this.spine.skeleton.setSkinByName('Lv2');
+        this.spine.skeleton.setSkinByName('Lv6');
       }else if(id >= 161 && id <= 165){
-        this.spine.skeleton.setSkinByName('Lv3');
+        this.spine.skeleton.setSkinByName('Lv7');
       }else if(id >= 166 && id <= 170){
-        this.spine.skeleton.setSkinByName('Lv4');
+        this.spine.skeleton.setSkinByName('Lv8');
       }
       else{
-        this.spine.skeleton.setSkinByName('Lv4');
+        this.spine.skeleton.setSkinByName('Lv1');
       }
+      console.log('11003] 收到消息:show multi win',id);
       
       // 顯示倍數文字
       const multiplierValue = this.getMultiplierValue(id);
@@ -139,7 +140,7 @@ export class TitansSymbol extends BaseSymbol {
           if (!this.spine.parent) {
             this.addChild(this.spine);
           }
-          this.spine.visible = false;
+          this.spine.visible = true;
           if (!this.multiText.parent) {
             this.addChild(this.multiText);
           }
