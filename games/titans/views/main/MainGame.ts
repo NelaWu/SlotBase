@@ -221,7 +221,7 @@ export class MainGame extends PIXI.Container {
     this.freeTimesText.position.set(650, 1750);
     this.freeTimesText.anchor.set(0.5);
     this.freeTimesText.visible = false;
-    this.addChild(this.freeTimesText);
+    this.betButtonContainer.addChild(this.freeTimesText);
 
     // 購買免費旋轉按鈕
     this.buyFreeSpinsButton = new BaseButton({
