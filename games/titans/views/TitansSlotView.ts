@@ -187,12 +187,7 @@ export class TitansSlotView extends BaseView {
 
   // 更新免費旋轉顯示
   public updateFreeSpins(remaining: number): void {
-    if (remaining > 0) {
-      this.mainGame.freeSpinsText.text = `免費旋轉: ${remaining}`;
-      this.mainGame.freeSpinsText.visible = true;
-    } else {
-      this.mainGame.freeSpinsText.visible = false;
-    }
+    this.mainGame.freeTimes.showText(remaining.toString());
   }
 
   // 設置旋轉按鈕啟用狀態

@@ -28,7 +28,6 @@ export class MainGame extends PIXI.Container {
   public winAmountText!: PIXI.Text;
   public balanceText!: PIXI.Text;
   public betText!: PIXI.Text;
-  public freeSpinsText!: PIXI.Text;
   public winText!: PIXI.Text; // 獲勝金額顯示（底部）
   public betButtonContainer!: PIXI.Container;
   public freeTimes!:BaseNumber;
@@ -339,20 +338,6 @@ export class MainGame extends PIXI.Container {
     this.winAmountText.zIndex = 20;
     this.addChild(this.winAmountText);
 
-    // 免費旋轉顯示
-    this.freeSpinsText = new PIXI.Text({
-      text: '',
-      style: {
-        ...textStyle,
-        fontSize: 44, // 原本 22px * 2
-        fill: 0xff00ff
-      }
-    });
-    this.freeSpinsText.x = 40;   // 原本 20px * 2
-    this.freeSpinsText.y = 160;  // 原本 80px * 2
-    this.freeSpinsText.visible = false;
-    this.freeSpinsText.zIndex = 20;
-    this.addChild(this.freeSpinsText);
   }
 
   // 設置佈局

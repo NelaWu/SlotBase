@@ -184,8 +184,17 @@ export class TitansSymbol extends BaseSymbol {
       this.spine.renderable = true; // 啟用渲染
       this.sprite.visible = false;
       
+      // 檢查是否為 symbolId 01~05，需要播放兩次
+      const shouldPlayTwice = this.symbolId >= 1 && this.symbolId <= 5;
+      
       const trackEntry = this.spine.state.setAnimation(0, "Win", false);
-      trackEntry.listener = {
+      
+      let lastTrackEntry = trackEntry;
+      if (shouldPlayTwice) {
+        lastTrackEntry = this.spine.state.addAnimation(0, "Win", false, 0);
+      }
+      
+      lastTrackEntry.listener = {
         complete: () => {
           // Win 動畫完成後，播放 Explosion 動畫
           if (this.explosionSpine) {
@@ -217,18 +226,23 @@ export class TitansSymbol extends BaseSymbol {
             };
           } else {
             // 如果沒有 explosionSpine，直接完成
-          if (this.spine) {
-            this.spine.visible = false;
-            this.spine.renderable = false;
-          }
-          this.sprite.visible = true;
-          // 調用完成回調
-          if (onComplete) {
-            onComplete();
+            if (this.spine) {
+              this.spine.visible = false;
+              this.spine.renderable = false;
+            }
+            this.sprite.visible = true;
+            // 調用完成回調
+            if (onComplete) {
+              onComplete();
             }
           }
         }
       };
+    } else {
+      // 如果沒有 spine，直接完成
+      if (onComplete) {
+        onComplete();
+      }
     }
   }
   
