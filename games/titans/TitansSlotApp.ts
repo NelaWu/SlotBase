@@ -21,6 +21,7 @@ export class TitansSlotApp extends SlotMachineApp {
   private isWaitingRespin: boolean = false; // 是否正在等待 respin
   private isFreeGameMode: boolean = false; // 是否在免費遊戲模式
   private freeGameRemainingSpins: number = 0; // 免費遊戲剩餘次數
+  private lastFreeGameWinType: number = 0; // 上一盤免費遊戲的 WinType
   private betMultiple: number = 1; // 用於 BetMultiples/BetMultiple 轉換：BetUnit * Line / MoneyFractionMultiple
   private moneyFractionMultiple: number = 1; // 用於 Balance/Win 轉換
   private pendingServerBalance: number | null = null; // 暫存 1005 的 Balance（服務器金額）
@@ -190,6 +191,7 @@ export class TitansSlotApp extends SlotMachineApp {
       const newBalance = MathUtil.subtract(currentBalance, betMultiple);
       this.TitansModel.setBalance(newBalance);
       if (this.isFreeGameMode) {
+        console.log('🔄 免費遊戲 removeWinSymbols 完成2，自動發送下一次 11008');
         // 免費遊戲模式：發送 11008（參數與 11002 相同）
         this.sendWebSocketMessage({
           code: 11008,
@@ -294,6 +296,7 @@ export class TitansSlotApp extends SlotMachineApp {
   private startFreeGameMode(): void {
     console.log('🎁 開始免費遊戲模式');
     this.isFreeGameMode = true;
+    this.lastFreeGameWinType = 0; // 重置上一盤的 WinType
     // 自動發送第一次免費遊戲 spin（參數與 11002 相同）
     const betMultiple = this.TitansModel.getCurrentBet();
     this.sendWebSocketMessage({
@@ -309,7 +312,7 @@ export class TitansSlotApp extends SlotMachineApp {
     console.log('🎁 結束免費遊戲模式');
     this.isFreeGameMode = false;
     this.freeGameRemainingSpins = 0;
-    this.TitansController.setAutoSpin(false);
+    this.lastFreeGameWinType = 0; // 重置上一盤的 WinType
     // 切換回主遊戲模式畫面
     this.TitansView.getMainGame().endFreeGame();
   }
@@ -376,26 +379,175 @@ export class TitansSlotApp extends SlotMachineApp {
     this.freeGameRemainingSpins = spinInfo.FGRemainTimes || 0;
     this.TitansView.updateFreeSpins(this.freeGameRemainingSpins);
 
+    // 檢查上一盤的 WinType，如果上一盤 WinType == 1，則走 respin 流程（不清空牌面）
+    const winType = spinInfo.WinType;
+    const shouldRespin = this.lastFreeGameWinType === 1;
 
-    // 設置結果到 Model（會自動更新餘額）
+    if (shouldRespin) {
+      console.log('🔄 上一盤 WinType == 1，免費遊戲走 respin 流程（不清空牌面）');
+
+      // 先更新餘額（但不觸發 spinCompleted 事件）
+      if (result.totalWin > 0) {
+        this.TitansModel['setBalance'](this.TitansModel.getBalance() + result.totalWin);
+      }
+
+      // 更新 Model 狀態（但不觸發 spinCompleted 事件）
+      this.TitansModel['stateData'].lastResult = result;
+      this.TitansModel['stateData'].isSpinning = false;
+
+      // 使用 fillNewSymbols 補空白（會觸發掉落動畫）
+      const fastDrop = this.TitansController?.getTurboEnabled() || false;
+      this.TitansView.getMainGame().wheel.fillNewSymbols(reels, async () => {
+        console.log('🔄 免費遊戲 fillNewSymbols 完成，處理 respin 獲勝檢查（不清空盤面）');
+
+        // 構建完整的 result 對象（與 handleSpinResult 中的處理一致）
+        const respinSpinInfo = data.SpinInfo;
+        const respinServerReels: number[][] | null = respinSpinInfo.SymbolResult;
+        
+        if (!respinServerReels || !Array.isArray(respinServerReels)) {
+          console.warn('⚠️  免費遊戲 respin 無效的牌面結果:', respinServerReels);
+          return;
+        }
+
+        const respinReels: number[][] = SymbolMapper.serverToClientArray(respinServerReels);
+        
+        // 提取獲勝線編號
+        const respinWinLines: number[] = [];
+        if (respinSpinInfo.WinLineInfos && Array.isArray(respinSpinInfo.WinLineInfos)) {
+          respinWinLines.push(...respinSpinInfo.WinLineInfos.map((info: any) => info.LineNo || info.LineIndex || 0));
+        }
+        
+        // 累計 totalWin（與 handleSpinResult 一致）
+        this.totalWin += respinSpinInfo.Win;
+        const respinTotalWin = this.convertMoneyServerToClient(this.totalWin || 0);
+        
+        // 提取詳細的獲勝連線信息並轉換符號 ID 和金額
+        const respinWinLineInfos = (respinSpinInfo.WinLineInfos || []).map((info: any) => ({
+          ...info,
+          SymbolID: SymbolMapper.serverToClient(info.SymbolID || info.SymbolId || 0),
+          Win: this.convertMoneyServerToClient(info.Win || 0),
+          WinOrg: this.convertMoneyServerToClient(info.WinOrg || 0),
+        }));
+
+        const respinResult: TitansSlotResult = {
+          reels: respinReels,
+          winLines: respinWinLines,
+          totalWin: respinTotalWin,
+          multiplier: respinSpinInfo.Multiplier || 1,
+          bonusTriggered: false,
+          winLineInfos: respinWinLineInfos,
+          serverSpinInfo: respinSpinInfo as any,
+          gameStateType: respinSpinInfo.GameStateType,
+          gameState: respinSpinInfo.GameState,
+          winType: respinSpinInfo.WinType,
+          screenOrg: respinSpinInfo.ScreenOrg,
+          screenOutput: respinSpinInfo.ScreenOutput,
+          fgTotalTimes: respinSpinInfo.FGTotalTimes,
+          fgCurrentTimes: respinSpinInfo.FGCurrentTimes,
+          fgRemainTimes: respinSpinInfo.FGRemainTimes,
+          fgMaxFlag: respinSpinInfo.FGMaxFlag,
+          rndNum: respinSpinInfo.RndNum,
+          extraData: respinSpinInfo.ExtraData,
+          stage: respinSpinInfo.Stage,
+          collection: respinSpinInfo.Collection,
+          demoModeRound: respinSpinInfo.DemoModeRound,
+          WaitNGRespin: data.WaitNGRespin
+        };
+
+        // 檢查是否有獲勝符號（使用 respinResult 的 winLineInfos）
+        const respinHasWin = respinResult.winLineInfos && respinResult.winLineInfos.length > 0;
+
+        // 如果 WaitNGRespin=true，設置 removeWinSymbols 完成後的回調，用於發送下一次 11008
+        // 注意：必須在 handleRespinResult 之前設置，因為 handleRespinResult 會調用 removeWinSymbolsAndWait
+        if (data.WaitNGRespin === true) {
+          console.log('🔄 免費遊戲 WaitNGRespin=true，設置 removeWinSymbols 完成後的回調');
+          this.TitansView.getMainGame().wheel.setOnRemoveWinComplete(() => {
+            console.log('🔄 免費遊戲 removeWinSymbols 完成，自動發送 respin 請求（11008）');
+            // 記錄當前盤的 WinType，供下一盤使用
+            this.lastFreeGameWinType = respinSpinInfo.WinType;
+            // 根據 FGRemainTimes 決定下一步
+            if (this.freeGameRemainingSpins === 0 && data.WaitNGRespin === false) {
+              // 免費遊戲結束，發送 11010
+              console.log('🎁 免費遊戲結束，發送 11010');
+              this.sendWebSocketMessage({
+                code: 11010
+              });
+              this.endFreeGameMode();
+            } else {
+              // 還在免費遊戲中，自動發送下一次 11008
+              console.log(`🔄 免費遊戲繼續（剩餘 ${this.freeGameRemainingSpins} 次），自動發送下一次 11008`);
+              const betMultiple = this.TitansModel.getCurrentBet();
+              console.log('🔄 免費遊戲 removeWinSymbols 完成3，自動發送下一次 11008');
+              this.sendWebSocketMessage({
+                code: 11008,
+                BetMultiple: this.convertBetClientToServer(betMultiple)
+              });
+            }
+          });
+        }
+
+        // 直接調用 Controller 的 respin 處理方法，不觸發 spinCompleted 事件
+        await this.TitansController.handleRespinResult({ ...data, result: respinResult });
+
+        // 如果 WaitNGRespin=false，等待所有動畫完成後再決定下一步
+        if (data.WaitNGRespin !== true) {
+          if (respinHasWin) {
+            // 有獲勝符號，等待 removeWinSymbols 完成後再決定下一步
+            await new Promise<void>((resolve) => {
+              this.TitansView.getMainGame().wheel.setOnRemoveWinComplete(() => {
+                resolve();
+              });
+            });
+          }
+          
+          // 記錄當前盤的 WinType，供下一盤使用
+          this.lastFreeGameWinType = respinSpinInfo.WinType;
+          
+          // 所有動畫完成後，根據 FGRemainTimes 決定下一步
+          if (this.freeGameRemainingSpins === 0) {
+            // 免費遊戲結束，發送 11010
+            console.log('🎁 免費遊戲結束，發送 11010');
+            this.sendWebSocketMessage({
+              code: 11010
+            });
+            this.endFreeGameMode();
+          } else {
+            // // 還在免費遊戲中，自動發送下一次 11008
+            // console.log(`🔄 免費遊戲繼續（剩餘 ${this.freeGameRemainingSpins} 次），自動發送下一次 11008`);
+            // const betMultiple = this.TitansModel.getCurrentBet();
+            // console.log('🔄 免費遊戲 removeWinSymbols 完成4，自動發送下一次 11008');
+            // this.sendWebSocketMessage({
+            //   code: 11008,
+            //   BetMultiple: this.convertBetClientToServer(betMultiple)
+            // });
+          }
+        }
+      }, fastDrop);
+
+      return; // respin 時直接返回
+    }
+
+    // 設置結果到 Model（會自動更新餘額，會觸發清空牌面）
     this.TitansModel.setSpinResult(result);
+    
+    // 記錄當前盤的 WinType，供下一盤使用
+    this.lastFreeGameWinType = winType;
 
     // 檢查免費遊戲是否結束
     if (this.freeGameRemainingSpins <= 0) {
       console.log('🎁 免費遊戲次數已用完，結束免費遊戲模式');
       // 免費遊戲結束，切換回主遊戲模式
       // this.endFreeGameMode();
+    this.TitansController.setAutoSpin(false);
     } else {
       // 還有剩餘次數，等待動畫完成後自動發送下一次 11008（參數與 11002 相同）
       this.TitansView.getMainGame().wheel.setOnRemoveWinComplete(() => {
-        console.log('🔄 免費遊戲 removeWinSymbols 完成，自動發送下一次 11008');
+        console.log('🔄 免費遊戲 removeWinSymbols 完成1，自動發送下一次 11008');
         const betMultiple = this.TitansModel.getCurrentBet();
         this.sendWebSocketMessage({
           code: 11008,
           BetMultiple: this.convertBetClientToServer(betMultiple)
         });
-
-        
       });
     }
   }
