@@ -191,8 +191,6 @@ export class GameScene extends PIXI.Container {
   }
 
   public playMultiBallAnimation(): void {
-    console.log('playMultiBallAnimation');
-    
     // 播放 Multiplier_Low 動畫，完成後自動播放 Idle 動畫
     this.characterSpine!.state.setAnimation(0, "Multiplier_Low", false);
     this.characterSpine!.state.addAnimation(0, "Idle", true, 0);

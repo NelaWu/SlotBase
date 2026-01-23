@@ -97,13 +97,18 @@ export class TitansSlotApp extends SlotMachineApp {
         this.startFreeGameMode();
       });
 
+      // 監聽免費遊戲結束事件
+      this.TitansView.on('freeGameEnded', () => {
+        this.endFreeGameMode();
+      });
+
       this.TitansView.setOnSpinAnimationComplete(() => {
-        // if (this.isWaitingRespin == false) {
-        //   console.log('📤 動畫表演完畢2，發送 11010');
-        //   this.sendWebSocketMessage({
-        //     code: 11010
-        //   });
-        // }
+        if (this.isWaitingRespin == false && this.isFreeGameMode == false) {
+          console.log('📤 動畫表演完畢2，發送 11010');
+          this.sendWebSocketMessage({
+            code: 11010
+          });
+        }
       });
 
       console.log('⚡ Titans 拉霸應用程式初始化完成');
@@ -379,7 +384,7 @@ export class TitansSlotApp extends SlotMachineApp {
     if (this.freeGameRemainingSpins <= 0) {
       console.log('🎁 免費遊戲次數已用完，結束免費遊戲模式');
       // 免費遊戲結束，切換回主遊戲模式
-      this.endFreeGameMode();
+      // this.endFreeGameMode();
     } else {
       // 還有剩餘次數，等待動畫完成後自動發送下一次 11008（參數與 11002 相同）
       this.TitansView.getMainGame().wheel.setOnRemoveWinComplete(() => {
@@ -389,6 +394,8 @@ export class TitansSlotApp extends SlotMachineApp {
           code: 11008,
           BetMultiple: this.convertBetClientToServer(betMultiple)
         });
+
+        
       });
     }
   }
