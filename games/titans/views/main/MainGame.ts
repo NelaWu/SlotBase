@@ -437,6 +437,11 @@ export class MainGame extends PIXI.Container {
     });
   }
 
+  public endFreeGame(): void {
+    this.setBetButtonType('main');
+    this.gameScene.setMG();
+  }
+
   public playMultiBallAnimation(): void {
     this.gameScene.playMultiBallAnimation();
   }
