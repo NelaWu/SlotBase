@@ -6,6 +6,7 @@ import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { GameScene } from './GameScene';
 import { BigAnimationManager } from './bigAnimation/BigAnimationManager';
 import { BetPanel } from './BetPanel';
+import { ManualPage } from './manual/ManualPage';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
 import { getMultiplierFromSymbolId } from '../../constants/MultiplierMap';
 import { GameEventEnum } from '../../enum/gameEnum';
@@ -35,6 +36,7 @@ export class MainGame extends PIXI.Container {
   public settingsButtonContainer!: PIXI.Container;
   public bigAnimationManager!: BigAnimationManager;
   public betPanel!: BetPanel;
+  public manualPage!: ManualPage;
   public multiBallSpine!: Spine;
   private multiBallAnimationQueue: Array<{ symbolId: number; pos: string }> = []; // 倍數球動畫隊列
   private isPlayingMultiBallAnimation: boolean = false; // 是否正在播放倍數球動畫
@@ -69,6 +71,9 @@ export class MainGame extends PIXI.Container {
 
     // 創建文字顯示
     this.createTexts();
+
+    // 創建說明書頁面
+    this.createManualPage();
 
     // 設置佈局
     this.setupLayout();
@@ -257,6 +262,11 @@ export class MainGame extends PIXI.Container {
       anchor: 0.5
     });
     this.settingsButtonContainer.addChild(this.infoButton);
+    this.infoButton.on(ButtonEvent.BUTTON_CLICKED, () => {
+      if (this.manualPage) {
+        this.manualPage.show();
+      }
+    });
   }
 
   // 創建金額相關
@@ -405,6 +415,17 @@ export class MainGame extends PIXI.Container {
     this.betPanel = new BetPanel(betlist, onBetSelected);
     this.betPanel.visible = false; // 初始狀態為隱藏
     this.addChild(this.betPanel);
+  }
+
+  public createManualPage(): void {
+    // 如果已經存在 manualPage，先移除
+    if (this.manualPage) {
+      this.removeChild(this.manualPage);
+      this.manualPage.destroy();
+    }
+    this.manualPage = new ManualPage();
+    this.manualPage.visible = true; // 初始狀態為隱藏
+    this.addChild(this.manualPage);
   }
 
   private setBetButtonType(type: 'main' | 'free'): void {

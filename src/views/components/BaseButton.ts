@@ -31,6 +31,8 @@ export class BaseButton extends PIXI.Container {
   private hoverScale: number;
   private clickScale: number;
   private originalScale: number = 1;
+  private originalScaleX: number = 1; // 記錄原始的 scale.x（用於保持用戶設置的翻轉）
+  private originalScaleY: number = 1; // 記錄原始的 scale.y
   private isToggle: boolean = false; // 是否為開關按鈕
   private isOn: boolean = false; // 開關狀態（僅在 isToggle 為 true 時有效）
 
@@ -46,6 +48,25 @@ export class BaseButton extends PIXI.Container {
     
     this.createButton(options);
     this.bindEvents();
+    
+    // 記錄初始的 scale（用戶可能在創建後立即設置 scale）
+    // 使用 setTimeout 確保在創建完成後再記錄，因為用戶可能在下一行就設置 scale
+    setTimeout(() => {
+      this.originalScaleX = this.scale.x;
+      this.originalScaleY = this.scale.y;
+    }, 0);
+  }
+  
+  /**
+   * 更新原始 scale（當用戶手動設置 scale 時調用）
+   * 這個方法應該在用戶設置 scale 後調用，或者我們可以在每次狀態變化前檢查
+   */
+  private updateOriginalScale(): void {
+    // 只在 NORMAL 狀態時更新，避免在狀態變化過程中覆蓋
+    if (this.currentState === ButtonState.NORMAL && this.isEnabled) {
+      this.originalScaleX = this.scale.x;
+      this.originalScaleY = this.scale.y;
+    }
   }
 
   private createButton(options: ButtonOptions): void {
@@ -212,10 +233,19 @@ export class BaseButton extends PIXI.Container {
   private onPointerDown(): void {
     if (!this.isEnabled) return;
     
+    // 先更新原始 scale（如果用戶在 NORMAL 狀態時修改了 scale）
+    this.updateOriginalScale();
+    
     // 如果是開關按鈕，按下時不改變狀態（保持當前開關狀態）
     if (!this.isToggle) {
+      // 保持用戶設置的 scale 符號和比例
+      const scaleXSign = Math.sign(this.originalScaleX);
+      const scaleYSign = Math.sign(this.originalScaleY);
+      const scaleXRatio = Math.abs(this.originalScaleX) / this.originalScale;
+      const scaleYRatio = Math.abs(this.originalScaleY) / this.originalScale;
+      
       this.setState(ButtonState.PRESSED);
-      this.scale.set(this.clickScale);
+      this.scale.set(this.clickScale * scaleXSign * scaleXRatio, this.clickScale * scaleYSign * scaleYRatio);
     }
     this.emit(ButtonEvent.BUTTON_DOWN);
   }
@@ -228,7 +258,8 @@ export class BaseButton extends PIXI.Container {
       this.toggle();
     } else {
       this.setState(ButtonState.HOVER);
-      this.scale.set(this.originalScale);
+      // 恢復用戶設置的原始 scale
+      this.scale.set(this.originalScaleX, this.originalScaleY);
     }
     this.emit(ButtonEvent.BUTTON_CLICKED);
   }
@@ -236,13 +267,22 @@ export class BaseButton extends PIXI.Container {
   private onPointerOver(): void {
     if (!this.isEnabled) return;
     
+    // 先更新原始 scale（如果用戶在 NORMAL 狀態時修改了 scale）
+    this.updateOriginalScale();
+    
+    // 保持用戶設置的 scale 符號和比例
+    const scaleXSign = Math.sign(this.originalScaleX);
+    const scaleYSign = Math.sign(this.originalScaleY);
+    const scaleXRatio = Math.abs(this.originalScaleX) / this.originalScale;
+    const scaleYRatio = Math.abs(this.originalScaleY) / this.originalScale;
+    
     // 如果是開關按鈕且處於 on 狀態，不顯示 hover（保持 pressed 狀態）
     if (this.isToggle && this.isOn) {
       // 開關 on 狀態時，hover 時保持 pressed 外觀
-      this.scale.set(this.hoverScale);
+      this.scale.set(this.hoverScale * scaleXSign * scaleXRatio, this.hoverScale * scaleYSign * scaleYRatio);
     } else {
       this.setState(ButtonState.HOVER);
-      this.scale.set(this.hoverScale);
+      this.scale.set(this.hoverScale * scaleXSign * scaleXRatio, this.hoverScale * scaleYSign * scaleYRatio);
     }
     this.emit(ButtonEvent.BUTTON_OVER);
   }
@@ -256,7 +296,8 @@ export class BaseButton extends PIXI.Container {
     } else {
       this.setState(ButtonState.NORMAL);
     }
-    this.scale.set(this.originalScale);
+    // 恢復用戶設置的原始 scale
+    this.scale.set(this.originalScaleX, this.originalScaleY);
     this.emit(ButtonEvent.BUTTON_OUT);
   }
 
@@ -366,7 +407,8 @@ export class BaseButton extends PIXI.Container {
     
     this.isOn = !this.isOn;
     this.updateToggleState();
-    this.scale.set(this.originalScale);
+    // 恢復用戶設置的原始 scale
+    this.scale.set(this.originalScaleX, this.originalScaleY);
     
     // 發出開關狀態改變事件
     this.emit(ButtonEvent.TOGGLE_CHANGED, this.isOn);
@@ -383,7 +425,8 @@ export class BaseButton extends PIXI.Container {
       this.eventMode = 'static';
       this.cursor = 'pointer';
       this.alpha = 1;
-      this.scale.set(this.originalScale);
+      // 恢復用戶設置的原始 scale
+      this.scale.set(this.originalScaleX, this.originalScaleY);
       // 如果是開關按鈕，根據 on/off 狀態顯示
       if (this.isToggle) {
         this.updateToggleState();
@@ -394,7 +437,8 @@ export class BaseButton extends PIXI.Container {
       this.eventMode = 'none';
       this.cursor = 'default';
       this.alpha = 0.5;
-      this.scale.set(this.originalScale);
+      // 恢復用戶設置的原始 scale
+      this.scale.set(this.originalScaleX, this.originalScaleY);
       this.setState(ButtonState.DISABLED);
     }
     
