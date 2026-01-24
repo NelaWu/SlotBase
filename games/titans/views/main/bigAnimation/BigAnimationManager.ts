@@ -48,6 +48,7 @@ export class BigAnimationManager extends PIXI.Container {
     fessSpin.once(GameEventEnum.BIG_ANIMATION_FREE_SPIN_START, () => {
       this.bigAnimationContainer.removeChild(fessSpin);
       this.emit(GameEventEnum.BIG_ANIMATION_FREE_SPIN_START);
+      this.hide();
     });
     return fessSpin;
   }
