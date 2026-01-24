@@ -93,6 +93,11 @@ export class TitansSlotApp extends SlotMachineApp {
         return this.TitansModel.getCurrentBet() * this.betPurchaseCost;
       });
 
+      // 監聽購買免費遊戲事件
+      this.TitansView.getMainGame().on('buyFreeGame', () => {
+        this.handleBuyFreeGame();
+      });
+
       // 監聽免費遊戲開始事件
       this.TitansView.getMainGame().on('freeGameStarted', () => {
         this.startFreeGameMode();
@@ -297,12 +302,132 @@ export class TitansSlotApp extends SlotMachineApp {
     console.log('🎁 開始免費遊戲模式');
     this.isFreeGameMode = true;
     this.lastFreeGameWinType = 0; // 重置上一盤的 WinType
-    // 自動發送第一次免費遊戲 spin（參數與 11002 相同）
+    // 啟用自動旋轉模式
+    this.TitansController.setAutoSpin(true);
+    // 自動發送第一次免費遊戲 spin（使用 11008，因為已經是免費遊戲狀態）
+    // const betMultiple = this.TitansModel.getCurrentBet();
+    // this.sendWebSocketMessage({
+    //   code: 11008,
+    //   BetMultiple: this.convertBetClientToServer(betMultiple)
+    // });
+  }
+
+  /**
+   * 處理購買免費遊戲請求
+   */
+  private handleBuyFreeGame(): void {
+    console.log('🛒 購買免費遊戲，發送 11014');
     const betMultiple = this.TitansModel.getCurrentBet();
     this.sendWebSocketMessage({
       code: 11014,
       BetMultiple: this.convertBetClientToServer(betMultiple)
     });
+  }
+
+  /**
+   * 處理購買免費遊戲結果 (Code 11015)
+   * 展示盤面，動畫完成後檢查是否中獎免費遊戲
+   */
+  private handleBuyFreeGameSpinResult(data: any): void {
+    if (!data.SpinInfo) {
+      console.warn('⚠️  購買免費遊戲結果缺少 SpinInfo');
+      return;
+    }
+
+    const spinInfo = data.SpinInfo;
+    const serverReels: number[][] | null = spinInfo.SymbolResult;
+
+    if (!serverReels || !Array.isArray(serverReels)) {
+      console.warn('⚠️  無效的購買免費遊戲牌面結果:', serverReels);
+      return;
+    }
+
+    const reels: number[][] = SymbolMapper.serverToClientArray(serverReels);
+    const totalWin = this.convertMoneyServerToClient(spinInfo.Win || 0);
+    const multiplier = spinInfo.Multiplier || 1;
+
+    const winLineInfos = (spinInfo.WinLineInfos || []).map((info: any) => ({
+      ...info,
+      SymbolID: SymbolMapper.serverToClient(info.SymbolID || info.SymbolId || 0),
+      Win: this.convertMoneyServerToClient(info.Win || 0),
+      WinOrg: this.convertMoneyServerToClient(info.WinOrg || 0),
+    }));
+
+    const winLines: number[] = [];
+    if (spinInfo.WinLineInfos && Array.isArray(spinInfo.WinLineInfos)) {
+      winLines.push(...spinInfo.WinLineInfos.map((info: any) => info.LineNo || info.LineIndex || 0));
+    }
+
+    const result: TitansSlotResult = {
+      reels,
+      winLines,
+      totalWin,
+      multiplier,
+      bonusTriggered: false,
+      winLineInfos,
+      serverSpinInfo: spinInfo as any,
+      gameStateType: spinInfo.GameStateType,
+      gameState: spinInfo.GameState,
+      winType: spinInfo.WinType,
+      screenOrg: spinInfo.ScreenOrg,
+      screenOutput: spinInfo.ScreenOutput,
+      fgTotalTimes: spinInfo.FGTotalTimes,
+      fgCurrentTimes: spinInfo.FGCurrentTimes,
+      fgRemainTimes: spinInfo.FGRemainTimes,
+      fgMaxFlag: spinInfo.FGMaxFlag,
+      rndNum: spinInfo.RndNum,
+      extraData: spinInfo.ExtraData,
+      stage: spinInfo.Stage,
+      collection: spinInfo.Collection,
+      demoModeRound: spinInfo.DemoModeRound
+    };
+
+    // 更新餘額
+    if (result.totalWin > 0) {
+      this.TitansModel['setBalance'](this.TitansModel.getBalance() + result.totalWin);
+    }
+
+    // 展示盤面（清空牌面並顯示新結果）
+    const fastDrop = this.TitansController?.getTurboEnabled() || false;
+    this.TitansModel.setSpinResult(result);
+
+    // 等待所有動畫完成後，檢查是否中獎免費遊戲
+    // 使用一次性監聽器，在動畫完成後檢查
+    const checkFreeGameWin = () => {
+      // 檢查是否中獎免費遊戲：FGTotalTimes == FGRemainTimes
+      if (spinInfo.FGTotalTimes === spinInfo.FGRemainTimes && spinInfo.FGTotalTimes > 0) {
+        console.log('🎁 中獎免費遊戲！FGTotalTimes:', spinInfo.FGTotalTimes, 'FGRemainTimes:', spinInfo.FGRemainTimes);
+        // 切換場景並啟動自動開始
+        this.TitansView.getMainGame().startFreeGame();
+      } else {
+        console.log('❌ 未中獎免費遊戲，FGTotalTimes:', spinInfo.FGTotalTimes, 'FGRemainTimes:', spinInfo.FGRemainTimes);
+      }
+    };
+
+    // 監聽 Controller 的動畫完成（通過 processWinAndCascade 完成）
+    // 如果沒有獲勝，需要監聽 dropComplete；如果有獲勝，需要監聽 removeWinComplete
+    const hasWin = result.winLineInfos && result.winLineInfos.length > 0;
+    
+    // 臨時設置 isFreeGameMode 為 true，防止全局的 setOnSpinAnimationComplete 發送 11010
+    const wasFreeGameMode = this.isFreeGameMode;
+    this.isFreeGameMode = true;
+    
+    if (hasWin) {
+      // 有獲勝，等待 removeWinSymbols 完成
+      this.TitansView.getMainGame().wheel.setOnRemoveWinComplete(() => {
+        // 恢復原來的狀態
+        this.isFreeGameMode = wasFreeGameMode;
+        checkFreeGameWin();
+      });
+    } else {
+      // 沒有獲勝，等待 dropComplete（通過 setOnSpinAnimationComplete）
+      // 由於 isFreeGameMode 已設置為 true，不會發送 11010
+      this.TitansView.setOnSpinAnimationComplete(() => {
+        // 恢復原來的狀態
+        this.isFreeGameMode = wasFreeGameMode;
+        checkFreeGameWin();
+      });
+    }
   }
 
   /**
@@ -844,8 +969,9 @@ export class TitansSlotApp extends SlotMachineApp {
           break;
 
         case 11015:
-          console.log('🎰 收到免費遊戲旋轉結果:', data);
-          this.TitansController.setAutoSpin(true)
+          console.log('🎰 收到購買免費遊戲結果 (11015):', data);
+          // 處理 11015 結果，展示盤面，動畫完成後檢查是否中獎免費遊戲
+          this.handleBuyFreeGameSpinResult(data);
           break;
 
         case 11011:

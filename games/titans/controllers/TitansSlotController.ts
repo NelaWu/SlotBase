@@ -151,7 +151,7 @@ export class TitansSlotController extends BaseController {
 
       // 連鎖處理完成
       this.isProcessingCascade = false;
-      this.log('✅ 所有連鎖處理完成');
+      this.log('✅ 所有連鎖處理完成',result.fgRemainTimes,result.fgTotalTimes);
 
       // 檢查是否為免費遊戲的最後一局
       if (result.fgRemainTimes && result.fgRemainTimes === 0 && result.fgTotalTimes !== undefined && result.fgTotalTimes > 0) {

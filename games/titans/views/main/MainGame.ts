@@ -231,11 +231,12 @@ export class MainGame extends PIXI.Container {
     this.buyFreeSpinsButton.on(ButtonEvent.BUTTON_CLICKED, () => {
       // 獲取當前投注金額（客戶端金額）
       const betAmount = this.getBetAmount ? this.getBetAmount() : 0;
-      const fessSpin = this.bigAnimationManager.showFreeSpin(betAmount);
       
+      const fessSpin = this.bigAnimationManager.showFreeSpin(betAmount);
       // 監聽開始免費遊戲事件
       fessSpin.once(GameEventEnum.BIG_ANIMATION_FREE_SPIN_START, () => {
-        this.startFreeGame();
+        // 發送 11014 請求購買免費遊戲
+        this.emit('buyFreeGame');
       });
     });
   }
