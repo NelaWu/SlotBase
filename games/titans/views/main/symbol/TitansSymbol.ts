@@ -33,27 +33,27 @@ export class TitansSymbol extends BaseSymbol {
       return;
     }
     
-    if(id >= 41) console.log('11003] 收到消息:show multi win',id);
+    if(id >= 41) console.log('11003] 收到消息:show multi win symbol id',id);
     
     this.symbolId = id;
     let symbolName:string = '';
     this.isSpecialSymbol = true;
     if(id >= 51 && id <= 55){
-      symbolName = 'symbol_multi_01';
-    }else if(id >= 56 && id <= 60){
-      symbolName = 'symbol_multi_02';
-    }else if(id >= 61 && id <= 65){
-      symbolName = 'symbol_multi_03';
-    }else if(id >= 66 && id <= 70){
       symbolName = 'symbol_multi_04';
+    }else if(id >= 56 && id <= 60){
+      symbolName = 'symbol_multi_03';
+    }else if(id >= 61 && id <= 65){
+      symbolName = 'symbol_multi_02';
+    }else if(id >= 66 && id <= 70){
+      symbolName = 'symbol_multi_01';
     }else if(id >= 151 && id <= 155){
-      symbolName = 'symbol_multi_up_01';
-    }else if(id >= 156 && id <= 160){
-      symbolName = 'symbol_multi_up_02';
-    }else if(id >= 161 && id <= 165){
-      symbolName = 'symbol_multi_up_03';
-    }else if(id >= 166 && id <= 170){
       symbolName = 'symbol_multi_up_04';
+    }else if(id >= 156 && id <= 160){
+      symbolName = 'symbol_multi_up_03';
+    }else if(id >= 161 && id <= 165){
+      symbolName = 'symbol_multi_up_02';
+    }else if(id >= 166 && id <= 170){
+      symbolName = 'symbol_multi_up_01';
     }else{
       symbolName = `symbol_${id.toString().padStart(2, '0')}`;
       this.isSpecialSymbol = false;
@@ -96,17 +96,17 @@ export class TitansSymbol extends BaseSymbol {
       
       // 更新 skin
       if(id >= 51 && id <= 55){
-        this.spine.skeleton.setSkinByName('Lv1');
-      }else if(id >= 56 && id <= 60){
         this.spine.skeleton.setSkinByName('Lv2');
+      }else if(id >= 56 && id <= 60){
+        this.spine.skeleton.setSkinByName('Lv1');
       }else if(id >= 61 && id <= 65){
         this.spine.skeleton.setSkinByName('Lv3');
       }else if(id >= 66 && id <= 70){
         this.spine.skeleton.setSkinByName('Lv4');
       }else if(id >= 151 && id <= 155){
-        this.spine.skeleton.setSkinByName('Lv5');
-      }else if(id >= 156 && id <= 160){
         this.spine.skeleton.setSkinByName('Lv6');
+      }else if(id >= 156 && id <= 160){
+        this.spine.skeleton.setSkinByName('Lv5');
       }else if(id >= 161 && id <= 165){
         this.spine.skeleton.setSkinByName('Lv7');
       }else if(id >= 166 && id <= 170){
@@ -115,7 +115,6 @@ export class TitansSymbol extends BaseSymbol {
       else{
         this.spine.skeleton.setSkinByName('Lv1');
       }
-      console.log('11003] 收到消息:show multi win',id);
       
       // 顯示倍數文字
       const multiplierValue = this.getMultiplierValue(id);
