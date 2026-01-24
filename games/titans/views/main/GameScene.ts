@@ -15,6 +15,7 @@ export class GameScene extends PIXI.Container {
   private logoSprite?: PIXI.Sprite;
   private characterSpine?: Spine;
   private multiBallBigSpine?: Spine;
+  private multiBallBigText?: BaseNumber;
   private bgWinBarContainer?: PIXI.Container;
   private bgWinBarSpine?: Spine;
   private bgWinBarMoneyText?: BaseNumber;
@@ -151,7 +152,15 @@ export class GameScene extends PIXI.Container {
     this.addChild(this.multiBallBigSpine);
     this.multiBallBigSpine.position.set(540, 960);
     this.multiBallBigSpine.skeleton.setSkinByName("Lv1");
-
+    this.multiBallBigText = new BaseNumber({
+      baseName: 'fg_total_multi_number',
+      anchor: 0.5,
+      align: 'center',
+      useThousandSeparator: true
+    });
+    this.multiBallBigText.position.set(270, 290);
+    this.addChild(this.multiBallBigText);
+    this.multiBallBigText.showText('0x');
     this.setMG();
   }
   setFG(): void {
@@ -170,6 +179,8 @@ export class GameScene extends PIXI.Container {
     this.frameSprite2!.texture = PIXI.Texture.from(frameTexture);
     this.characterSpine!.skeleton.setSkinByName("Fg");
     this.bgWinBarSpine!.visible = true;
+    this.multiBallBigText!.visible = true;
+    this.multiBallBigSpine!.visible = true;
   }
 
   setMG(): void {
@@ -188,6 +199,8 @@ export class GameScene extends PIXI.Container {
     this.frameSprite2!.texture = PIXI.Texture.from(frameTexture);
     this.characterSpine!.skeleton.setSkinByName("Mg");
     this.bgWinBarContainer!.visible = false;
+    this.multiBallBigText!.visible = false;
+    this.multiBallBigSpine!.visible = false;
   }
 
   public playMultiBallAnimation(): void {
@@ -200,6 +213,7 @@ export class GameScene extends PIXI.Container {
     this.bgWinBarContainer!.visible = visible;
     this.logoSprite!.visible = !visible;
     this.bgWinBarMoneyText!.showText('0.00');
+    this.multiBallBigText!.showText('0x');
     this.totalMultiplier = 0;
     this.bgWinBarMultiplierText!.showText('');
   }
@@ -217,6 +231,7 @@ export class GameScene extends PIXI.Container {
     this.bgWinBarMultiplierText!.visible = true;
     this.bgWinBarMultiplierText!.alpha = 1;
     this.bgWinBarMultiplierText!.showText('x'+this.totalMultiplier);
+    this.multiBallBigText!.showText(this.totalMultiplier.toString()+'x');
     this.bgWinBarMultiplierText!.position.set(this.bgWinBarMoneyText!.width+this.bgWinBarMultiplierText!.width/2, -300);
     const m:{scale:number} = {scale:2};
     gsap.to(m, {scale:1, duration: 0.5, onUpdate: () => {
