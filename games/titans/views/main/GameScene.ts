@@ -215,6 +215,7 @@ export class GameScene extends PIXI.Container {
     if (multiplier == 0 )return;
     this.totalMultiplier += multiplier;
     this.bgWinBarMultiplierText!.visible = true;
+    this.bgWinBarMultiplierText!.alpha = 1;
     this.bgWinBarMultiplierText!.showText('x'+this.totalMultiplier);
     this.bgWinBarMultiplierText!.position.set(this.bgWinBarMoneyText!.width+this.bgWinBarMultiplierText!.width/2, -300);
     const m:{scale:number} = {scale:2};

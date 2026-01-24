@@ -151,10 +151,10 @@ export class TitansSlotController extends BaseController {
 
       // 連鎖處理完成
       this.isProcessingCascade = false;
-      this.log('✅ 所有連鎖處理完成',result.fgRemainTimes,result.fgTotalTimes);
+      this.log('✅ 所有連鎖處理完成',result.fgRemainTimes,result.fgTotalTimes,result.fgRemainTimes === 0 && result.fgTotalTimes !== undefined && result.fgTotalTimes > 0);
 
       // 檢查是否為免費遊戲的最後一局
-      if (result.fgRemainTimes && result.fgRemainTimes === 0 && result.fgTotalTimes !== undefined && result.fgTotalTimes > 0) {
+      if (result.fgRemainTimes === 0 && result.fgTotalTimes !== undefined && result.fgTotalTimes > 0) {
         this.log('🎁 免費遊戲最後一局完成，通知 App 結束免費遊戲模式');
         // 通過 View 發出事件，通知 App 結束免費遊戲模式
         this.view.emit('freeGameEnded');

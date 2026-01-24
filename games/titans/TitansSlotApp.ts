@@ -105,6 +105,11 @@ export class TitansSlotApp extends SlotMachineApp {
 
       // 監聽免費遊戲結束事件
       this.TitansView.on('freeGameEnded', () => {
+        // 發送 11010 確認免費遊戲結束
+        console.log('📤 免費遊戲結束，發送 11010');
+        this.sendWebSocketMessage({
+          code: 11010
+        });
         this.endFreeGameMode();
       });
 
@@ -593,7 +598,7 @@ export class TitansSlotApp extends SlotMachineApp {
             // 根據 FGRemainTimes 決定下一步
             if (this.freeGameRemainingSpins === 0 && data.WaitNGRespin === false) {
               // 免費遊戲結束，發送 11010
-              console.log('🎁 免費遊戲結束，發送 11010');
+              console.log('🎁 免費遊戲結束，發送 11010 1');
               this.sendWebSocketMessage({
                 code: 11010
               });
@@ -631,7 +636,7 @@ export class TitansSlotApp extends SlotMachineApp {
           // 所有動畫完成後，根據 FGRemainTimes 決定下一步
           if (this.freeGameRemainingSpins === 0) {
             // 免費遊戲結束，發送 11010
-            console.log('🎁 免費遊戲結束，發送 11010');
+            console.log('🎁 免費遊戲結束，發送 11010 2');
             this.sendWebSocketMessage({
               code: 11010
             });
