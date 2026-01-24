@@ -234,7 +234,7 @@ export class MainGame extends PIXI.Container {
       const fessSpin = this.bigAnimationManager.showFreeSpin(betAmount);
       
       // 監聽開始免費遊戲事件
-      fessSpin.once('bigAnimationFreeSpinStart', () => {
+      fessSpin.once(GameEventEnum.BIG_ANIMATION_FREE_SPIN_START, () => {
         this.startFreeGame();
       });
     });
