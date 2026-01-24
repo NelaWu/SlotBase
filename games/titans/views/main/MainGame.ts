@@ -424,7 +424,7 @@ export class MainGame extends PIXI.Container {
       this.manualPage.destroy();
     }
     this.manualPage = new ManualPage();
-    this.manualPage.visible = true; // 初始狀態為隱藏
+    this.manualPage.visible = false;
     this.addChild(this.manualPage);
   }
 
