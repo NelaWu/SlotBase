@@ -198,6 +198,12 @@ async function startTitansSlotGame() {
       { id: 'bet_select', url: '/games/titans/assets/bet_select.png', type: 'image' },
       { id: 'bet_title', url: '/games/titans/assets/bet_title_'+lang+'.png', type: 'image' },
       // { id: 'fessSpin_bg', url: '/games/titans/assets/fessSpin_bg.png', type: 'image' },
+      //info bar
+      { id: 'info_bar_1', url: '/games/titans/assets/info_bar_1_'+lang+'.png', type: 'image' },
+      { id: 'info_bar_2', url: '/games/titans/assets/info_bar_2_'+lang+'.png', type: 'image' },
+      { id: 'info_bar_3', url: '/games/titans/assets/info_bar_3_'+lang+'.png', type: 'image' },
+      { id: 'info_bar_4', url: '/games/titans/assets/info_bar_4_'+lang+'.png', type: 'image' },
+      { id: 'info_bar_5', url: '/games/titans/assets/info_bar_5_'+lang+'.png', type: 'image' },
       // manual 資源
       { id: 'manual_page_basic', url: '/games/titans/assets/manual/manual_page_basic.png', type: 'image' },
       { id: 'manual_page_01', url: '/games/titans/assets/manual/manual_page_01.png', type: 'image' },

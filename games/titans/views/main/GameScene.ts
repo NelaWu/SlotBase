@@ -22,6 +22,10 @@ export class GameScene extends PIXI.Container {
   private bgWinBarMultiplierText?: BaseNumber;
   private totalMultiplier: number = 0;
   private winMoney: number = 0;
+  private infoBarContainer?: PIXI.Container;
+  private infoBarSprite?: PIXI.Sprite;
+  private infoBarIndex: number = 0;
+  private infoBarTimer?: NodeJS.Timeout;
   constructor() {
     super();
     this.init();
@@ -161,6 +165,13 @@ export class GameScene extends PIXI.Container {
     this.multiBallBigText.position.set(270, 290);
     this.addChild(this.multiBallBigText);
     this.multiBallBigText.showText('0x');
+
+    // 7. info bar - 輪流顯示圖片
+    this.infoBarContainer = new PIXI.Container();
+    this.infoBarContainer.position.set(0,1387);
+    this.addChild(this.infoBarContainer);
+    this.startInfoBarRotation();
+
     this.setMG();
   }
   setFG(): void {
@@ -286,5 +297,67 @@ export class GameScene extends PIXI.Container {
       });
       tl.to({}, { duration: 0.5 });
     });
+  }
+
+  /**
+   * 開始輪流顯示 info bar 圖片
+   */
+  private startInfoBarRotation(): void {
+    // 初始化索引
+    this.infoBarIndex = 1;
+    
+    // 顯示第一張圖片
+    this.showInfoBar(1);
+    
+    // 設置定時器，每 3 秒切換一次
+    this.infoBarTimer = setInterval(() => {
+      this.infoBarIndex = (this.infoBarIndex % 5) + 1;
+      this.showInfoBar(this.infoBarIndex);
+    }, 3000);
+  }
+
+  /**
+   * 顯示指定的 info bar 圖片
+   */
+  private showInfoBar(index: number): void {
+    const resourceManager = ResourceManager.getInstance();
+    const resourceId = `info_bar_${index}`;
+    const resource = resourceManager.getResource(resourceId);
+    
+    if (!resource) {
+      console.warn(`[GameScene] 找不到資源: ${resourceId}`);
+      return;
+    }
+
+    // 移除舊的 sprite
+    if (this.infoBarSprite) {
+      this.infoBarContainer!.removeChild(this.infoBarSprite);
+      this.infoBarSprite.destroy();
+    }
+
+    // 創建新的 sprite
+    this.infoBarSprite = new PIXI.Sprite(PIXI.Texture.from(resource));
+    this.infoBarSprite.anchor.set(0.5);
+    // 設置位置（可以根據需要調整）
+    this.infoBarSprite.position.set(540, 100);
+    this.infoBarContainer!.addChild(this.infoBarSprite);
+  }
+
+  /**
+   * 停止輪流顯示（清理時調用）
+   */
+  public stopInfoBarRotation(): void {
+    if (this.infoBarTimer) {
+      clearInterval(this.infoBarTimer);
+      this.infoBarTimer = undefined;
+    }
+  }
+
+  /**
+   * 銷毀時清理資源
+   */
+  public destroy(): void {
+    this.stopInfoBarRotation();
+    super.destroy();
   }
 }
