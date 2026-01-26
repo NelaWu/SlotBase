@@ -436,7 +436,6 @@ export class BaseButton extends PIXI.Container {
     } else {
       this.eventMode = 'none';
       this.cursor = 'default';
-      this.alpha = 0.5;
       // 恢復用戶設置的原始 scale
       this.scale.set(this.originalScaleX, this.originalScaleY);
       this.setState(ButtonState.DISABLED);

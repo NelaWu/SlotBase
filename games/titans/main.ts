@@ -212,7 +212,7 @@ async function startTitansSlotGame() {
       { id: 'manual_page_01_title', url: '/games/titans/assets/manual/manual_page_01_title_'+lang+'.png', type: 'image' },
       { id: 'manual_page_02', url: '/games/titans/assets/manual/manual_page_02.png', type: 'image' },
       { id: 'manual_page_02_text01', url: '/games/titans/assets/manual/manual_page_02_text01_'+lang+'.png', type: 'image' },
-      { id: 'manual_page_02_title', url: '/games/titans/assets/manual/manual_page_02_title_'+(lang === 'cnt' ? 'cn' : lang)+'.png', type: 'image' },
+      { id: 'manual_page_02_title', url: '/games/titans/assets/manual/manual_page_02_title_'+lang+'.png', type: 'image' },
       { id: 'manual_page_03_1', url: '/games/titans/assets/manual/manual_page_03_1.png', type: 'image' },
       { id: 'manual_page_03_2', url: '/games/titans/assets/manual/manual_page_03_2.png', type: 'image' },
       { id: 'manual_page_03_text01', url: '/games/titans/assets/manual/manual_page_03_text01_'+lang+'.png', type: 'image' },
