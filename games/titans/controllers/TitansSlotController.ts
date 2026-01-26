@@ -1,6 +1,7 @@
 import { BaseController } from '@controllers/BaseController';
 import { TitansSlotModel, TitansSlotResult } from '../models/TitansSlotModel';
 import { TitansSlotView } from '../views/TitansSlotView';
+import { GameEventEnum } from '../enum/gameEnum';
 
 export class TitansSlotController extends BaseController {
   protected declare model: TitansSlotModel;
@@ -162,11 +163,21 @@ export class TitansSlotController extends BaseController {
 
       // 根據是否為自動模式決定後續動作
       if (this.isAutoSpinEnabled) {
-        // 自動模式：觸發下一次旋轉
-        this.triggerAutoSpin();
+        // 自動模式：只有在免費遊戲模式下才立即觸發下一次旋轉
+        // 非免費遊戲模式需要等待 11011 消息後才觸發
+        const isInFreeGame = result.fgRemainTimes !== undefined && result.fgRemainTimes > 0;
+        if (isInFreeGame) {
+          console.log('自動旋轉觸發1（免費遊戲模式）');
+          // 免費遊戲模式：立即觸發下一次旋轉
+          this.triggerAutoSpin();
+        } else {
+          console.log('自動旋轉觸發1（非免費遊戲模式）- 等待 11011 消息');
+          // 非免費遊戲模式：不在此處觸發，等待 11011 消息處理後觸發
+        }
       } else {
-        // 手動模式：檢查 big win（如果需要）
-        // const isBigWin = result.totalWin / this.model.getCurrentBet() > 20;
+        // // 手動模式：檢查 big win
+        // this.log('檢查 big win',result, this.model.getCurrentBet());
+        // const isBigWin = result.totalWin / this.model.getCurrentBet() > 0;
         // if (isBigWin) {
         //   this.view.showBigWin(result.totalWin, this.model.getCurrentBet());
         // }
@@ -246,8 +257,17 @@ export class TitansSlotController extends BaseController {
 
       // 根據是否為自動模式決定後續動作
       if (this.isAutoSpinEnabled) {
-        // 自動模式：觸發下一次旋轉
-        this.triggerAutoSpin();
+        // 自動模式：只有在免費遊戲模式下才立即觸發下一次旋轉
+        // 非免費遊戲模式需要等待 11011 消息後才觸發
+        const isInFreeGame = result.fgRemainTimes !== undefined && result.fgRemainTimes > 0;
+        if (isInFreeGame) {
+          console.log('自動旋轉觸發2（免費遊戲模式）');
+          // 免費遊戲模式：立即觸發下一次旋轉
+          this.triggerAutoSpin();
+        } else {
+          console.log('自動旋轉觸發2（非免費遊戲模式）- 等待 11011 消息');
+          // 非免費遊戲模式：不在此處觸發，等待 11011 消息處理後觸發
+        }
       }
     } catch (error) {
       console.error('處理 respin 連鎖時發生錯誤:', error);
@@ -397,61 +417,6 @@ export class TitansSlotController extends BaseController {
         fastDrop
       );
     });
-  }
-
-  /**
-   * 開始獲勝動畫計時器（播放兩次後檢查 big win 並觸發自動旋轉）
-   */
-  private startWinAnimationTimer(result: TitansSlotResult): void {
-    // 清除之前的計時器
-    if (this.winAnimationTimer) {
-      clearTimeout(this.winAnimationTimer);
-    }
-
-    // 重置計數器
-    this.winAnimationPlayCount = 0;
-
-    // 設置計時器，每 WIN_ANIMATION_DURATION 毫秒增加一次計數
-    const checkAnimation = () => {
-      this.winAnimationPlayCount++;
-      this.log(`獲勝動畫播放次數: ${this.winAnimationPlayCount}/${this.WIN_ANIMATION_PLAY_COUNT}`);
-
-      if (this.winAnimationPlayCount >= this.WIN_ANIMATION_PLAY_COUNT) {
-        // 播放次數達到要求，檢查是否需要播放 big win
-        this.log('獲勝動畫播放完成，檢查 big win 條件');
-        this.checkAndPlayBigWin(result);
-      } else {
-        // 繼續計時
-        this.winAnimationTimer = setTimeout(checkAnimation, this.WIN_ANIMATION_DURATION);
-      }
-    };
-
-    // 第一次檢查延遲 WIN_ANIMATION_DURATION 毫秒
-    this.winAnimationTimer = setTimeout(checkAnimation, this.WIN_ANIMATION_DURATION);
-  }
-
-  /**
-   * 檢查並播放 big win 動畫（如果達成條件）
-   */
-  private checkAndPlayBigWin(result: TitansSlotResult): void {
-    // 檢查 big win 條件：totalWin / bet > 20
-    const bet = this.model.getCurrentBet();
-    const isBigWin = bet > 0 && result.totalWin / bet > 20;
-
-    // if (isBigWin) {
-    //   this.log(`達成 Big Win 條件！獲勝金額: ${result.totalWin}, 投注: ${bet}, 倍數: ${result.totalWin / bet}`);
-    //   
-    //   const mainGame = this.view.getMainGame();
-    //   const bigWinInstance = mainGame.bigAnimationManager.showBigWin(result.totalWin.toString(), bet);
-    //   
-    //   bigWinInstance.once(GameEventEnum.BIG_ANIMATION_BIG_WIN_COMPLETE, () => {
-    //     this.log('Big Win 動畫播放完成，觸發自動旋轉');
-    //     this.triggerAutoSpin();
-    //   });
-    // } else {
-    this.log('未達成 Big Win 條件，直接觸發自動旋轉');
-    this.triggerAutoSpin();
-    // }
   }
 
   /**

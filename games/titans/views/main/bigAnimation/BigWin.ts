@@ -207,7 +207,7 @@ export class BigWin extends PIXI.Container {
 
             // 更新顯示
             if (this.moneyText) {
-                this.moneyText.showText(Math.floor(currentAmount).toString());
+                this.moneyText.showText(currentAmount.toFixed(2));
             }
 
             // 繼續動畫或結束
@@ -216,7 +216,7 @@ export class BigWin extends PIXI.Container {
             } else {
                 // 滾分完成，確保最終顯示目標金額
                 if (this.moneyText) {
-                    this.moneyText.showText(Math.floor(winAmount).toString());
+                    this.moneyText.showText(winAmount.toFixed(2));
                 }
                 
                 // 播放結束動畫
@@ -252,7 +252,7 @@ export class BigWin extends PIXI.Container {
         
         // 直接顯示最終金額
         if (this.moneyText) {
-            this.moneyText.showText(Math.floor(this.winAmount).toString());
+            this.moneyText.showText(this.winAmount.toFixed(2));
         }
         
         // 根據最終金額設置正確的階段 skin

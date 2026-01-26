@@ -115,10 +115,10 @@ export class TitansSlotView extends BaseView {
           onDropComplete();
         }
         
-        // 所有捲軸停止後，啟用按鈕
-        setTimeout(() => {
-          this.setSpinButtonEnabled(true);
-        }, 300);
+        // // 所有捲軸停止後，啟用按鈕
+        // setTimeout(() => {
+        //   this.setSpinButtonEnabled(true);
+        // }, 300);
         
         // 牌面顯示完成後，觸發回調（用於發送 WebSocket 11011）
         if (this.onSpinAnimationCompleteCallback) {
@@ -193,6 +193,7 @@ export class TitansSlotView extends BaseView {
   // 設置旋轉按鈕啟用狀態
   public setSpinButtonEnabled(enabled: boolean): void {
     this.mainGame.spinButton.setEnabled(enabled);
+    this.mainGame.buyFreeSpinsButton.setEnabled(enabled);
   }
 
   // 設置所有按鈕啟用狀態
@@ -298,6 +299,10 @@ export class TitansSlotView extends BaseView {
 
   public showBigWin( money:number, bet:number){
     this.mainGame.showBigWin(money.toString(),bet);
+  }
+
+  public async showBigWinAsync(money: number, bet: number): Promise<void> {
+    return this.mainGame.showBigWinAsync(money.toString(), bet);
   }
 
   /**

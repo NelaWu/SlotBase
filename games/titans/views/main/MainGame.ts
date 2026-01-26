@@ -445,6 +445,13 @@ export class MainGame extends PIXI.Container {
   }
 
   /**
+   * 顯示 BigWin 動畫並返回 Promise（等待動畫完成）
+   */
+  public async showBigWinAsync(money: string, bet?: number): Promise<void> {
+    return this.bigAnimationManager.showBigWinAsync(money, bet);
+  }
+
+  /**
    * 開始免費遊戲流程
    */
   public startFreeGame(): void {

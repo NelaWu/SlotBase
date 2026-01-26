@@ -113,6 +113,18 @@ export class BigAnimationManager extends PIXI.Container {
     return bigWin;
   }
 
+  /**
+   * 顯示 BigWin 動畫並返回 Promise（等待動畫完成）
+   */
+  public async showBigWinAsync(money: string, bet?: number): Promise<void> {
+    return new Promise((resolve) => {
+      const bigWin = this.showBigWin(money, bet);
+      bigWin.once(GameEventEnum.BIG_ANIMATION_BIG_WIN_COMPLETE, () => {
+        resolve();
+      });
+    });
+  }
+
 
   /**
    * 顯示動畫容器

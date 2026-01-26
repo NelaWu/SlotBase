@@ -27,6 +27,7 @@ export class TitansSlotApp extends SlotMachineApp {
   private pendingServerBalance: number | null = null; // 暫存 1005 的 Balance（服務器金額）
   private betPurchaseCost: number = 0; // 購買免費遊戲的費用（從 11001 消息獲取）
   private totalWin: number = 0; // 總獲勝金額(11011才重置)
+  private multiplier:number = 1; // 倍數
   private useMockData: boolean = false; // 是否使用假資料測試
   private mockDataIndex: number = 0; // 假資料索引
 
@@ -106,7 +107,7 @@ export class TitansSlotApp extends SlotMachineApp {
       // 監聽免費遊戲結束事件
       this.TitansView.on('freeGameEnded', () => {
         // 發送 11010 確認免費遊戲結束
-        console.log('📤 免費遊戲結束，發送 11010');
+        console.log('📤11010 免費遊戲結束，發送 11010');
         this.sendWebSocketMessage({
           code: 11010
         });
@@ -115,7 +116,7 @@ export class TitansSlotApp extends SlotMachineApp {
 
       this.TitansView.setOnSpinAnimationComplete(() => {
         if (this.isWaitingRespin == false && this.isFreeGameMode == false) {
-          console.log('📤 動畫表演完畢2，發送 11010');
+          console.log('📤11010 動畫表演完畢2，發送 11010');
           this.sendWebSocketMessage({
             code: 11010
           });
@@ -196,7 +197,6 @@ export class TitansSlotApp extends SlotMachineApp {
     // 監聽旋轉開始事件，發送 WebSocket 訊息
     this.spinStartedHandler = () => {
       const betMultiple = this.TitansModel.getCurrentBet();
-      
       const currentBalance = this.TitansModel.getBalance();
       const newBalance = MathUtil.subtract(currentBalance, betMultiple);
       this.TitansModel.setBalance(newBalance);
@@ -391,6 +391,7 @@ export class TitansSlotApp extends SlotMachineApp {
     if (result.totalWin > 0) {
       this.TitansModel['setBalance'](this.TitansModel.getBalance() + result.totalWin);
     }
+    this.multiplier = result.multiplier || 1;
 
     // 展示盤面（清空牌面並顯示新結果）
     const fastDrop = this.TitansController?.getTurboEnabled() || false;
@@ -598,7 +599,7 @@ export class TitansSlotApp extends SlotMachineApp {
             // 根據 FGRemainTimes 決定下一步
             if (this.freeGameRemainingSpins === 0 && data.WaitNGRespin === false) {
               // 免費遊戲結束，發送 11010
-              console.log('🎁 免費遊戲結束，發送 11010 1');
+              console.log('📤11010 免費遊戲結束，發送 11010 1');
               this.sendWebSocketMessage({
                 code: 11010
               });
@@ -636,7 +637,7 @@ export class TitansSlotApp extends SlotMachineApp {
           // 所有動畫完成後，根據 FGRemainTimes 決定下一步
           if (this.freeGameRemainingSpins === 0) {
             // 免費遊戲結束，發送 11010
-            console.log('🎁 免費遊戲結束，發送 11010 2');
+            console.log('📤11010🎁 免費遊戲結束，發送 11010 2');
             this.sendWebSocketMessage({
               code: 11010
             });
@@ -711,7 +712,7 @@ export class TitansSlotApp extends SlotMachineApp {
     }
     
     this.totalWin += spinInfo.Win;
-    console.log('handleSpinResult',spinInfo.Win);
+    this.multiplier = spinInfo.Multiplier || 1;
     // 提取獲勝金額並轉換為客戶端金額（只除以 MoneyFractionMultiple）
     const totalWin = this.convertMoneyServerToClient(this.totalWin || 0);
 
@@ -775,10 +776,10 @@ export class TitansSlotApp extends SlotMachineApp {
     if (this.isWaitingRespin) {
       console.log('🔄 收到 respin 資料，補空白處（不清空牌面）');
 
-      // 先更新餘額（但不觸發 spinCompleted 事件）
-      if (result.totalWin > 0) {
-        this.TitansModel['setBalance'](this.TitansModel.getBalance() + result.totalWin);
-      }
+      // // 先更新餘額（但不觸發 spinCompleted 事件）
+      // if (result.totalWin > 0) {
+      //   this.TitansModel['setBalance'](this.TitansModel.getBalance() + result.totalWin);
+      // }
 
       // 更新 Model 狀態（但不觸發 spinCompleted 事件）
       this.TitansModel['stateData'].lastResult = result;
@@ -862,7 +863,7 @@ export class TitansSlotApp extends SlotMachineApp {
           console.log('✅ WaitNGRespin=false，respin 流程結束，重置 isWaitingRespin=false');
           this.isWaitingRespin = false;
           // 動畫表演完畢後，發送 11010
-          console.log('📤 respin 動畫表演完畢1，發送 11010');
+          console.log('📤11010 respin 動畫表演完畢1，發送 11010',this.convertMoneyServerToClient(this.totalWin)*this.multiplier, this.TitansModel.getCurrentBet());
           this.sendWebSocketMessage({
             code: 11010
           });
@@ -899,7 +900,7 @@ export class TitansSlotApp extends SlotMachineApp {
   /**
    * 處理 WebSocket 消息
    */
-  private handleWebSocketMessage(data: any): void {
+  private async handleWebSocketMessage(data: any): Promise<void> {
     // 根據 Code 處理不同的消息類型
     if (typeof data === 'object' && typeof data.Code === 'number') {
       switch (data.Code) {
@@ -981,11 +982,30 @@ export class TitansSlotApp extends SlotMachineApp {
 
         case 11011:
           this.TitansView.getMainGame().showBGWinBar(false);
+          this.TitansView.setSpinButtonEnabled(true);
+          
+          const totalWinAmount = this.convertMoneyServerToClient(this.totalWin) * this.multiplier;
+          const isBigWin = totalWinAmount / this.TitansModel.getCurrentBet() > 0;
+          if (isBigWin) {
+            // 显示 BigWin 动画，等待动画完成后再执行后续代码
+            await this.TitansView.showBigWinAsync(totalWinAmount*100, this.TitansModel.getCurrentBet());
+          }
+          
+          // BigWin 动画完成后（或不是 BigWin）执行后续代码
           this.totalWin = 0;
           if (data.Balance !== null && data.Balance !== undefined) {
             const clientBalance = this.convertMoneyServerToClient(data.Balance);
             this.TitansModel.setBalance(clientBalance);
             this.TitansView.updateWinAmount(0);
+          }
+          
+          // 自動模式且非免費遊戲模式：收到 11011 後觸發下一次 spin
+          if (this.TitansController.getAutoSpinEnabled() && !this.isFreeGameMode) {
+            console.log('🔄 自動模式（非免費遊戲）：收到 11011，觸發下一次 spin');
+            // 稍微延遲後自動旋轉，確保動畫完全結束
+            setTimeout(() => {
+              this.TitansModel.startSpin();
+            }, 500);
           }
           break;
         
@@ -1920,14 +1940,262 @@ export class TitansSlotApp extends SlotMachineApp {
       }
   }
     ]
+    const mockDataList3 = [{
+      "Code": 11003,
+      "Result": 0,
+      "RoundCode": "round_2110",
+      "SpinInfo": {
+          "GameStateType": 0,
+          "GameState": 2,
+          "WinType": 1,
+          "Multiplier": 3,
+          "ScreenOrg": [],
+          "SymbolResult": [
+              [
+                  14,
+                  14,
+                  11,
+                  3,
+                  3
+              ],
+              [
+                  11,
+                  11,
+                  13,
+                  13,
+                  13
+              ],
+              [
+                  2,
+                  15,
+                  15,
+                  3,
+                  3
+              ],
+              [
+                  2,
+                  2,
+                  15,
+                  15,
+                  13
+              ],
+              [
+                  3,
+                  3,
+                  3,
+                  12,
+                  12
+              ],
+              [
+                  13,
+                  13,
+                  3,
+                  3,
+                  31
+              ]
+          ],
+          "ScreenOutput": [
+              [
+                  14,
+                  14,
+                  11
+              ],
+              [
+                  11,
+                  11,
+                  13,
+                  13,
+                  13
+              ],
+              [
+                  2,
+                  15,
+                  15
+              ],
+              [
+                  2,
+                  2,
+                  15,
+                  15,
+                  13
+              ],
+              [
+                  12,
+                  12
+              ],
+              [
+                  13,
+                  13,
+                  31
+              ]
+          ],
+          "WinLineInfos": [
+              {
+                  "LineNo": 1,
+                  "SymbolID": 3,
+                  "SymbolType": 1,
+                  "SymbolCount": 9,
+                  "WayCount": 0,
+                  "WinPosition": [
+                      [
+                          0,
+                          3
+                      ],
+                      [
+                          0,
+                          4
+                      ],
+                      [
+                          2,
+                          3
+                      ],
+                      [
+                          2,
+                          4
+                      ],
+                      [
+                          4,
+                          0
+                      ],
+                      [
+                          4,
+                          1
+                      ],
+                      [
+                          4,
+                          2
+                      ],
+                      [
+                          5,
+                          2
+                      ],
+                      [
+                          5,
+                          3
+                      ]
+                  ],
+                  "Multiplier": 1,
+                  "WinOrg": 400,
+                  "Win": 400,
+                  "WinType": 1,
+                  "Odds": 40
+              }
+          ],
+          "FGTotalTimes": 0,
+          "FGCurrentTimes": 0,
+          "FGRemainTimes": 0,
+          "FGMaxFlag": false,
+          "RndNum": [
+              19,
+              38,
+              21,
+              44,
+              16,
+              6
+          ],
+          "Win": 2200,
+          "ExtraData": "",
+          "Stage": 1,
+          "Collection": 0,
+          "DemoModeRound": 0
+      },
+      "LDOption": [],
+      "WaitNGRespin": true,
+      "WinJPInfo": {
+          "JPLevel": 0,
+          "Value": 0
+      }
+  },{
+    "Code": 11003,
+    "Result": 0,
+    "RoundCode": "round_2110",
+    "SpinInfo": {
+        "GameStateType": 0,
+        "GameState": 2,
+        "WinType": 0,
+        "Multiplier": 3,
+        "ScreenOrg": [],
+        "SymbolResult": [
+            [
+                1,
+                1,
+                14,
+                14,
+                11
+            ],
+            [
+                11,
+                11,
+                13,
+                13,
+                13
+            ],
+            [
+                4,
+                4,
+                2,
+                15,
+                15
+            ],
+            [
+                2,
+                2,
+                15,
+                15,
+                13
+            ],
+            [
+                14,
+                14,
+                52,
+                12,
+                12
+            ],
+            [
+                3,
+                2,
+                13,
+                13,
+                31
+            ]
+        ],
+        "ScreenOutput": [],
+        "WinLineInfos": [],
+        "FGTotalTimes": 0,
+        "FGCurrentTimes": 0,
+        "FGRemainTimes": 0,
+        "FGMaxFlag": false,
+        "RndNum": [
+            17,
+            38,
+            19,
+            44,
+            13,
+            4
+        ],
+        "Win": 0,
+        "ExtraData": "",
+        "Stage": 2,
+        "Collection": 0,
+        "DemoModeRound": 0
+    },
+    "LDOption": [],
+    "WaitNGRespin": false,
+    "WinJPInfo": {
+        "JPLevel": 0,
+        "Value": 0
+    }
+}]
+    //big win
+    // const mockDataList3 = []
 
-    if (this.mockDataIndex >= mockDataList2.length) {
+    if (this.mockDataIndex >= mockDataList3.length) {
       console.log('🧪 假資料測試完成，重置索引');
       this.mockDataIndex = 0;
       return null;
     }
 
-    const mockData = mockDataList2[this.mockDataIndex];
+    const mockData = mockDataList3[this.mockDataIndex];
     this.mockDataIndex++;
     return mockData;
   }
