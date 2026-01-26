@@ -305,6 +305,10 @@ export class TitansSlotView extends BaseView {
     return this.mainGame.showBigWinAsync(money.toString(), bet);
   }
 
+  public async showFreeEndAsync(winAmount: number): Promise<void> {
+    return this.mainGame.showFreeEndAsync(winAmount.toString());
+  }
+
   /**
    * 開始免費遊戲流程
    */

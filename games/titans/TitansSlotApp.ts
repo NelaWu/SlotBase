@@ -26,6 +26,7 @@ export class TitansSlotApp extends SlotMachineApp {
   private moneyFractionMultiple: number = 1; // 用於 Balance/Win 轉換
   private pendingServerBalance: number | null = null; // 暫存 1005 的 Balance（服務器金額）
   private betPurchaseCost: number = 0; // 購買免費遊戲的費用（從 11001 消息獲取）
+  private freeTotalWin: number = 0; // 免費遊戲總獲勝金額
   private totalWin: number = 0; // 總獲勝金額(11011才重置)
   private multiplier:number = 1; // 倍數
   private useMockData: boolean = false; // 是否使用假資料測試
@@ -111,7 +112,7 @@ export class TitansSlotApp extends SlotMachineApp {
         this.sendWebSocketMessage({
           code: 11010
         });
-        this.endFreeGameMode();
+        // this.endFreeGameMode();
       });
 
       this.TitansView.setOnSpinAnimationComplete(() => {
@@ -444,6 +445,7 @@ export class TitansSlotApp extends SlotMachineApp {
     this.isFreeGameMode = false;
     this.freeGameRemainingSpins = 0;
     this.lastFreeGameWinType = 0; // 重置上一盤的 WinType
+    this.freeTotalWin = 0;
     // 切換回主遊戲模式畫面
     this.TitansView.getMainGame().endFreeGame();
   }
@@ -603,7 +605,7 @@ export class TitansSlotApp extends SlotMachineApp {
               this.sendWebSocketMessage({
                 code: 11010
               });
-              this.endFreeGameMode();
+              // this.endFreeGameMode();
             } else {
               // 還在免費遊戲中，自動發送下一次 11008
               console.log(`🔄 免費遊戲繼續（剩餘 ${this.freeGameRemainingSpins} 次），自動發送下一次 11008`);
@@ -641,7 +643,7 @@ export class TitansSlotApp extends SlotMachineApp {
             this.sendWebSocketMessage({
               code: 11010
             });
-            this.endFreeGameMode();
+            // this.endFreeGameMode();
           } else {
             // // 還在免費遊戲中，自動發送下一次 11008
             // console.log(`🔄 免費遊戲繼續（剩餘 ${this.freeGameRemainingSpins} 次），自動發送下一次 11008`);
@@ -972,6 +974,7 @@ export class TitansSlotApp extends SlotMachineApp {
           console.log('🎰 收到免費遊戲旋轉結果:', data);
           data.WaitNGRespin = data.SpinInfo.WinType === 1;
           this.handleFreeGameSpinResult(data);
+          this.freeTotalWin += this.convertMoneyServerToClient(data.SpinInfo.Win)*this.multiplier;
           break;
 
         case 11015:
@@ -985,10 +988,15 @@ export class TitansSlotApp extends SlotMachineApp {
           this.TitansView.setSpinButtonEnabled(true);
           
           const totalWinAmount = this.convertMoneyServerToClient(this.totalWin) * this.multiplier;
-          const isBigWin = totalWinAmount / this.TitansModel.getCurrentBet() > 0;
-          if (isBigWin) {
+          const isBigWin = totalWinAmount / this.TitansModel.getCurrentBet() > 20;
+          if (isBigWin && this.isFreeGameMode == false) {
             // 显示 BigWin 动画，等待动画完成后再执行后续代码
-            await this.TitansView.showBigWinAsync(totalWinAmount*100, this.TitansModel.getCurrentBet());
+            await this.TitansView.showBigWinAsync(totalWinAmount, this.TitansModel.getCurrentBet());
+          }
+          else if (this.isFreeGameMode == true) {
+            // 免费游戏模式：显示 FreeEnd 动画，等待动画完成后再执行后续代码
+            await this.TitansView.showFreeEndAsync(this.freeTotalWin);
+            this.endFreeGameMode();
           }
           
           // BigWin 动画完成后（或不是 BigWin）执行后续代码

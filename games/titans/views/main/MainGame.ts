@@ -452,6 +452,13 @@ export class MainGame extends PIXI.Container {
   }
 
   /**
+   * 顯示 FreeEnd 動畫並返回 Promise（等待動畫完成）
+   */
+  public async showFreeEndAsync(winAmount: string): Promise<void> {
+    return this.bigAnimationManager.showFreeEndAsync(winAmount);
+  }
+
+  /**
    * 開始免費遊戲流程
    */
   public startFreeGame(): void {

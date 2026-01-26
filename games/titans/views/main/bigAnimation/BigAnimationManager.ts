@@ -71,6 +71,19 @@ export class BigAnimationManager extends PIXI.Container {
     return freeEnd;
   }
 
+  /**
+   * 顯示 FreeEnd 動畫並返回 Promise（等待動畫完成）
+   */
+  public async showFreeEndAsync(winAmount: string): Promise<void> {
+    return new Promise((resolve) => {
+      const freeEnd = this.showFreeEnd(winAmount);
+      freeEnd.once(GameEventEnum.BIG_ANIMATION_CLOSE, () => {
+        resolve();
+        this.hide();
+      });
+    });
+  }
+
   public showTransition(): Transition {
     this.show();
     this.backgroundMask.visible = false;

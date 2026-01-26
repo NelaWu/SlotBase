@@ -75,7 +75,7 @@ export class FreeEnd extends PIXI.Container {
     public setWinText(text: string): void {
         let num:{money:number} = {money:0}
         gsap.to(num, { money: text, duration: 5, onUpdate: () => {
-            this.winText?.showText(Math.round(num.money).toString());
+            this.winText?.showText(num.money.toFixed(2));
         } });
     }
 
