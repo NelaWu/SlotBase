@@ -660,7 +660,7 @@ export class TitansWheel extends PIXI.Container {
     
     this.symbolStates.forEach((col, colIndex) => {
       col.forEach((state, rowIndex) => {
-        if (state && state.isShowingWin && state.symbol.getSymbolId() !== 10) {
+        if (state && state.isShowingWin && state.symbol.getSymbolId() !== 10 && state.symbol.getSymbolId() !== 11) {
           symbolsToRemove.push({ col: colIndex, row: rowIndex });
         }
       });

@@ -21,7 +21,7 @@ export class TitansSymbol extends BaseSymbol {
   private getMultiplierValue(id: number): number | null {
     return getMultiplierFromSymbolId(id);
   }
-  public setSymbol(id: number, skipAnimation: boolean = false): void {
+  public setSymbol(id: number, skipAnimation: boolean = false): void {    
     this.sprite.visible = false;
     // 處理空白符號（ID 0）
     if (id === 0) {
@@ -32,8 +32,6 @@ export class TitansSymbol extends BaseSymbol {
       this.isSpecialSymbol = false;
       return;
     }
-    
-    if(id >= 41) console.log('11003] 收到消息:show multi win symbol id',id);
     
     this.symbolId = id;
     let symbolName:string = '';
@@ -118,7 +116,6 @@ export class TitansSymbol extends BaseSymbol {
       
       // 顯示倍數文字
       const multiplierValue = this.getMultiplierValue(id);
-      console.log('11003] 收到消息:show multi win',multiplierValue,this.spine);
       if (multiplierValue !== null) {
         // 如果已經存在 multiText，先移除
         if (this.multiText && this.multiText.parent) {
