@@ -418,14 +418,14 @@ function setupTestControls(app: TitansSlotApp) {
 
 // 啟動遊戲
 startTitansSlotGame().then(() => {
-  // 隱藏載入畫面
-  const loading = document.getElementById('loading');
+  // 隱藏載入畫面（支援兩種 ID：loading 和 loading-screen）
+  const loading = document.getElementById('loading') || document.getElementById('loading-screen');
   if (loading) {
     loading.classList.add('hidden');
   }
 }).catch((error) => {
   console.error('遊戲啟動失敗:', error);
-  const loading = document.getElementById('loading');
+  const loading = document.getElementById('loading') || document.getElementById('loading-screen');
   if (loading) {
     loading.innerHTML = `
       <h2>❌ 載入失敗</h2>

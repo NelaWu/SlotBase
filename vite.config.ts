@@ -10,6 +10,10 @@ export default defineConfig({
         {
           src: 'games/titans/assets/**/*',
           dest: 'games/titans/assets'
+        },
+        {
+          src: 'games/titans/index.html',
+          dest: 'games/titans'
         }
       ]
     })
