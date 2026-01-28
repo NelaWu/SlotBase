@@ -141,11 +141,11 @@ export class TitansSlotApp extends SlotMachineApp {
     try {
       // 獲取 URL 參數
       const urlParams = new URLSearchParams(window.location.search);
-      const language = urlParams.get('lang') || urlParams.get('language') || 'zh-cn';
+      const language = urlParams.get('language') || 'zh-cn';
       const tokenParam = urlParams.get('token') || '';
       const serverParam = urlParams.get('s') || '';
       const exitUrlParam = urlParams.get('r') || '';
-      
+
       // Base64 解碼函數
       const decodeBase64 = (str: string): string => {
         try {
@@ -155,11 +155,11 @@ export class TitansSlotApp extends SlotMachineApp {
           return str; // 如果解碼失敗，返回原始值
         }
       };
-      
+
       // 處理遊戲服務器 URL
       let _gameServer: string = '';
       let _betQuery: string = '';
-      
+
       if (serverParam) {
         // 有收到從 server 來的資訊
         const decode: string = decodeBase64(serverParam);
@@ -170,21 +170,21 @@ export class TitansSlotApp extends SlotMachineApp {
         // 使用預設值
         _gameServer = '127.0.0.1:22201';
       }
-      
+
       // 處理離開 URL
       let _exitUrl: string = '';
       if (exitUrlParam) {
         _exitUrl = decodeBase64(exitUrlParam);
       }
-      
+
       // 拼接 WebSocket URL
       const protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
       const url = protocol + _gameServer + '/gameserver';
-      
+
       console.log('🔗 WebSocket URL:', url);
       console.log('🔗 Bet Query:', _betQuery);
       console.log('🔗 Exit URL:', _exitUrl);
-      
+
       // 創建 WebSocket 管理器實例
       this.wsManager = WebSocketManager.getInstance({
         url: url,
@@ -277,7 +277,7 @@ export class TitansSlotApp extends SlotMachineApp {
   private handleBetIncrease(): void {
     const betList = this.TitansModel.getBetList();
     const currentBet = this.TitansModel.getCurrentBet();
-    
+
     if (betList.length === 0) {
       console.warn('⚠️ BetList 為空，無法加注');
       return;
@@ -285,7 +285,7 @@ export class TitansSlotApp extends SlotMachineApp {
 
     // 找到當前 bet 在陣列中的索引
     const currentIndex = betList.indexOf(currentBet);
-    
+
     if (currentIndex === -1) {
       // 如果找不到當前 bet，使用最接近的值
       const closestIndex = betList.findIndex(bet => bet > currentBet);
@@ -310,7 +310,7 @@ export class TitansSlotApp extends SlotMachineApp {
   private handleBetDecrease(): void {
     const betList = this.TitansModel.getBetList();
     const currentBet = this.TitansModel.getCurrentBet();
-    
+
     if (betList.length === 0) {
       console.warn('⚠️ BetList 為空，無法減注');
       return;
@@ -318,7 +318,7 @@ export class TitansSlotApp extends SlotMachineApp {
 
     // 找到當前 bet 在陣列中的索引
     const currentIndex = betList.indexOf(currentBet);
-    
+
     if (currentIndex === -1) {
       // 如果找不到當前 bet，從後往前找最接近且小於當前 bet 的值
       let closestIndex = -1;
@@ -456,11 +456,11 @@ export class TitansSlotApp extends SlotMachineApp {
     // 監聽 Controller 的動畫完成（通過 processWinAndCascade 完成）
     // 如果沒有獲勝，需要監聽 dropComplete；如果有獲勝，需要監聽 removeWinComplete
     const hasWin = result.winLineInfos && result.winLineInfos.length > 0;
-    
+
     // 臨時設置 isFreeGameMode 為 true，防止全局的 setOnSpinAnimationComplete 發送 11010
     const wasFreeGameMode = this.isFreeGameMode;
     this.isFreeGameMode = true;
-    
+
     if (hasWin) {
       // 有獲勝，等待 removeWinSymbols 完成
       this.TitansView.getMainGame().wheel.setOnRemoveWinComplete(() => {
@@ -578,24 +578,24 @@ export class TitansSlotApp extends SlotMachineApp {
         // 構建完整的 result 對象（與 handleSpinResult 中的處理一致）
         const respinSpinInfo = data.SpinInfo;
         const respinServerReels: number[][] | null = respinSpinInfo.SymbolResult;
-        
+
         if (!respinServerReels || !Array.isArray(respinServerReels)) {
           console.warn('⚠️  免費遊戲 respin 無效的牌面結果:', respinServerReels);
           return;
         }
 
         const respinReels: number[][] = SymbolMapper.serverToClientArray(respinServerReels);
-        
+
         // 提取獲勝線編號
         const respinWinLines: number[] = [];
         if (respinSpinInfo.WinLineInfos && Array.isArray(respinSpinInfo.WinLineInfos)) {
           respinWinLines.push(...respinSpinInfo.WinLineInfos.map((info: any) => info.LineNo || info.LineIndex || 0));
         }
-        
+
         // 累計 totalWin（與 handleSpinResult 一致）
         this.totalWin += respinSpinInfo.Win;
         const respinTotalWin = this.convertMoneyServerToClient(this.totalWin || 0);
-        
+
         // 提取詳細的獲勝連線信息並轉換符號 ID 和金額
         const respinWinLineInfos = (respinSpinInfo.WinLineInfos || []).map((info: any) => ({
           ...info,
@@ -674,10 +674,10 @@ export class TitansSlotApp extends SlotMachineApp {
               });
             });
           }
-          
+
           // 記錄當前盤的 WinType，供下一盤使用
           this.lastFreeGameWinType = respinSpinInfo.WinType;
-          
+
           // 所有動畫完成後，根據 FGRemainTimes 決定下一步
           if (this.freeGameRemainingSpins === 0) {
             // 免費遊戲結束，發送 11010
@@ -704,7 +704,7 @@ export class TitansSlotApp extends SlotMachineApp {
 
     // 設置結果到 Model（會自動更新餘額，會觸發清空牌面）
     this.TitansModel.setSpinResult(result);
-    
+
     // 記錄當前盤的 WinType，供下一盤使用
     this.lastFreeGameWinType = winType;
 
@@ -754,7 +754,7 @@ export class TitansSlotApp extends SlotMachineApp {
     if (spinInfo.WinLineInfos && Array.isArray(spinInfo.WinLineInfos)) {
       winLines.push(...spinInfo.WinLineInfos.map((info: any) => info.LineNo || info.LineIndex || 0));
     }
-    
+
     this.totalWin += spinInfo.Win;
     this.multiplier = spinInfo.Multiplier || 1;
     // 提取獲勝金額並轉換為客戶端金額（只除以 MoneyFractionMultiple）
@@ -853,7 +853,7 @@ export class TitansSlotApp extends SlotMachineApp {
         // 構建完整的 result 對象（與 handleSpinResult 中的處理一致）
         const respinSpinInfo = data.SpinInfo;
         const respinServerReels: number[][] | null = respinSpinInfo.SymbolResult;
-        
+
         if (!respinServerReels || !Array.isArray(respinServerReels)) {
           console.warn('⚠️  respin 無效的牌面結果:', respinServerReels);
           return;
@@ -999,7 +999,7 @@ export class TitansSlotApp extends SlotMachineApp {
 
         case 11003:
           console.log('🎰 收到旋轉結果:', data);
-          
+
           // 假資料測試（按 F12 控制台輸入：window.TitansSlotApp.setUseMockData(true) 啟用）
           if (this.useMockData) {
             const mockData = this.getMockData();
@@ -1008,7 +1008,7 @@ export class TitansSlotApp extends SlotMachineApp {
               data = mockData;
             }
           }
-          
+
           // 處理旋轉結果
           this.handleSpinResult(data);
           break;
@@ -1028,7 +1028,7 @@ export class TitansSlotApp extends SlotMachineApp {
         case 11011:
           this.TitansView.getMainGame().showBGWinBar(false);
           this.TitansView.setSpinButtonEnabled(true);
-          
+
           const totalWinAmount = this.convertMoneyServerToClient(this.totalWin) * this.multiplier;
           const isBigWin = totalWinAmount / this.TitansModel.getCurrentBet() > 20;
           if (isBigWin && this.isFreeGameMode == false) {
@@ -1040,7 +1040,7 @@ export class TitansSlotApp extends SlotMachineApp {
             await this.TitansView.showFreeEndAsync(this.freeTotalWin);
             this.endFreeGameMode();
           }
-          
+
           // BigWin 动画完成后（或不是 BigWin）执行后续代码
           this.totalWin = 0;
           if (data.Balance !== null && data.Balance !== undefined) {
@@ -1048,7 +1048,7 @@ export class TitansSlotApp extends SlotMachineApp {
             this.TitansModel.setBalance(clientBalance);
             this.TitansView.updateWinAmount(0);
           }
-          
+
           // 自動模式且非免費遊戲模式：收到 11011 後觸發下一次 spin
           if (this.TitansController.getAutoSpinEnabled() && !this.isFreeGameMode) {
             console.log('🔄 自動模式（非免費遊戲）：收到 11011，觸發下一次 spin');
@@ -1058,11 +1058,11 @@ export class TitansSlotApp extends SlotMachineApp {
             }, 500);
           }
           break;
-        
+
         case -2:
           // 心跳回應（已在 WebSocketManager 中處理，不會到達這裡）
           break;
-        
+
         default:
           console.log('📨 收到其他消息 Code:', data.Code, data);
       }
@@ -1096,13 +1096,13 @@ export class TitansSlotApp extends SlotMachineApp {
       this.TitansModel.off('spinStarted', this.spinStartedHandler);
       this.spinStartedHandler = undefined;
     }
-    
+
     if (this.wsManager) {
       this.wsManager.removeAllListeners();
       // 不調用 disconnect() - 讓後端決定何時關閉連接
       this.wsManager = undefined;
     }
-    
+
     this.TitansController.destroy();
     super.destroy();
     console.log('✅ Titans 拉霸應用程式已銷毀');
