@@ -4,6 +4,7 @@ import { fileURLToPath, URL } from 'node:url'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 export default defineConfig({
+  base: process.env.NODE_ENV === 'production' ? '/game/WK07/' : '/',
   plugins: [
     viteStaticCopy({
       targets: [
