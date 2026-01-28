@@ -19,6 +19,15 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    outDir: 'dist'
+    outDir: 'dist',
+    rollupOptions: {
+      input: resolve(__dirname, 'index.html'),
+      output: {
+        format: 'iife',
+        inlineDynamicImports: true,
+        entryFileNames: 'bundle.js',
+        assetFileNames: 'assets/[name].[ext]'
+      }
+    }
   }
 }) 
