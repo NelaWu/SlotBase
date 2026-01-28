@@ -28,6 +28,7 @@ export class TitansSlotApp extends SlotMachineApp {
   private betPurchaseCost: number = 0; // 購買免費遊戲的費用（從 11001 消息獲取）
   private freeTotalWin: number = 0; // 免費遊戲總獲勝金額
   private totalWin: number = 0; // 總獲勝金額(11011才重置)
+  private jpOn: boolean = false;
   private multiplier:number = 1; // 倍數
   private useMockData: boolean = false; // 是否使用假資料測試
   private mockDataIndex: number = 0; // 假資料索引
@@ -958,6 +959,7 @@ export class TitansSlotApp extends SlotMachineApp {
           if (data.BetPurchaseCost !== undefined) {
             this.betPurchaseCost = data.BetPurchaseCost;
           }
+          this.jpOn = data.JPOn;
           // 設置 BetMultiples 到 betList
           if (data.BetMultiples && Array.isArray(data.BetMultiples) && data.BetMultiples.length > 0) {
             // 獲取換算參數
@@ -1062,7 +1064,12 @@ export class TitansSlotApp extends SlotMachineApp {
         case -2:
           // 心跳回應（已在 WebSocketManager 中處理，不會到達這裡）
           break;
-
+        
+        case 1013:
+          if (this.jpOn == true) {
+            this.TitansView.updateJpInfo(data.JPViews);
+          }
+          break;
         default:
           console.log('📨 收到其他消息 Code:', data.Code, data);
       }

@@ -63,9 +63,6 @@ export class MainGame extends PIXI.Container {
     // 創建背景
     this.createBackground();
 
-    // 創建JP資訊
-    this.createJpInfo();
-
     // 創建捲軸
     this.createReels();
 
@@ -417,6 +414,9 @@ export class MainGame extends PIXI.Container {
   }
 
   public updateJpInfo(jpDataArray: JpData[]): void {
+    if (!this.jpInfo) {
+      this.createJpInfo();
+    }
     this.jpInfo.updateJpValues(jpDataArray);
   }
 

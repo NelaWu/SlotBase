@@ -4,6 +4,7 @@ import { MainGame } from './main/MainGame';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
 import { WinLineInfo } from '../models/TitansSlotModel';
 import { gsap } from 'gsap';
+import { JpData } from './main/jpInfo';
 
 export class TitansSlotView extends BaseView {
   private mainGame!: MainGame;
@@ -314,5 +315,8 @@ export class TitansSlotView extends BaseView {
    */
   public startFreeGame(): void {
     this.mainGame.startFreeGame();
+  }
+  public updateJpInfo(jpDataArray: JpData[]): void {  
+    this.mainGame.updateJpInfo(jpDataArray);
   }
 }
