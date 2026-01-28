@@ -141,7 +141,7 @@ export class TitansSlotApp extends SlotMachineApp {
     try {
       // 獲取 URL 參數
       const urlParams = new URLSearchParams(window.location.search);
-      const language = urlParams.get('language') || 'zh-cn';
+      const language = urlParams.get('language') || 'en';
       const tokenParam = urlParams.get('token') || '';
       const serverParam = urlParams.get('s') || '';
       const exitUrlParam = urlParams.get('r') || '';
