@@ -142,17 +142,32 @@ export class TitansSlotApp extends SlotMachineApp {
       // 獲取語言參數
       const urlParams = new URLSearchParams(window.location.search);
       const language = urlParams.get('lang') || 'zh-cn';
+      const tokenParam = urlParams.get('token') || '';
+      const serverUrlParam = urlParams.get('server') || '';
+      
+      // Base64 解碼 serverUrl
+      let url = '';
+      if (serverUrlParam) {
+        try {
+          url = atob(serverUrlParam);
+        } catch (error) {
+          console.error('🔗 WebSocket URL base64 解碼失敗:', error);
+          url = serverUrlParam; // 如果解碼失敗，使用原始值
+        }
+      }
+      url = (location.protocol == 'https:') ? 'wss://' : 'wss://' + url.split(',')[0] ;
+      console.log('🔗 WebSocket URL:', url);
       
       // 創建 WebSocket 管理器實例
       this.wsManager = WebSocketManager.getInstance({
-        url: 'wss://gsvr1.wkgm88.net/gameserver',
+        url: url + '/gameserver',
         // url: 'wss://7c88ea38ff35.ngrok-free.app/gameserver',
         reconnectInterval: 3000,        // 3秒重連間隔
         maxReconnectAttempts: -1,      // 無限重連
         heartbeatInterval: 5000,      // 30秒心跳（確保 > 0 才會發送心跳）
         autoReconnect: true,
         initMessage: {
-          GameToken: 'BN80',
+          GameToken: tokenParam,
           GameID: 7,
           DemoOn: true,
           Lang: language.toLowerCase() // 轉換為小寫，如 'zh-cn'
