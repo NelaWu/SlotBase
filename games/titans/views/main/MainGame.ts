@@ -11,9 +11,11 @@ import { ButtonEvent } from '@/views/components/ButtonEvents';
 import { getMultiplierFromSymbolId } from '../../constants/MultiplierMap';
 import { GameEventEnum } from '../../enum/gameEnum';
 import { BaseNumber } from '@/views/components/BaseNumber';
+import { JpData, JpInfo } from './jpInfo';
 
 export class MainGame extends PIXI.Container {
   public gameScene!: GameScene;
+  public jpInfo!: JpInfo;
   public wheel!: TitansWheel;
   public spinButton!: BaseButton;
   public settingsButton!: BaseButton;
@@ -60,6 +62,9 @@ export class MainGame extends PIXI.Container {
   async initialize(): Promise<void> {
     // 創建背景
     this.createBackground();
+
+    // 創建JP資訊
+    this.createJpInfo();
 
     // 創建捲軸
     this.createReels();
@@ -122,6 +127,11 @@ export class MainGame extends PIXI.Container {
     this.addChild(this.settingsButtonContainer);
     this.addChild(this.betButtonContainer);
     this.settingsButtonContainer.visible = false;
+  }
+
+  private createJpInfo(): void {
+    this.jpInfo = new JpInfo();
+    this.addChild(this.jpInfo);
   }
 
   // 創建捲軸
@@ -404,6 +414,10 @@ export class MainGame extends PIXI.Container {
     console.log('multiBallSpine', this.multiBallSpine);
     // 使用 symbolId 51 來顯示 Lv1（符合 51-55 或 151-155 範圍）
     // this.playMultiBallBigAnimation(51, '1-4');
+  }
+
+  public updateJpInfo(jpDataArray: JpData[]): void {
+    this.jpInfo.updateJpValues(jpDataArray);
   }
 
   public createBetPanel(betlist: number[], onBetSelected?: (betAmount: number) => void): void {
