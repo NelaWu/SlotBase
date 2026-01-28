@@ -139,28 +139,55 @@ export class TitansSlotApp extends SlotMachineApp {
    */
   private async initializeWebSocket(): Promise<void> {
     try {
-      // 獲取語言參數
+      // 獲取 URL 參數
       const urlParams = new URLSearchParams(window.location.search);
-      const language = urlParams.get('lang') || 'zh-cn';
+      const language = urlParams.get('lang') || urlParams.get('language') || 'zh-cn';
       const tokenParam = urlParams.get('token') || '';
-      const serverUrlParam = urlParams.get('server') || '';
+      const serverParam = urlParams.get('s') || '';
+      const exitUrlParam = urlParams.get('r') || '';
       
-      // Base64 解碼 serverUrl
-      let url = '';
-      if (serverUrlParam) {
+      // Base64 解碼函數
+      const decodeBase64 = (str: string): string => {
         try {
-          url = atob(serverUrlParam);
+          return atob(str);
         } catch (error) {
-          console.error('🔗 WebSocket URL base64 解碼失敗:', error);
-          url = serverUrlParam; // 如果解碼失敗，使用原始值
+          console.error('Base64 解碼失敗:', error);
+          return str; // 如果解碼失敗，返回原始值
         }
+      };
+      
+      // 處理遊戲服務器 URL
+      let _gameServer: string = '';
+      let _betQuery: string = '';
+      
+      if (serverParam) {
+        // 有收到從 server 來的資訊
+        const decode: string = decodeBase64(serverParam);
+        const parts = decode.split(',');
+        _gameServer = parts[0] || '';
+        _betQuery = parts[1] || '';
+      } else {
+        // 使用預設值
+        _gameServer = '127.0.0.1:22201';
       }
-      url = (location.protocol == 'https:') ? 'wss://' : 'wss://' + url.split(',')[0] ;
+      
+      // 處理離開 URL
+      let _exitUrl: string = '';
+      if (exitUrlParam) {
+        _exitUrl = decodeBase64(exitUrlParam);
+      }
+      
+      // 拼接 WebSocket URL
+      const protocol = location.protocol === 'https:' ? 'wss://' : 'ws://';
+      const url = protocol + _gameServer + '/gameserver';
+      
       console.log('🔗 WebSocket URL:', url);
+      console.log('🔗 Bet Query:', _betQuery);
+      console.log('🔗 Exit URL:', _exitUrl);
       
       // 創建 WebSocket 管理器實例
       this.wsManager = WebSocketManager.getInstance({
-        url: url + '/gameserver',
+        url: url,
         // url: 'wss://7c88ea38ff35.ngrok-free.app/gameserver',
         reconnectInterval: 3000,        // 3秒重連間隔
         maxReconnectAttempts: -1,      // 無限重連
