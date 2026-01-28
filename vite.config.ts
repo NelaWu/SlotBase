@@ -1,8 +1,19 @@
 import { defineConfig } from 'vite'
 import { resolve } from 'path'
 import { fileURLToPath, URL } from 'node:url'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 export default defineConfig({
+  plugins: [
+    viteStaticCopy({
+      targets: [
+        {
+          src: 'games/titans/assets/**/*',
+          dest: 'games/titans/assets'
+        }
+      ]
+    })
+  ],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -15,6 +26,10 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    open: true
+  },
+  preview: {
+    port: 4000,
     open: true
   },
   build: {
