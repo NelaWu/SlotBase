@@ -4,7 +4,7 @@ import { fileURLToPath, URL } from 'node:url'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 export default defineConfig({
-  base: process.env.NODE_ENV === 'production' ? '/game/WK07/' : '/',
+  base: './',
   plugins: [
     viteStaticCopy({
       targets: [
@@ -45,9 +45,7 @@ export default defineConfig({
       output: {
         format: 'iife',
         inlineDynamicImports: true,
-        entryFileNames: 'bundle.js',
-        assetFileNames: 'assets/[name].[ext]'
       }
     }
   }
-}) 
+})
