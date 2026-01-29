@@ -1,5 +1,10 @@
 image: node:24.1.0
 
+before_script:
+  - corepack enable
+  - corepack install
+  - pnpm config set store-dir .pnpm-store
+
 stages:
   - install
   - build
@@ -21,10 +26,6 @@ install:
     key: ${CI_COMMIT_REF_SLUG}-pnpm
     paths:
       - .pnpm-store/
-  before_script:
-    - corepack enable
-    - corepack install
-    - pnpm config set store-dir .pnpm-store
   script:
     - pnpm install --frozen-lockfile
   artifacts:
