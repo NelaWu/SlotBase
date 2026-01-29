@@ -11,7 +11,7 @@ import { ButtonEvent } from '@/views/components/ButtonEvents';
 import { getMultiplierFromSymbolId } from '../../constants/MultiplierMap';
 import { GameEventEnum } from '../../enum/gameEnum';
 import { BaseNumber } from '@/views/components/BaseNumber';
-import { JpData, JpInfo } from './jpInfo';
+import { JpData, JpInfo } from './JpInfo';
 
 export class MainGame extends PIXI.Container {
   public gameScene!: GameScene;
@@ -243,7 +243,7 @@ export class MainGame extends PIXI.Container {
     this.buyFreeSpinsButton.on(ButtonEvent.BUTTON_CLICKED, () => {
       // 獲取當前投注金額（客戶端金額）
       const betAmount = this.getBetAmount ? this.getBetAmount() : 0;
-      
+
       const fessSpin = this.bigAnimationManager.showFreeSpin(betAmount);
       // 監聽開始免費遊戲事件
       fessSpin.once(GameEventEnum.BIG_ANIMATION_FREE_SPIN_START, () => {
@@ -511,7 +511,7 @@ export class MainGame extends PIXI.Container {
   private getLevelFromSymbolId(symbolId: number): string {
     // 處理 151-170 範圍（減去 100 後與 51-70 範圍相同）
     const normalizedId = symbolId >= 151 ? symbolId - 100 : symbolId;
-    
+
     if (normalizedId >= 51 && normalizedId <= 55) {
       return 'Lv1';
     } else if (normalizedId >= 56 && normalizedId <= 60) {
@@ -534,7 +534,7 @@ export class MainGame extends PIXI.Container {
     return new Promise((resolve) => {
       // 如果傳入的是單個對象，轉換為陣列
       const animationArray = Array.isArray(animations) ? animations : [animations];
-      
+
       if (animationArray.length === 0) {
         console.warn('⚠️  倍數球動畫陣列為空');
         resolve();
@@ -580,11 +580,11 @@ export class MainGame extends PIXI.Container {
 
     const lv = this.getLevelFromSymbolId(animation.symbolId);
     this.multiBallSpine.skeleton.setSkinByName(lv);
-    
+
     // 解析 pos 格式（'reel-row'，例如 '3-1'）
     const [reelStr, rowStr] = animation.pos.split('-');
     const reel = parseInt(reelStr, 10);
-    const row = parseInt(rowStr, 10);    
+    const row = parseInt(rowStr, 10);
     // 獲取對應的符號並播放 Collect 動畫
     if (reel && row) {
       const symbol = this.wheel.getSymbolAt(reel, row);
@@ -594,23 +594,23 @@ export class MainGame extends PIXI.Container {
         this.gameScene.playBGWinMultiplier(getMultiplierFromSymbolId(animation.symbolId) || 0);
       }
     }
-    
+
     // 設置動畫完成監聽器
     const listener = {
       complete: () => {
         // 移除監聽器
         this.multiBallSpine.state.removeListener(listener);
-        
+
         // 播放下一個動畫
         this.playNextMultiBallAnimation();
       }
     };
-    
+
     this.multiBallSpine.state.addListener(listener);
 
     // 播放動畫（不循環）
     this.multiBallSpine.state.setAnimation(0, animation.pos, false);
-    
+
   }
 }
 
