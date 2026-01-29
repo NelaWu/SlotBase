@@ -1,0 +1,71 @@
+image: node:24.1.0
+
+stages:
+  - install
+  - build
+  - deploy
+
+.init_rsync: &init_rsync |
+  apt-get update
+  apt-get install -y rsync
+  echo "${RSYNC_SECRET}" > /etc/rsync.secret
+  chmod 600 /etc/rsync.secret
+
+.change_file_owner: &change_file_owner |
+  addgroup --system de_us --gid 2001 && adduser --system de_us --gid 2001 --uid 2001
+  chown -R de_us.de_us ./
+
+install:
+  stage: install
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}-pnpm
+    paths:
+      - .pnpm-store/
+  before_script:
+    - corepack enable
+    - corepack install
+    - pnpm config set store-dir .pnpm-store
+  script:
+    - pnpm install --frozen-lockfile
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - node_modules/
+
+build:
+  stage: build
+  script:
+    - pnpm run build
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - dist/
+
+deploy-testing:
+  stage: deploy
+  before_script:
+    - *init_rsync
+    - *change_file_owner
+  script:
+    - rsync
+      -av
+      --delete
+      --password-file=/etc/rsync.secret
+      ./dist/Release/ root@${RSYNC_HOST_TESTING}::${RSYNC_MODULE}
+  only:
+    - master
+
+deploy-production:
+  stage: deploy
+  before_script:
+    - *init_rsync
+    - *change_file_owner
+  script:
+    - rsync
+      -av
+      --delete
+      --password-file=/etc/rsync.secret
+      ./dist/Release/ root@${RSYNC_HOST_PRODUCTION}::${RSYNC_MODULE}
+  when: manual
+  only:
+    - master
