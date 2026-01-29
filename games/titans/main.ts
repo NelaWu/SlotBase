@@ -27,7 +27,7 @@ async function startTitansSlotGame() {
   const urlParams = new URLSearchParams(window.location.search);
   const language = urlParams.get('language');
   let lang:string = '';
-  if( language == 'tw'){
+  if( language == 'zh-tw'){
     lang = 'cnt';
   }else if(language == 'en'){
     lang = 'en';
