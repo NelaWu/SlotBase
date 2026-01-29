@@ -25,9 +25,9 @@ async function startTitansSlotGame() {
 
   //語系轉換(真尷尬這邊太早執行了，只好再寫一次語系😅)
   const urlParams = new URLSearchParams(window.location.search);
-  const language = urlParams.get('lang');
+  const language = urlParams.get('language');
   let lang:string = '';
-  if( language == 'zh-TW'){
+  if( language == 'tw'){
     lang = 'cnt';
   }else if(language == 'en'){
     lang = 'en';
