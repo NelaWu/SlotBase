@@ -2,6 +2,7 @@ import * as PIXI from 'pixi.js';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { GameEventEnum } from '../../../enum/gameEnum';
 import { BaseNumber } from '@/views/components/BaseNumber';
+import { SoundManager } from '../../../core/SoundManager';
 
 export class BigTreasure extends PIXI.Container {
     private winText?: BaseNumber
@@ -34,6 +35,7 @@ export class BigTreasure extends PIXI.Container {
     const winEntry = bg.state.addAnimation(0, "Win", false, 0);
     winEntry.listener = {
     start: () => {
+        SoundManager.playSound('treasure_chest_open',{loop: false, volume: 1});
         this.winText!.showText(win);
         setTimeout(() => {
             this.winText!.visible = true;

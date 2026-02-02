@@ -5,6 +5,7 @@ import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { BaseNumber } from '@/views/components/BaseNumber';
 import gsap from 'gsap';
 import { getMultiplierFromSymbolId } from '../../../constants/MultiplierMap';
+import { SoundManager } from '../../../core/SoundManager';
 
 /**
  * Titans 遊戲的符號類別
@@ -156,6 +157,11 @@ export class TitansSymbol extends BaseSymbol {
                   this.spine!.visible = true;
                   this.spine!.renderable = true;
                   this.spine!.state?.setAnimation(0, "Hit", false);
+                  if(this.symbolId >=100) {
+                    SoundManager.playSound('btm_fx_symbol_function_2_100x');
+                  } else {
+                    SoundManager.playSound('btm_fx_symbol_function_2');
+                  }
                 }
                 if (this.multiText) {
                   this.addChild(this.multiText);
@@ -168,6 +174,11 @@ export class TitansSymbol extends BaseSymbol {
               }
             });
             this.spine?.state?.setAnimation(0, "Hit", false);
+            // if(this.symbolId >=100) {
+            //   SoundManager.playSound('btm_fx_symbol_function_2_100x');
+            // } else {
+            //   SoundManager.playSound('btm_fx_symbol_function_2');
+            // }
           }, 400);
         }
       }
@@ -203,8 +214,11 @@ export class TitansSymbol extends BaseSymbol {
             // 顯示並播放 Explosion 動畫
             this.explosionSpine.visible = true;
             this.explosionSpine.renderable = true;
-            const explosionTrackEntry = this.explosionSpine.state.setAnimation(0, "Explosion", false);
             
+            // 觸發爆炸開始事件（用於播放音效等）
+            this.emit('explosionStarted');
+            
+            const explosionTrackEntry = this.explosionSpine.state.setAnimation(0, "Explosion", false);
             explosionTrackEntry.listener = {
               complete: () => {
                 // Explosion 動畫完成後，隱藏 explosionSpine 並顯示 sprite

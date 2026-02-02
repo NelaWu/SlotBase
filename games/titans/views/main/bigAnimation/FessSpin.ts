@@ -5,6 +5,7 @@ import * as PIXI from 'pixi.js';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { ResourceManager } from '@/core/ResourceManager';
 import { BaseNumber } from '@/views/components/BaseNumber';
+import { SoundManager } from '../../../core/SoundManager';
 
 export class FessSpin extends PIXI.Container  {
   private startBtn?: BaseButton
@@ -54,6 +55,7 @@ export class FessSpin extends PIXI.Container  {
     });
     this.startBtn.position.set(753,1270);
     this.startBtn.on(ButtonEvent.BUTTON_CLICKED, () => {
+      SoundManager.playSound('btm_fg_press_start');
       this.onStartBtnClicked();
     });
     this.addChild(this.startBtn);
@@ -65,6 +67,7 @@ export class FessSpin extends PIXI.Container  {
     });
     this.cancelBtn.position.set(353,1270);
     this.cancelBtn.on(ButtonEvent.BUTTON_CLICKED, ()=>{
+      SoundManager.playSound('btm_butt');
         this.onCloseBtnClicked();
     });
     this.addChild(this.cancelBtn);

@@ -12,6 +12,7 @@ import { getMultiplierFromSymbolId } from '../../constants/MultiplierMap';
 import { GameEventEnum } from '../../enum/gameEnum';
 import { BaseNumber } from '@/views/components/BaseNumber';
 import { JpData, JpInfo } from './JpInfo';
+import { SoundManager } from '../../core/SoundManager';
 
 export class MainGame extends PIXI.Container {
   public gameScene!: GameScene;
@@ -85,7 +86,6 @@ export class MainGame extends PIXI.Container {
 
     // 創建大動畫管理器
     this.createBigAnimation();
-
   }
 
   public playSymbol10Animation(): void {
@@ -241,6 +241,7 @@ export class MainGame extends PIXI.Container {
     });
     this.addChild(this.buyFreeSpinsButton);
     this.buyFreeSpinsButton.on(ButtonEvent.BUTTON_CLICKED, () => {
+      SoundManager.playSound('btm_butt');
       // 獲取當前投注金額（客戶端金額）
       const betAmount = this.getBetAmount ? this.getBetAmount() : 0;
 
@@ -259,17 +260,24 @@ export class MainGame extends PIXI.Container {
       anchor: 0.5
     });
     this.settingsButtonContainer.addChild(this.logoutButton);
+    this.logoutButton.on(ButtonEvent.BUTTON_CLICKED, () => {
+      SoundManager.playSound('btm_butt');
+    });
     this.recordButton = new BaseButton({
       baseName: 'record_btn',
       anchor: 0.5
     });
     this.settingsButtonContainer.addChild(this.recordButton);
+    this.recordButton.on(ButtonEvent.BUTTON_CLICKED, () => {
+      SoundManager.playSound('btm_butt');
+    });
     this.infoButton = new BaseButton({
       baseName: 'info_btn',
       anchor: 0.5
     });
     this.settingsButtonContainer.addChild(this.infoButton);
     this.infoButton.on(ButtonEvent.BUTTON_CLICKED, () => {
+      SoundManager.playSound('btm_butt');
       if (this.manualPage) {
         this.manualPage.show();
       }
@@ -408,7 +416,6 @@ export class MainGame extends PIXI.Container {
     this.multiBallSpine.label = 'multiBallSpine';
     this.addChild(this.multiBallSpine);
     this.multiBallSpine.position.set(550, 950);
-    console.log('multiBallSpine', this.multiBallSpine);
     // 使用 symbolId 51 來顯示 Lv1（符合 51-55 或 151-155 範圍）
     // this.playMultiBallBigAnimation(51, '1-4');
   }
@@ -610,6 +617,7 @@ export class MainGame extends PIXI.Container {
 
     // 播放動畫（不循環）
     this.multiBallSpine.state.setAnimation(0, animation.pos, false);
+    SoundManager.playSound('btm_multiple_total');
 
   }
 }

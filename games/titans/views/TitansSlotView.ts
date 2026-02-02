@@ -4,7 +4,8 @@ import { MainGame } from './main/MainGame';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
 import { WinLineInfo } from '../models/TitansSlotModel';
 import { gsap } from 'gsap';
-import { JpData } from './main/jpInfo';
+import { JpData } from './main/JpInfo';
+import { SoundManager } from '../core/SoundManager';
 
 export class TitansSlotView extends BaseView {
   private mainGame!: MainGame;
@@ -60,11 +61,13 @@ export class TitansSlotView extends BaseView {
 
   // 按鈕點擊事件
   private onSpinButtonClick(): void {
+    SoundManager.playSound('btm_spin');
     this.mainGame.playSpinAnimation();
     this.emit('spinButtonClicked');
   }
 
   private onSettingsButtonClick(): void {
+    SoundManager.playSound('btm_butt');
     if (this.mainGame.settingsButton.visible == true) {
       this.mainGame.settingsButton.visible = false;
       this.mainGame.settingsBackButton.visible = true;
@@ -79,18 +82,22 @@ export class TitansSlotView extends BaseView {
   }
 
   private onTurboButtonClick(): void {
+    SoundManager.playSound('btm_butt');
     this.emit('turboButtonClicked');
   }
 
   private onAutoButtonClick(): void {
+    SoundManager.playSound('btm_butt');
     this.emit('autoButtonClicked');
   }
 
-  private onPlusButtonClick(): void {
+  private onPlusButtonClick(): void { 
+    SoundManager.playSound('btm_butt');
     this.emit('plusButtonClicked');
   }
 
   private onMinusButtonClick(): void {
+    SoundManager.playSound('btm_butt');
     this.emit('minusButtonClicked');
   }
 
