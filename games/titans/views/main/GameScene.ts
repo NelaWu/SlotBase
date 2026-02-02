@@ -3,6 +3,7 @@ import { BaseNumber } from '@/views/components/BaseNumber';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import * as PIXI from 'pixi.js';
 import { gsap } from 'gsap';
+import { SoundManager } from '../../core/SoundManager';
 
 export class GameScene extends PIXI.Container {
   private bgSprites: PIXI.Sprite[] = [];
@@ -173,6 +174,10 @@ export class GameScene extends PIXI.Container {
     this.startInfoBarRotation();
 
     this.setMG();
+    
+    // 初始化時播放主遊戲背景音樂
+    const soundManager = SoundManager.getInstance();
+    soundManager.playBGM('mg_bgm', 0.5);
   }
   setFG(): void {
     const resourceManager = ResourceManager.getInstance();
@@ -192,6 +197,10 @@ export class GameScene extends PIXI.Container {
     this.bgWinBarSpine!.visible = true;
     this.multiBallBigText!.visible = true;
     this.multiBallBigSpine!.visible = true;
+    
+    // 切換到免費遊戲背景音樂
+    const soundManager = SoundManager.getInstance();
+    soundManager.playBGM('fg_bgm', 0.5);
   }
 
   setMG(): void {
@@ -212,6 +221,10 @@ export class GameScene extends PIXI.Container {
     this.bgWinBarContainer!.visible = false;
     this.multiBallBigText!.visible = false;
     this.multiBallBigSpine!.visible = false;
+    
+    // 切換回主遊戲背景音樂
+    const soundManager = SoundManager.getInstance();
+    soundManager.playBGM('mg_bgm', 0.5);
   }
 
   public playMultiBallAnimation(): void {

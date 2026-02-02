@@ -257,6 +257,39 @@ async function startTitansSlotGame() {
       { id: 'manual_page_06_title', url: asset(`games/titans/assets/manual/manual_page_06_title_${lang}.png`), type: 'image' },
       { id: 'manual_page_07_text01', url: asset(`games/titans/assets/manual/manual_page_07_text01_${lang}.png`), type: 'image' },
       { id: 'manual_page_07_title', url: asset(`games/titans/assets/manual/manual_page_07_title_${lang}.png`), type: 'image' },
+      // audio 音頻資源
+      // 背景音樂（循環播放）
+      { id: 'mg_bgm', url: asset('games/titans/assets/audio/mg_bgm.mp3'), type: 'audio' }, // mg主旋律（循環播放）
+      { id: 'fg_bgm', url: asset('games/titans/assets/audio/fg_bgm.mp3'), type: 'audio' }, // fg主旋律（循環播放）
+      { id: 'btm_fg_out_bgm', url: asset('games/titans/assets/audio/ btm_fg_out_bgm.mp3'), type: 'audio' }, // fg結算畫面的背景循環音樂
+      
+      // 按鈕音效
+      { id: 'btm_butt', url: asset('games/titans/assets/audio/btm_butt.mp3'), type: 'audio' }, // 一般按鈕按下音效
+      { id: 'btm_butt_cancel', url: asset('games/titans/assets/audio/btm_butt_cancel.mp3'), type: 'audio' }, // 一般按鈕取消音效
+      { id: 'btm_spin', url: asset('games/titans/assets/audio/btm_spin.mp3'), type: 'audio' }, // 啟動Spin轉軸的按鈕音效
+      { id: 'btm_fg_press_start', url: asset('games/titans/assets/audio/btm_fg_press_start.mp3'), type: 'audio' }, // 購買free spins 介面按下START按鈕的音效
+      
+      // 輪軸轉動音效
+      { id: 'btm_fall_normal_2', url: asset('games/titans/assets/audio/btm_fall_normal-2.mp3'), type: 'audio' }, // 輪軸轉動-一般
+      { id: 'btm_fall_auto_2', url: asset('games/titans/assets/audio/btm_fall_auto_2.mp3'), type: 'audio' }, // 輪軸轉動-快速
+      
+      // Symbol 音效
+      { id: 'btm_symbol_hit', url: asset('games/titans/assets/audio/btm_symbol_hit.mp3'), type: 'audio' }, // 一般Symbol落定
+      { id: 'btm_fx_symbol_frame', url: asset('games/titans/assets/audio/btm_fx_symbol_frame.mp3'), type: 'audio' }, // 一般Symbol得分
+      { id: 'btm_symbol_out', url: asset('games/titans/assets/audio/btm_symbol_out.mp3'), type: 'audio' }, // 一般Symbol消除爆炸音效
+      
+      // 倍數Symbol音效
+      { id: 'btm_fx_symbol_function_2', url: asset('games/titans/assets/audio/btm_fx_symbol_function_2.mp3'), type: 'audio' }, // 倍數Symbol_一般落定
+      { id: 'btm_fx_symbol_function_2_100x', url: asset('games/titans/assets/audio/btm_fx_symbol_function_2_100x.mp3'), type: 'audio' }, // 倍數Symbol_高倍落定
+      { id: 'btm_multiple_total', url: asset('games/titans/assets/audio/btm_multiple_total.mp3'), type: 'audio' }, // 倍數symbol往贏分框飛的時後將出現此音效
+      
+      // 特殊音效
+      { id: 'btm_w_jp_line', url: asset('games/titans/assets/audio/btm_w_jp_line.mp3'), type: 'audio' }, // JP觸發音效（與scatter共用）
+      { id: 'gaint_angry', url: asset('games/titans/assets/audio/gaint_angry.mp3'), type: 'audio' }, // 巨人怒吼音效
+      { id: 'btm_trans', url: asset('games/titans/assets/audio/btm_trans.mp3'), type: 'audio' }, // 閃電雲的轉場音效
+      { id: 'treasure_chest_open', url: asset('games/titans/assets/audio/treasure_chest_open.mp3'), type: 'audio' }, // 寶箱開啟的整段畫面的音效
+      { id: 'btm_fg_out', url: asset('games/titans/assets/audio/ btm_fg_out.mp3'), type: 'audio' }, // fg結算畫面彈出時的爆炸音效
+      { id: 'btm_counting', url: asset('games/titans/assets/audio/btm_counting.mp3'), type: 'audio' }, // 金額跑分時播放的單顆錢幣音效（每跳兩個數字播一次）
       // spine 動畫資源 - @esotericsoftware/spine-pixi-v8 需要分別載入 atlas 和 skeleton
       // 主目錄下的 Spine 資源
       { id: 'BG_Multi_Ball_skel', url: asset('games/titans/assets/spine/BG_Multi_Ball.skel'), type: 'skel' },
