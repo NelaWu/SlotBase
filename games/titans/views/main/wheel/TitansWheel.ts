@@ -1,7 +1,6 @@
 import * as PIXI from 'pixi.js';
 import gsap from 'gsap';
 import { TitansSymbol } from '../symbol/TitansSymbol';
-import { SoundManager } from '../../../core/SoundManager';
 
 /**
  * 掉落動畫配置
@@ -299,11 +298,6 @@ export class TitansWheel extends PIXI.Container {
   }
 
   private createNewSymbols(symbolIds: number[][]): void {
-    if(this.animationConfig.columnDelay === 0) {
-      SoundManager.playSound('btm_fall_auto_2');
-    } else {
-      SoundManager.playSound('btm_fall_normal_2');
-    }
     for (let col = 0; col < this.config.numberOfReels; col++) {
       this.symbolStates[col] = [];
       const colSymbols = symbolIds[col];
@@ -474,6 +468,7 @@ export class TitansWheel extends PIXI.Container {
 
   private handleSymbolSettled(state: SymbolState): void {
     state.isDropping = false;
+
     const nextRowIndex = state.row - 1;
     if (nextRowIndex >= 0) {
       this.startSymbolDrop(state.col, nextRowIndex);
@@ -627,21 +622,7 @@ export class TitansWheel extends PIXI.Container {
     let completedCount = 0;
     const totalAnimations = winSymbols.length;
 
-    // 播放得獎音效（只播放一次）
-    SoundManager.playSound('btm_fx_symbol_frame');
-    
-    // 設置爆炸音效播放標誌（確保每次批量播放時只播放一次）
-    let explosionSoundPlayed = false;
-    
     winSymbols.forEach((state) => {
-      // 監聽爆炸事件，播放音效（只播放一次）
-      state.symbol.once('explosionStarted', () => {
-        if (!explosionSoundPlayed) {
-          SoundManager.playSound('btm_symbol_out');
-          explosionSoundPlayed = true;
-        }
-      });
-      
       state.symbol.showWin(() => {
         completedCount++;
         
@@ -821,7 +802,6 @@ export class TitansWheel extends PIXI.Container {
   }
 
   private startCascadeAnimation(): void {
-    SoundManager.playSound('btm_fall_normal_2');
     this.isAnimating = true;
     this.lastTime = performance.now();
 
@@ -847,6 +827,7 @@ export class TitansWheel extends PIXI.Container {
 
     this.symbolStates.forEach((col, colIndex) => {
       if (col.length === 0) return;
+      
       // 找到需要掉落的最底部符號（dropStarted = false）
       let bottomIndexToDrop = -1;
       for (let rowIndex = col.length - 1; rowIndex >= 0; rowIndex--) {

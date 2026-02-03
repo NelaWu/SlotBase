@@ -90,27 +90,11 @@ export class SoundManager {
   }
 
   /**
-   * 播放音效（靜態方法，可直接通過 SoundManager.playSound() 調用）
+   * 播放音效
    * @param soundId 音效ID
    * @param options 播放選項
    */
-  public static playSound(
-    soundId: string,
-    options?: {
-      loop?: boolean;
-      volume?: number;
-      resetTime?: boolean;
-    }
-  ): SoundPlayer | null {
-    return SoundManager.getInstance().playSound(soundId, options);
-  }
-
-  /**
-   * 播放音效（實例方法）
-   * @param soundId 音效ID
-   * @param options 播放選項
-   */
-  private playSound(
+  public playSound(
     soundId: string,
     options?: {
       loop?: boolean;
@@ -157,18 +141,10 @@ export class SoundManager {
   }
 
   /**
-   * 停止音效（靜態方法）
+   * 停止音效
    * @param soundId 音效ID
    */
-  public static stopSound(soundId: string): void {
-    SoundManager.getInstance().stopSound(soundId);
-  }
-
-  /**
-   * 停止音效（實例方法）
-   * @param soundId 音效ID
-   */
-  private stopSound(soundId: string): void {
+  public stopSound(soundId: string): void {
     const player = this.soundPlayers.get(soundId);
     if (player) {
       player.stop();
@@ -178,18 +154,10 @@ export class SoundManager {
   }
 
   /**
-   * 暫停音效（靜態方法）
+   * 暫停音效
    * @param soundId 音效ID
    */
-  public static pauseSound(soundId: string): void {
-    SoundManager.getInstance().pauseSound(soundId);
-  }
-
-  /**
-   * 暫停音效（實例方法）
-   * @param soundId 音效ID
-   */
-  private pauseSound(soundId: string): void {
+  public pauseSound(soundId: string): void {
     const player = this.soundPlayers.get(soundId);
     if (player) {
       player.pause();
@@ -197,18 +165,10 @@ export class SoundManager {
   }
 
   /**
-   * 恢復音效（靜態方法）
+   * 恢復音效
    * @param soundId 音效ID
    */
-  public static resumeSound(soundId: string): void {
-    SoundManager.getInstance().resumeSound(soundId);
-  }
-
-  /**
-   * 恢復音效（實例方法）
-   * @param soundId 音效ID
-   */
-  private resumeSound(soundId: string): void {
+  public resumeSound(soundId: string): void {
     const player = this.soundPlayers.get(soundId);
     if (player) {
       player.play();
@@ -216,22 +176,12 @@ export class SoundManager {
   }
 
   /**
-   * 播放背景音樂（BGM）- 使用無縫循環，提前0.1秒播放（靜態方法）
+   * 播放背景音樂（BGM）- 使用無縫循環，提前0.1秒播放
    * @param bgmId 背景音樂ID（mg_bgm 或 fg_bgm）
    * @param volume 音量（0.0-1.0，默認 0.5）
    * @param waitForInteraction 是否等待用戶交互（默認 true，如果用戶未交互則延遲播放）
    */
-  public static playBGM(bgmId: 'mg_bgm' | 'fg_bgm' | 'btm_fg_out_bgm', volume: number = 0.5, waitForInteraction: boolean = true): void {
-    SoundManager.getInstance().playBGM(bgmId, volume, waitForInteraction);
-  }
-
-  /**
-   * 播放背景音樂（BGM）- 使用無縫循環，提前0.1秒播放（實例方法）
-   * @param bgmId 背景音樂ID（mg_bgm 或 fg_bgm）
-   * @param volume 音量（0.0-1.0，默認 0.5）
-   * @param waitForInteraction 是否等待用戶交互（默認 true，如果用戶未交互則延遲播放）
-   */
-  private playBGM(bgmId: 'mg_bgm' | 'fg_bgm' | 'btm_fg_out_bgm', volume: number = 0.5, waitForInteraction: boolean = true): void {
+  public playBGM(bgmId: 'mg_bgm' | 'fg_bgm', volume: number = 0.5, waitForInteraction: boolean = true): void {
     // 如果正在播放相同的BGM，不重複播放
     if (this.currentBgmId === bgmId && this.currentBgmAudio && !this.currentBgmAudio.paused) {
       return;
@@ -257,7 +207,7 @@ export class SoundManager {
    * @param bgmId 背景音樂ID
    * @param volume 音量
    */
-  private playBGMSeamless(bgmId: 'mg_bgm' | 'fg_bgm' | 'btm_fg_out_bgm', volume: number): void {
+  private playBGMSeamless(bgmId: 'mg_bgm' | 'fg_bgm', volume: number): void {
     try {
       const audioResource = this.resourceManager.getResource(bgmId);
       if (!audioResource || !(audioResource instanceof HTMLAudioElement)) {
@@ -447,16 +397,9 @@ export class SoundManager {
   }
 
   /**
-   * 停止背景音樂（靜態方法）
+   * 停止背景音樂
    */
-  public static stopBGM(): void {
-    SoundManager.getInstance().stopBGM();
-  }
-
-  /**
-   * 停止背景音樂（實例方法）
-   */
-  private stopBGM(): void {
+  public stopBGM(): void {
     if (this.bgmPlayer) {
       this.bgmPlayer.stop();
       this.bgmPlayer.destroy();
@@ -467,18 +410,10 @@ export class SoundManager {
   }
 
   /**
-   * 設置背景音樂音量（靜態方法）
+   * 設置背景音樂音量
    * @param volume 音量（0.0-1.0）
    */
-  public static setBGMVolume(volume: number): void {
-    SoundManager.getInstance().setBGMVolume(volume);
-  }
-
-  /**
-   * 設置背景音樂音量（實例方法）
-   * @param volume 音量（0.0-1.0）
-   */
-  private setBGMVolume(volume: number): void {
+  public setBGMVolume(volume: number): void {
     this.bgmVolume = volume;
     if (this.bgmAudio1) this.bgmAudio1.volume = volume;
     if (this.bgmAudio2) this.bgmAudio2.volume = volume;
@@ -488,18 +423,10 @@ export class SoundManager {
   }
 
   /**
-   * 設置音效音量（靜態方法）
+   * 設置音效音量
    * @param volume 音量（0.0-1.0）
    */
-  public static setSoundVolume(volume: number): void {
-    SoundManager.getInstance().setSoundVolume(volume);
-  }
-
-  /**
-   * 設置音效音量（實例方法）
-   * @param volume 音量（0.0-1.0）
-   */
-  private setSoundVolume(volume: number): void {
+  public setSoundVolume(volume: number): void {
     // 設置所有非BGM音效的音量
     this.soundPlayers.forEach((player, soundId) => {
       if (soundId !== 'mg_bgm' && soundId !== 'fg_bgm') {
@@ -509,16 +436,9 @@ export class SoundManager {
   }
 
   /**
-   * 停止所有音效（不包括BGM）（靜態方法）
+   * 停止所有音效（不包括BGM）
    */
-  public static stopAllSounds(): void {
-    SoundManager.getInstance().stopAllSounds();
-  }
-
-  /**
-   * 停止所有音效（不包括BGM）（實例方法）
-   */
-  private stopAllSounds(): void {
+  public stopAllSounds(): void {
     this.soundPlayers.forEach((player, soundId) => {
       if (soundId !== 'mg_bgm' && soundId !== 'fg_bgm') {
         player.stop();
@@ -529,64 +449,34 @@ export class SoundManager {
   }
 
   /**
-   * 停止所有音效和BGM（靜態方法）
+   * 停止所有音效和BGM
    */
-  public static stopAll(): void {
-    SoundManager.getInstance().stopAll();
-  }
-
-  /**
-   * 停止所有音效和BGM（實例方法）
-   */
-  private stopAll(): void {
+  public stopAll(): void {
     this.stopAllSounds();
     this.stopBGM();
   }
 
   /**
-   * 檢查音效是否正在播放（靜態方法）
+   * 檢查音效是否正在播放
    * @param soundId 音效ID
    */
-  public static isPlaying(soundId: string): boolean {
-    return SoundManager.getInstance().isPlaying(soundId);
-  }
-
-  /**
-   * 檢查音效是否正在播放（實例方法）
-   * @param soundId 音效ID
-   */
-  private isPlaying(soundId: string): boolean {
+  public isPlaying(soundId: string): boolean {
     const player = this.soundPlayers.get(soundId);
     return player ? player.getIsPlaying() : false;
   }
 
   /**
-   * 獲取音效播放器實例（靜態方法）
+   * 獲取音效播放器實例
    * @param soundId 音效ID
    */
-  public static getSoundPlayer(soundId: string): SoundPlayer | null {
-    return SoundManager.getInstance().getSoundPlayer(soundId);
-  }
-
-  /**
-   * 獲取音效播放器實例（實例方法）
-   * @param soundId 音效ID
-   */
-  private getSoundPlayer(soundId: string): SoundPlayer | null {
+  public getSoundPlayer(soundId: string): SoundPlayer | null {
     return this.soundPlayers.get(soundId) || null;
   }
 
   /**
-   * 銷毀管理器（清理所有資源）（靜態方法）
+   * 銷毀管理器（清理所有資源）
    */
-  public static destroy(): void {
-    SoundManager.getInstance().destroy();
-  }
-
-  /**
-   * 銷毀管理器（清理所有資源）（實例方法）
-   */
-  private destroy(): void {
+  public destroy(): void {
     this.stopAll();
     this.soundPlayers.clear();
   }

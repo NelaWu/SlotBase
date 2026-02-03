@@ -2,7 +2,6 @@
 import * as PIXI from 'pixi.js';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { GameEventEnum } from '../../../enum/gameEnum';
-import { SoundManager } from '../../../core/SoundManager';
 
 export class Transition extends PIXI.Container {
   constructor() {
@@ -15,7 +14,6 @@ export class Transition extends PIXI.Container {
       atlas: 'Transition_atlas',
       skeleton: 'Transition_skel',
     });
-    SoundManager.playSound('btm_trans');
 
     this.addChild(transition);
     transition.position.set(540, 900);

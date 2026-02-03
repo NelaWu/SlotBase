@@ -2,7 +2,6 @@ import * as PIXI from 'pixi.js';
 import { ResourceManager } from '@/core/ResourceManager';
 import { BaseButton } from '@views/components/BaseButton';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
-import { SoundManager } from '../../../core/SoundManager';
 
 export class ManualPage extends PIXI.Container {
   private currentPage: number = 1;
@@ -50,7 +49,6 @@ export class ManualPage extends PIXI.Container {
     this.closeButton.position.set(935, 290);
     this.addChild(this.closeButton);
     this.closeButton.on(ButtonEvent.BUTTON_CLICKED, () => {
-      SoundManager.playSound('btm_butt');
       this.hide();
     });
 
@@ -62,7 +60,6 @@ export class ManualPage extends PIXI.Container {
     this.prevButton.position.set(200, 1600);
     this.addChild(this.prevButton);
     this.prevButton.on(ButtonEvent.BUTTON_CLICKED, () => {
-      SoundManager.playSound('btm_butt');
       this.prevPage();
     });
 
@@ -75,7 +72,6 @@ export class ManualPage extends PIXI.Container {
     this.nextButton.position.set(800, 1600);
     this.addChild(this.nextButton);
     this.nextButton.on(ButtonEvent.BUTTON_CLICKED, () => {
-      SoundManager.playSound('btm_butt');
       this.nextPage();
     });
 
