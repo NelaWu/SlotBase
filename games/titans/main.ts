@@ -163,7 +163,7 @@ async function startTitansSlotGame() {
       { id: 'fg_summary_alart_btn_normal', url: asset('games/titans/assets/fg_summary_alart_btn_normal.png'), type: 'image' },
       { id: 'fg_summary_alart_btn_pressed', url: asset('games/titans/assets/fg_summary_alart_btn_pressed.png'), type: 'image' },
       { id: 'fg_summary_alart_btntext_cnt', url: asset(`games/titans/assets/fg_summary_alart_btntext_${lang}.png`), type: 'image' },
-      { id: 'fg_summary_alart_Title_cnt', url: asset(`games/titans/assets/fg_summary_alart_Title_${lang}.png`), type: 'image' },
+      { id: 'fg_summary_alart_Title', url: asset(`games/titans/assets/fg_summary_alart_Title_${lang}.png`), type: 'image' },
       { id: 'fg_summary_alart_number_0', url: asset('games/titans/assets/fg_summary_alart_number_0.png'), type: 'image' },
       { id: 'fg_summary_alart_number_1', url: asset('games/titans/assets/fg_summary_alart_number_1.png'), type: 'image' },
       { id: 'fg_summary_alart_number_2', url: asset('games/titans/assets/fg_summary_alart_number_2.png'), type: 'image' },

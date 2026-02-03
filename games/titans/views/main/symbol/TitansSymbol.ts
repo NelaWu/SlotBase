@@ -174,11 +174,6 @@ export class TitansSymbol extends BaseSymbol {
               }
             });
             this.spine?.state?.setAnimation(0, "Hit", false);
-            // if(this.symbolId >=100) {
-            //   SoundManager.playSound('btm_fx_symbol_function_2_100x');
-            // } else {
-            //   SoundManager.playSound('btm_fx_symbol_function_2');
-            // }
           }, 400);
         }
       }

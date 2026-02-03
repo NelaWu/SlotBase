@@ -24,10 +24,11 @@ export class FreeEnd extends PIXI.Container {
         bg.position.set(540,900);
         bg.state.setAnimation(0, "Idle", true);
         this.addChild(bg);
-        const title = resourceManager.getResource('fg_summary_alart_Title_cnt');
+        const title = resourceManager.getResource('fg_summary_alart_Title');
         const titleTexture = PIXI.Texture.from(title);
         const titleSprite = new PIXI.Sprite(titleTexture);
-        titleSprite.position.set(226,681);
+        titleSprite.anchor.set(0.5);
+        titleSprite.position.set(540,670);
         this.addChild(titleSprite);
         
         const closeBtn = new BaseButton({
@@ -74,12 +75,21 @@ export class FreeEnd extends PIXI.Container {
     public setWinText(text: string): void {
         SoundManager.playBGM('btm_fg_out_bgm');
         let num:{money:number} = {money:0}
+        let lastSoundTime = 0; // 記錄上次播放音效的時間
+        
         gsap.to(num, { money: text, duration: 5,
             onStart: () => {
                 SoundManager.playSound('btm_fg_out');
+                lastSoundTime = performance.now(); // 記錄開始時間
             },
              onUpdate: () => {
             this.winText?.showText(num.money.toFixed(2));
+            
+            const currentTime = performance.now();
+            if (currentTime - lastSoundTime >= 200) {
+                SoundManager.playSound('btm_counting');
+                lastSoundTime = currentTime;
+            }
         } });
     }
 

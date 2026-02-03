@@ -2,6 +2,7 @@ import * as PIXI from 'pixi.js';
 import gsap from 'gsap';
 import { TitansSymbol } from '../symbol/TitansSymbol';
 import { SoundManager } from '../../../core/SoundManager';
+import { SymbolID } from '../../../enum/gameEnum';
 
 /**
  * 掉落動畫配置
@@ -43,6 +44,7 @@ interface SymbolState {
   dropStarted: boolean;
   hasTriggeredNext: boolean;
   isShowingWin: boolean;
+  hasPlayedLandingSound?: boolean;
 }
 
 /**
@@ -130,7 +132,8 @@ export class TitansWheel extends PIXI.Container {
           col,
           dropStarted: false,
           hasTriggeredNext: false,
-          isShowingWin: false
+          isShowingWin: false,
+          hasPlayedLandingSound: false, 
         };
       }
     }
@@ -333,7 +336,8 @@ export class TitansWheel extends PIXI.Container {
           col,
           dropStarted: false,
           hasTriggeredNext: false,
-          isShowingWin: false
+          isShowingWin: false,
+          hasPlayedLandingSound: false,
         };
       }
     }
@@ -418,7 +422,10 @@ export class TitansWheel extends PIXI.Container {
           if (symbol.y >= targetY) {
             symbol.y = targetY;
             state.velocityY = -state.velocityY * this.animationConfig.bounce;
-
+            if (!state.hasPlayedLandingSound) {
+              state.hasPlayedLandingSound = true;
+              SoundManager.playSound('btm_symbol_hit');
+            }
             if (Math.abs(state.velocityY) < 50) {
               state.velocityY = 0;
               symbol.y = targetY;
@@ -438,11 +445,14 @@ export class TitansWheel extends PIXI.Container {
           }
 
           state.velocityY += this.animationConfig.gravity * deltaSeconds;
-          symbol.y += state.velocityY * deltaSeconds;
-
+          symbol.y += state.velocityY * deltaSeconds;          
           if (symbol.y >= targetY) {
             symbol.y = targetY;
             state.velocityY = -state.velocityY * this.animationConfig.bounce;
+            if (!state.hasPlayedLandingSound) {
+              state.hasPlayedLandingSound = true;
+              SoundManager.playSound('btm_symbol_hit');
+            }
 
             if (Math.abs(state.velocityY) < 50) {
               state.velocityY = 0;
@@ -627,14 +637,31 @@ export class TitansWheel extends PIXI.Container {
     let completedCount = 0;
     const totalAnimations = winSymbols.length;
 
-    // 播放得獎音效（只播放一次）
-    SoundManager.playSound('btm_fx_symbol_frame');
+    // 播放聲音判斷，檢查得獎符號中是否有 JP 或 SCATTER，以及其他中獎符號
+    let hasJPOrScatter = false;
+    let hasOtherWinSymbols = false;
+    
+    winSymbols.forEach((state) => {
+      const symbolId = state.symbol.getSymbolId();
+      if (symbolId === SymbolID.JP || symbolId === SymbolID.SCATTER) {
+        hasJPOrScatter = true;
+      } else {
+        hasOtherWinSymbols = true;
+      }
+    });
+    if (hasJPOrScatter) {
+      SoundManager.playSound('btm_w_jp_line');
+    }
+    
+    if (hasOtherWinSymbols) {
+      SoundManager.playSound('btm_fx_symbol_frame');
+    }
     
     // 設置爆炸音效播放標誌（確保每次批量播放時只播放一次）
     let explosionSoundPlayed = false;
     
     winSymbols.forEach((state) => {
-      // 監聽爆炸事件，播放音效（只播放一次）
+      // 監聽爆炸事件，播放音效
       state.symbol.once('explosionStarted', () => {
         if (!explosionSoundPlayed) {
           SoundManager.playSound('btm_symbol_out');
@@ -679,7 +706,7 @@ export class TitansWheel extends PIXI.Container {
     
     this.symbolStates.forEach((col, colIndex) => {
       col.forEach((state, rowIndex) => {
-        if (state && state.isShowingWin && state.symbol.getSymbolId() !== 10 && state.symbol.getSymbolId() !== 11) {
+        if (state && state.isShowingWin && state.symbol.getSymbolId() !== SymbolID.SCATTER && state.symbol.getSymbolId() !== SymbolID.JP) {
           symbolsToRemove.push({ col: colIndex, row: rowIndex });
         }
       });
@@ -841,6 +868,7 @@ export class TitansWheel extends PIXI.Container {
         state.dropStarted = false;
         state.hasTriggeredNext = false;
         state.isDropping = false;
+        state.hasPlayedLandingSound = false;
         state.velocityY = 0;
       });
     });
