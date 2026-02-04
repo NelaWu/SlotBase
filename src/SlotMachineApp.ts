@@ -139,6 +139,23 @@ export class SlotMachineApp {
     
     // 設置響應式
     this.setupResize();
+
+    // 在開發環境顯示 FPS 和 Drawcall
+    if (this.isDevelopment()) {
+      const { FPSDisplay } = await import('@utils/FPSDisplay');
+      const fpsDisplay = new FPSDisplay(this.app);
+      this.app.stage.addChild(fpsDisplay);
+    }
+  }
+
+  // 檢查是否為開發環境
+  private isDevelopment(): boolean {
+    return (
+      location.hostname === 'localhost' ||
+      location.hostname === '127.0.0.1' ||
+      location.hostname.includes('192.168') ||
+      location.hostname.includes('0.0.0.0')
+    );
   }
 
   // 設置狀態機

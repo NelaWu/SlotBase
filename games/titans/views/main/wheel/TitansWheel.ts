@@ -69,6 +69,11 @@ export class TitansWheel extends PIXI.Container {
   private isClearing: boolean = false;
   private clearStartTime: number = 0;
   private originalColumnDelay: number = 100;
+  private app?: PIXI.Application; // PixiJS 應用實例
+  private tickerHandler?: (ticker: PIXI.Ticker) => void; // Ticker 處理器
+  private pendingSoundQueue: Array<{ soundId: string; timestamp: number }> = []; // 待播放音效隊列
+  private lastSoundPlayTime: number = 0; // 上次播放音效的時間
+  private readonly SOUND_COOLDOWN = 50; // 音效冷卻時間（毫秒），避免過於頻繁播放
 
   constructor(config: TitansWheelConfig) {
     super();
@@ -223,7 +228,7 @@ export class TitansWheel extends PIXI.Container {
     onClearComplete?: () => void, 
     fastDrop?: boolean 
   }): void {
-    console.log('wheel::stopSpin', result);
+    // console.log('wheel::stopSpin', result); // 註釋掉以提升性能
     const { symbolIds, onComplete, onClearComplete, fastDrop } = result;
     
     if (fastDrop) {
@@ -360,7 +365,19 @@ export class TitansWheel extends PIXI.Container {
       }, delay);
     });
 
-    this.animate();
+    // 啟動動畫循環
+    if (this.app && this.app.ticker) {
+      // 使用 PixiJS ticker（性能更好）
+      if (!this.tickerHandler) {
+        this.tickerHandler = (ticker: PIXI.Ticker) => {
+          this.animate(performance.now());
+        };
+        this.app.ticker.add(this.tickerHandler);
+      }
+    } else {
+      // 備用方案：使用 requestAnimationFrame
+      this.animate();
+    }
   }
 
   private animate = (currentTime: number = performance.now()): void => {
@@ -369,6 +386,10 @@ export class TitansWheel extends PIXI.Container {
     const deltaTime = currentTime - this.lastTime;
     this.lastTime = currentTime;
     const deltaSeconds = deltaTime / 1000;
+    
+    // 限制 deltaSeconds 的最大值，避免跳幀時出現異常
+    const clampedDeltaSeconds = Math.min(deltaSeconds, 0.1); // 最多 100ms
+    const delta = clampedDeltaSeconds; // 使用 clamped 值確保動畫穩定
 
     let allSettled = true;
 
@@ -398,7 +419,7 @@ export class TitansWheel extends PIXI.Container {
 
         if (needsToMoveDown) {
           const distance = currentY - targetY;
-          const speed = this.animationConfig.dropSpeed * deltaSeconds;
+          const speed = this.animationConfig.dropSpeed * delta;
           
           if (distance > speed) {
             symbol.y -= speed;
@@ -416,15 +437,16 @@ export class TitansWheel extends PIXI.Container {
             }
           }
 
-          state.velocityY += this.animationConfig.gravity * deltaSeconds;
-          symbol.y += state.velocityY * deltaSeconds;
+          state.velocityY += this.animationConfig.gravity * delta;
+          symbol.y += state.velocityY * delta;
 
           if (symbol.y >= targetY) {
             symbol.y = targetY;
             state.velocityY = -state.velocityY * this.animationConfig.bounce;
-            if (!state.hasPlayedLandingSound) {
+            // 優化音效播放：只在真正落地時播放，並限制播放頻率
+            if (!state.hasPlayedLandingSound && Math.abs(state.velocityY) < 200) {
               state.hasPlayedLandingSound = true;
-              SoundManager.playSound('btm_symbol_hit');
+              this.queueSound('btm_symbol_hit', currentTime);
             }
             if (Math.abs(state.velocityY) < 50) {
               state.velocityY = 0;
@@ -444,14 +466,15 @@ export class TitansWheel extends PIXI.Container {
             }
           }
 
-          state.velocityY += this.animationConfig.gravity * deltaSeconds;
-          symbol.y += state.velocityY * deltaSeconds;          
+          state.velocityY += this.animationConfig.gravity * delta;
+          symbol.y += state.velocityY * delta;          
           if (symbol.y >= targetY) {
             symbol.y = targetY;
             state.velocityY = -state.velocityY * this.animationConfig.bounce;
-            if (!state.hasPlayedLandingSound) {
+            // 優化音效播放：只在真正落地時播放，並限制播放頻率
+            if (!state.hasPlayedLandingSound && Math.abs(state.velocityY) < 200) {
               state.hasPlayedLandingSound = true;
-              SoundManager.playSound('btm_symbol_hit');
+              this.queueSound('btm_symbol_hit', currentTime);
             }
 
             if (Math.abs(state.velocityY) < 50) {
@@ -466,10 +489,17 @@ export class TitansWheel extends PIXI.Container {
       });
     });
 
+    // 處理待播放的音效隊列
+    this.processSoundQueue(currentTime);
+    
     if (allSettled) {
       this.stopAnimation();
     } else {
-      this.animationId = requestAnimationFrame(this.animate);
+      // 如果使用 ticker，不需要手動調用 requestAnimationFrame（ticker 會自動持續調用）
+      // 如果使用 requestAnimationFrame，繼續下一幀
+      if (!this.app || !this.app.ticker || !this.tickerHandler) {
+        this.animationId = requestAnimationFrame(this.animate);
+      }
     }
   }
 
@@ -491,18 +521,27 @@ export class TitansWheel extends PIXI.Container {
   }
 
   private stopAnimation(): void {
+    // 停止 ticker
+    if (this.app && this.app.ticker && this.tickerHandler) {
+      this.app.ticker.remove(this.tickerHandler);
+      this.tickerHandler = undefined;
+    }
+    
+    // 停止 requestAnimationFrame
     if (this.animationId !== null) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
     }
 
     this.isAnimating = false;
+    // 清空音效隊列
+    this.pendingSoundQueue = [];
 
     if (this.dropCompleteCallback) {
       this.dropCompleteCallback();
       this.dropCompleteCallback = undefined;
     }
-    console.log('[Wheel] ✅ 觸發所有動畫完成回調',this.isRemovingWin,this.removeWinCompleteCallback);
+    // console.log('[Wheel] ✅ 觸發所有動畫完成回調',this.isRemovingWin,this.removeWinCompleteCallback);
     if (this.isRemovingWin && this.removeWinCompleteCallback) {
       this.isRemovingWin = false;
       this.removeWinCompleteCallback();
@@ -674,7 +713,7 @@ export class TitansWheel extends PIXI.Container {
         
         // 【修改】當所有符號動畫都完成時
         if (completedCount >= totalAnimations) {
-          console.log('[Wheel] ✅ 所有獲勝動畫播放完成');
+          // console.log('[Wheel] ✅ 所有獲勝動畫播放完成'); // 註釋掉以提升性能
           
           // 觸發所有動畫完成回調
           if (this.allWinAnimationsCompleteCallback) {
@@ -833,7 +872,7 @@ export class TitansWheel extends PIXI.Container {
 
     if (!hasSymbolsToDrop && this.isRemovingWin && this.removeWinCompleteCallback) {
       // 所有符號都已經在目標位置，直接觸發回調
-      console.log('[Wheel] 所有符號都已在目標位置，直接觸發 removeWinCompleteCallback');
+      // console.log('[Wheel] 所有符號都已在目標位置，直接觸發 removeWinCompleteCallback'); // 註釋掉以提升性能
       const callback = this.removeWinCompleteCallback;
       this.isRemovingWin = false;
       this.removeWinCompleteCallback = undefined;
@@ -981,11 +1020,45 @@ export class TitansWheel extends PIXI.Container {
     this.startCascadeAnimation();
   }
 
+  /**
+   * 將音效加入隊列（限制播放頻率）
+   */
+  private queueSound(soundId: string, currentTime: number): void {
+    // 檢查冷卻時間
+    if (currentTime - this.lastSoundPlayTime < this.SOUND_COOLDOWN) {
+      return; // 還在冷卻中，跳過
+    }
+    
+    this.pendingSoundQueue.push({ soundId, timestamp: currentTime });
+  }
+
+  /**
+   * 處理音效隊列
+   */
+  private processSoundQueue(currentTime: number): void {
+    if (this.pendingSoundQueue.length === 0) return;
+
+    // 只播放隊列中最早的音效
+    const sound = this.pendingSoundQueue.shift();
+    if (sound && currentTime - this.lastSoundPlayTime >= this.SOUND_COOLDOWN) {
+      SoundManager.playSound(sound.soundId);
+      this.lastSoundPlayTime = currentTime;
+    }
+  }
+
   public destroy(options?: any): void {
+    // 停止 ticker
+    if (this.app && this.app.ticker && this.tickerHandler) {
+      this.app.ticker.remove(this.tickerHandler);
+      this.tickerHandler = undefined;
+    }
+    
+    // 停止 requestAnimationFrame
     if (this.animationId !== null) {
       cancelAnimationFrame(this.animationId);
       this.animationId = null;
     }
+    
     this.clearSymbols();
     super.destroy(options);
   }
