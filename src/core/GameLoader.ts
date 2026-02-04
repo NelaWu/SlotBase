@@ -153,11 +153,14 @@ export class GameLoader {
     this.resourceManager.setCallbacks(
       (progress: LoadProgress) => {
         const phaseProgress = 20 + (progress.percentage * 0.6); // 20-80% 的進度
+        const detailMessage = progress.currentResource 
+          ? `${progress.currentResource} (${progress.loaded}/${progress.total})`
+          : `(${progress.loaded}/${progress.total})`;
         this.updateProgress(
           LoadingPhase.LOADING_RESOURCES,
           phaseProgress,
           `正在載入資源... (${progress.loaded}/${progress.total})`,
-          progress.currentResource
+          detailMessage
         );
       },
       () => {

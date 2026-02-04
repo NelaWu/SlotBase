@@ -30,6 +30,7 @@ export default defineConfig({
     }
   },
   server: {
+    host: '0.0.0.0', // 允許外部訪問（手機可以透過 WiFi 連接）
     port: 3000,
     open: true
   },

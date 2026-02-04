@@ -105,17 +105,40 @@ export class ResourceManager {
     const total = definitions.length;
     let loaded = 0;
 
-    const loadPromises = definitions.map(async (definition) => {
+    // 為每個資源添加超時機制（30秒）
+    const loadWithTimeout = async (definition: ResourceDefinition, timeout: number = 30000): Promise<any> => {
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(new Error(`載入超時 (${timeout}ms): ${definition.id} - ${definition.url}`));
+        }, timeout);
+      });
+
+      return Promise.race([
+        this.loadResource(definition),
+        timeoutPromise
+      ]);
+    };
+
+    const loadPromises = definitions.map(async (definition, index) => {
       try {
+        // 更新進度：顯示即將載入的資源
+        loaded = index; // 當前索引就是已載入數量
         this.onProgress?.({
           loaded,
           total,
           percentage: (loaded / total) * 100,
-          currentResource: definition.id
+          currentResource: `正在載入: ${definition.id}`
         });
 
-        await this.loadResource(definition);
+        console.log(`[ResourceManager] [${index + 1}/${total}] 開始載入資源: ${definition.id} (${definition.type})`);
+        console.log(`[ResourceManager] URL: ${definition.url}`);
+
+        const startTime = Date.now();
+        await loadWithTimeout(definition);
+        const loadTime = Date.now() - startTime;
+        
         loaded++;
+        console.log(`[ResourceManager] ✓ [${loaded}/${total}] 資源載入完成: ${definition.id} (耗時: ${loadTime}ms)`);
 
         this.onProgress?.({
           loaded,
@@ -124,7 +147,8 @@ export class ResourceManager {
           currentResource: definition.id
         });
       } catch (error) {
-        const errorMessage = `載入資源失敗: ${definition.id} - ${error}`;
+        const errorMessage = `載入資源失敗 [${index + 1}/${total}]: ${definition.id} (${definition.type}) - ${definition.url} - ${error}`;
+        console.error(`[ResourceManager] ✗ ${errorMessage}`);
         this.onError?.(errorMessage);
         throw new Error(errorMessage);
       }
@@ -132,8 +156,10 @@ export class ResourceManager {
 
     try {
       await Promise.all(loadPromises);
+      console.log(`[ResourceManager] ✅ 所有資源載入完成！共 ${total} 個資源`);
       this.onComplete?.();
     } catch (error) {
+      console.error(`[ResourceManager] ❌ 資源載入失敗:`, error);
       throw error;
     }
   }
@@ -179,9 +205,59 @@ export class ResourceManager {
   private loadAudio(url: string): Promise<HTMLAudioElement> {
     return new Promise((resolve, reject) => {
       const audio = new Audio();
-      audio.oncanplaythrough = () => resolve(audio);
-      audio.onerror = () => reject(new Error(`無法載入音效: ${url}`));
+      let resolved = false;
+      
+      // 設置超時（30秒）
+      const timeout = setTimeout(() => {
+        if (!resolved) {
+          resolved = true;
+          reject(new Error(`音效載入超時: ${url}`));
+        }
+      }, 30000);
+
+      const cleanup = () => {
+        clearTimeout(timeout);
+        audio.removeEventListener('canplaythrough', onCanPlay);
+        audio.removeEventListener('error', onError);
+        audio.removeEventListener('loadeddata', onLoadedData);
+      };
+
+      const onCanPlay = () => {
+        if (!resolved) {
+          resolved = true;
+          cleanup();
+          console.log(`[ResourceManager] 音效載入完成 (canplaythrough): ${url}`);
+          resolve(audio);
+        }
+      };
+
+      const onLoadedData = () => {
+        // 對於某些瀏覽器（特別是 iOS Safari），loadeddata 事件可能比 canplaythrough 更早觸發
+        // 但我們仍然等待 canplaythrough 以確保音頻可以播放
+        console.log(`[ResourceManager] 音效數據已載入 (loadeddata): ${url}`);
+      };
+
+      const onError = (e: Event) => {
+        if (!resolved) {
+          resolved = true;
+          cleanup();
+          const errorMsg = `無法載入音效: ${url}`;
+          console.error(`[ResourceManager] ${errorMsg}`, e);
+          reject(new Error(errorMsg));
+        }
+      };
+
+      // 監聽多個事件以確保兼容性
+      audio.addEventListener('canplaythrough', onCanPlay);
+      audio.addEventListener('loadeddata', onLoadedData);
+      audio.addEventListener('error', onError);
+      
+      // 設置 preload 屬性（iOS Safari 可能需要）
+      audio.preload = 'auto';
+      
+      // 開始載入
       audio.src = url;
+      audio.load(); // 明確調用 load() 以觸發載入
     });
   }
 
