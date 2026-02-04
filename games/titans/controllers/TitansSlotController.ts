@@ -512,6 +512,7 @@ export class TitansSlotController extends BaseController {
   private onAutoButtonClicked(): void {
     // 【新增】如果正在處理連鎖，禁止切換自動模式
     if (this.isProcessingCascade) {
+      this.isAutoSpinEnabled = !this.isAutoSpinEnabled;
       this.log('正在處理連鎖中，無法切換自動模式');
       return;
     }
