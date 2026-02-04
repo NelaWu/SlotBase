@@ -40,6 +40,15 @@ export class SoundManager {
   private userInteracted: boolean = false; // 用戶是否已與頁面交互
   private pendingBgmId: string | null = null; // 待播放的背景音樂ID（用戶交互後播放）
   private pendingBgmVolume: number = 0.5; // 待播放的背景音樂音量
+  
+  // BGM 無縫循環相關（提前0.1秒播放）
+  private bgmAudio1: HTMLAudioElement | null = null; // BGM 音頻元素1（用於無縫循環）
+  private bgmAudio2: HTMLAudioElement | null = null; // BGM 音頻元素2（用於無縫循環）
+  private currentBgmAudio: HTMLAudioElement | null = null; // 當前播放的BGM音頻元素
+  private bgmVolume: number = 0.5; // BGM音量
+  private bgmTimeUpdateHandler?: () => void; // timeupdate 事件處理器
+  private bgmEndedHandler1?: () => void; // audio1 ended 事件處理器
+  private bgmEndedHandler2?: () => void; // audio2 ended 事件處理器
 
   private constructor() {
     this.resourceManager = ResourceManager.getInstance();
@@ -167,14 +176,14 @@ export class SoundManager {
   }
 
   /**
-   * 播放背景音樂（BGM）
+   * 播放背景音樂（BGM）- 使用無縫循環，提前0.1秒播放
    * @param bgmId 背景音樂ID（mg_bgm 或 fg_bgm）
    * @param volume 音量（0.0-1.0，默認 0.5）
    * @param waitForInteraction 是否等待用戶交互（默認 true，如果用戶未交互則延遲播放）
    */
   public playBGM(bgmId: 'mg_bgm' | 'fg_bgm', volume: number = 0.5, waitForInteraction: boolean = true): void {
     // 如果正在播放相同的BGM，不重複播放
-    if (this.currentBgmId === bgmId && this.bgmPlayer?.getIsPlaying()) {
+    if (this.currentBgmId === bgmId && this.currentBgmAudio && !this.currentBgmAudio.paused) {
       return;
     }
 
@@ -189,25 +198,202 @@ export class SoundManager {
     // 停止當前BGM
     this.stopBGM();
 
-    // 播放新BGM
-    const player = this.playSound(bgmId, {
-      loop: true,
-      volume: volume
-    });
+    // 使用無縫循環播放（提前0.1秒）
+    this.playBGMSeamless(bgmId, volume);
+  }
 
-    if (player) {
-      this.bgmPlayer = player;
-      this.currentBgmId = bgmId;
+  /**
+   * 無縫循環播放背景音樂（提前0.1秒播放，實現無縫銜接）
+   * @param bgmId 背景音樂ID
+   * @param volume 音量
+   */
+  private playBGMSeamless(bgmId: 'mg_bgm' | 'fg_bgm', volume: number): void {
+    try {
+      const audioResource = this.resourceManager.getResource(bgmId);
+      if (!audioResource || !(audioResource instanceof HTMLAudioElement)) {
+        console.warn(`[SoundManager] 找不到BGM資源: ${bgmId}`);
+        return;
+      }
+
+      // 清理舊的BGM音頻元素
+      this.cleanupBGM();
+
+      // 創建兩個音頻元素用於無縫循環
+      this.bgmAudio1 = new Audio(audioResource.src);
+      this.bgmAudio2 = new Audio(audioResource.src);
       
-      // 嘗試播放，如果失敗則等待用戶交互
-      player.play(false, true).catch(() => {
-        // 播放失敗，保存為待播放
-        if (waitForInteraction) {
-          this.pendingBgmId = bgmId;
-          this.pendingBgmVolume = volume;
+      this.bgmAudio1.volume = volume;
+      this.bgmAudio2.volume = volume;
+      this.bgmAudio1.loop = false; // 不使用原生 loop，手動控制
+      this.bgmAudio2.loop = false;
+      this.bgmVolume = volume;
+
+      // 確保音頻元素已加載
+      this.bgmAudio1.load();
+      this.bgmAudio2.load();
+
+      this.currentBgmAudio = this.bgmAudio1;
+      
+      let nextAudioStarted = false; // 標記下一個音頻是否已開始播放
+
+      // 使用 timeupdate 事件在即將結束時提前0.1秒播放下一個音頻（實現無縫循環）
+      const timeUpdateHandler = () => {
+        if (!this.currentBgmAudio) return;
+        
+        const duration = this.currentBgmAudio.duration;
+        const currentTime = this.currentBgmAudio.currentTime;
+        
+        // 如果音頻即將結束（剩餘時間小於 0.1 秒），提前開始播放下一個音頻
+        if (duration > 0 && duration - currentTime < 0.15 && !nextAudioStarted) {
+          if (this.currentBgmAudio === this.bgmAudio1 && this.bgmAudio2) {
+            // 提前開始播放 audio2
+            console.log('[SoundManager] ⏩ 提前0.1秒開始播放 audio2（無縫銜接）');
+            this.bgmAudio2.currentTime = 0;
+            this.bgmAudio2.play().then(() => {
+              console.log('[SoundManager] ✅ audio2 提前播放成功');
+            }).catch((error) => {
+              console.error('[SoundManager] ❌ audio2 提前播放失敗:', error);
+            });
+            nextAudioStarted = true;
+          } else if (this.currentBgmAudio === this.bgmAudio2 && this.bgmAudio1) {
+            // 提前開始播放 audio1
+            console.log('[SoundManager] ⏩ 提前0.1秒開始播放 audio1（無縫銜接）');
+            this.bgmAudio1.currentTime = 0;
+            this.bgmAudio1.play().then(() => {
+              console.log('[SoundManager] ✅ audio1 提前播放成功');
+            }).catch((error) => {
+              console.error('[SoundManager] ❌ audio1 提前播放失敗:', error);
+            });
+            nextAudioStarted = true;
+          }
         }
+      };
+
+      // 保存 timeupdate 處理器引用以便清理
+      this.bgmTimeUpdateHandler = timeUpdateHandler;
+      
+      // 監聽兩個音頻的 timeupdate 事件
+      this.bgmAudio1.addEventListener('timeupdate', this.bgmTimeUpdateHandler);
+      this.bgmAudio2.addEventListener('timeupdate', this.bgmTimeUpdateHandler);
+
+      // 在音頻完整播放結束時切換到下一個（此時下一個已經開始播放了）
+      this.bgmEndedHandler1 = () => {
+        console.log('[SoundManager] 🔄 audio1 播放結束，切換到 audio2');
+        if (this.currentBgmAudio === this.bgmAudio1 && this.bgmAudio2) {
+          // 停止 audio1
+          this.bgmAudio1.pause();
+          this.bgmAudio1.currentTime = 0;
+          
+          // 切換到 audio2（應該已經在播放了）
+          this.currentBgmAudio = this.bgmAudio2;
+          nextAudioStarted = false; // 重置標記
+        }
+      };
+
+      this.bgmEndedHandler2 = () => {
+        console.log('[SoundManager] 🔄 audio2 播放結束，切換到 audio1');
+        if (this.currentBgmAudio === this.bgmAudio2 && this.bgmAudio1) {
+          // 停止 audio2
+          this.bgmAudio2.pause();
+          this.bgmAudio2.currentTime = 0;
+          
+          // 切換到 audio1（應該已經在播放了）
+          this.currentBgmAudio = this.bgmAudio1;
+          nextAudioStarted = false; // 重置標記
+        }
+      };
+
+      this.bgmAudio1.addEventListener('ended', this.bgmEndedHandler1);
+      this.bgmAudio2.addEventListener('ended', this.bgmEndedHandler2);
+      
+      console.log('[SoundManager] BGM 無縫循環設置完成（提前0.1秒），開始播放:', bgmId);
+
+      // 創建一個包裝對象來管理BGM（兼容 SoundPlayer 接口）
+      const bgmPlayerWrapper = {
+        play: (resetTime: boolean = false, silentFail: boolean = true): Promise<void> => {
+          if (!this.currentBgmAudio) return Promise.resolve();
+          
+          this.currentBgmAudio.currentTime = resetTime ? 0 : this.currentBgmAudio.currentTime;
+          return this.currentBgmAudio.play().then(() => {
+            console.log('[SoundManager] ▶️ BGM 播放成功');
+          }).catch((error) => {
+            if (silentFail && (error.name === 'NotAllowedError' || error.name === 'NotSupportedError')) {
+              console.warn('[SoundManager] 播放被瀏覽器阻止（需要用戶交互）:', error.message);
+              return Promise.resolve();
+            }
+            throw error;
+          });
+        },
+        stop: (): void => {
+          this.cleanupBGM();
+        },
+        pause: (): void => {
+          if (this.currentBgmAudio) {
+            this.currentBgmAudio.pause();
+          }
+        },
+        setVolume: (vol: number): void => {
+          this.bgmVolume = vol;
+          if (this.bgmAudio1) this.bgmAudio1.volume = vol;
+          if (this.bgmAudio2) this.bgmAudio2.volume = vol;
+        },
+        getIsPlaying: (): boolean => {
+          return this.currentBgmAudio ? !this.currentBgmAudio.paused : false;
+        },
+        destroy: (): void => {
+          this.cleanupBGM();
+        }
+      };
+
+      // 將包裝對象轉換為 SoundPlayer 類型（用於兼容性）
+      this.bgmPlayer = bgmPlayerWrapper as any;
+      this.currentBgmId = bgmId;
+
+      // 開始播放第一個音頻
+      this.currentBgmAudio.play().then(() => {
+        console.log('[SoundManager] ✅ BGM 開始播放:', bgmId);
+      }).catch((error) => {
+        console.error('[SoundManager] ❌ BGM 播放失敗:', error);
       });
+    } catch (error) {
+      console.error(`[SoundManager] 播放BGM失敗: ${bgmId}`, error);
     }
+  }
+
+  /**
+   * 清理BGM音頻元素
+   */
+  private cleanupBGM(): void {
+    if (this.bgmAudio1) {
+      this.bgmAudio1.pause();
+      // 移除所有事件監聽器
+      if (this.bgmTimeUpdateHandler) {
+        this.bgmAudio1.removeEventListener('timeupdate', this.bgmTimeUpdateHandler);
+      }
+      if (this.bgmEndedHandler1) {
+        this.bgmAudio1.removeEventListener('ended', this.bgmEndedHandler1);
+      }
+      this.bgmAudio1.src = '';
+      this.bgmAudio1.load();
+      this.bgmAudio1 = null;
+    }
+    if (this.bgmAudio2) {
+      this.bgmAudio2.pause();
+      // 移除所有事件監聽器
+      if (this.bgmTimeUpdateHandler) {
+        this.bgmAudio2.removeEventListener('timeupdate', this.bgmTimeUpdateHandler);
+      }
+      if (this.bgmEndedHandler2) {
+        this.bgmAudio2.removeEventListener('ended', this.bgmEndedHandler2);
+      }
+      this.bgmAudio2.src = '';
+      this.bgmAudio2.load();
+      this.bgmAudio2 = null;
+    }
+    this.currentBgmAudio = null;
+    this.bgmTimeUpdateHandler = undefined;
+    this.bgmEndedHandler1 = undefined;
+    this.bgmEndedHandler2 = undefined;
   }
 
   /**
@@ -220,6 +406,7 @@ export class SoundManager {
       this.bgmPlayer = null;
       this.currentBgmId = null;
     }
+    this.cleanupBGM();
   }
 
   /**
@@ -227,6 +414,9 @@ export class SoundManager {
    * @param volume 音量（0.0-1.0）
    */
   public setBGMVolume(volume: number): void {
+    this.bgmVolume = volume;
+    if (this.bgmAudio1) this.bgmAudio1.volume = volume;
+    if (this.bgmAudio2) this.bgmAudio2.volume = volume;
     if (this.bgmPlayer) {
       this.bgmPlayer.setVolume(volume);
     }
