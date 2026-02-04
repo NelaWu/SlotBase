@@ -104,7 +104,7 @@ export class GameScene extends PIXI.Container {
       this.addChild(this.frameSprite2);
     }
     // 5. 載入LOGO
-    const logoTexture = resourceManager.getTexture('game_logo_cnt');
+    const logoTexture = resourceManager.getTexture(`game_logo_${ResourceManager.getCurrentLang()}`);
     if (logoTexture) {
       this.logoSprite = new PIXI.Sprite(logoTexture);
       this.logoSprite.position.set(426, 582);
@@ -340,7 +340,7 @@ export class GameScene extends PIXI.Container {
    */
   private showInfoBar(index: number): void {
     const resourceManager = ResourceManager.getInstance();
-    const resourceId = `info_bar_${index}`;
+    const resourceId = `info_bar_${index}_${ResourceManager.getCurrentLang()}`;
     const texture = resourceManager.getTexture(resourceId);
     
     if (!texture) {

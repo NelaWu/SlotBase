@@ -245,7 +245,7 @@ export class MainGame extends PIXI.Container {
 
     // 購買免費旋轉按鈕
     this.buyFreeSpinsButton = new BaseButton({
-      baseName: 'fg_btn_cnt',
+      baseName: `fg_btn_${ResourceManager.getCurrentLang()}`,
       anchor: 0
     });
     this.addChild(this.buyFreeSpinsButton);

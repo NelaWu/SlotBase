@@ -24,7 +24,7 @@ export class FreeEnd extends PIXI.Container {
         bg.position.set(540,900);
         bg.state.setAnimation(0, "Idle", true);
         this.addChild(bg);
-        const titleTexture = resourceManager.getTexture('fg_summary_alart_Title');
+        const titleTexture = resourceManager.getTexture(`fg_summary_alart_Title_${ResourceManager.getCurrentLang()}`);
         if (titleTexture) {
           const titleSprite = new PIXI.Sprite(titleTexture);
           titleSprite.anchor.set(0.5);
@@ -35,7 +35,7 @@ export class FreeEnd extends PIXI.Container {
         const closeBtn = new BaseButton({
             baseName: 'fg_summary_alart_btn',
             anchor: 0.5,
-            textTexture: 'fg_summary_alart_btntext_cnt',
+            textTexture: 'fg_summary_alart_btntext',
             textPosition: { x: -10, y: -25 }
         });
         closeBtn.position.set(540,1300);

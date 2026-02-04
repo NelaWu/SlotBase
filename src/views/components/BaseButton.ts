@@ -120,7 +120,14 @@ export class BaseButton extends PIXI.Container {
    * 載入文字 texture
    */
   private loadTextTexture(textureId: string, anchor: number, resourceManager: ResourceManager, textPosition?: { x: number, y: number }): void {
-    const texture = resourceManager.getTexture(textureId);
+    // 先嘗試帶語言後綴的版本（適用於按鈕文字等需要多語言的資源）
+    const currentLang = ResourceManager.getCurrentLang();
+    let texture = resourceManager.getTexture(`${textureId}_${currentLang}`);
+    
+    // 如果找不到帶語言後綴的版本，嘗試原始 ID
+    if (!texture) {
+      texture = resourceManager.getTexture(textureId);
+    }
     
     if (texture) {
       this.textSprite = new PIXI.Sprite(texture);
@@ -131,7 +138,7 @@ export class BaseButton extends PIXI.Container {
       }
       this.addChild(this.textSprite);
     } else {
-      console.warn(`[BaseButton] 找不到文字 texture 資源: ${textureId}`);
+      console.warn(`[BaseButton] 找不到文字 texture 資源: ${textureId} (已嘗試 ${textureId}_${currentLang})`);
     }
   }
 
@@ -139,7 +146,14 @@ export class BaseButton extends PIXI.Container {
    * 載入按下狀態的文字 texture
    */
   private loadTextPressTexture(textureId: string, anchor: number, resourceManager: ResourceManager, textPosition?: { x: number, y: number }): void {
-    const texture = resourceManager.getTexture(textureId);
+    // 先嘗試帶語言後綴的版本（適用於按鈕文字等需要多語言的資源）
+    const currentLang = ResourceManager.getCurrentLang();
+    let texture = resourceManager.getTexture(`${textureId}_${currentLang}`);
+    
+    // 如果找不到帶語言後綴的版本，嘗試原始 ID
+    if (!texture) {
+      texture = resourceManager.getTexture(textureId);
+    }
     
     if (texture) {
       this.textPressSprite = new PIXI.Sprite(texture);
@@ -151,7 +165,7 @@ export class BaseButton extends PIXI.Container {
       }
       this.addChild(this.textPressSprite);
     } else {
-      console.warn(`[BaseButton] 找不到按下狀態文字 texture 資源: ${textureId}`);
+      console.warn(`[BaseButton] 找不到按下狀態文字 texture 資源: ${textureId} (已嘗試 ${textureId}_${currentLang})`);
     }
   }
 

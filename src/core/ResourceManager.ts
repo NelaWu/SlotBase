@@ -22,36 +22,46 @@ export type LoadErrorCallback = (error: string) => void;
 // 資源管理器
 export class ResourceManager {
   private static instance: ResourceManager;
+  private static currentLang: string = ResourceManager.detectLanguage(); // 靜態變數：當前語言（初始化時檢測）
+  
   private resources: Map<string, any> = new Map();
   private loadedResources: Set<string> = new Set();
   private loadingPromises: Map<string, Promise<any>> = new Map();
-  private currentLang: string = 'cns'; // 默認語言
   
   private onProgress?: LoadProgressCallback;
   private onComplete?: LoadCompleteCallback;
   private onError?: LoadErrorCallback;
 
   private constructor() {
-    // 從 URL 參數獲取語言
-    this.detectLanguage();
+    // 構造函數中不需要再檢測，因為靜態變數已經在類載入時初始化
   }
 
-  // 檢測語言
-  private detectLanguage(): void {
+  // 檢測語言（靜態方法，在類載入時執行）
+  private static detectLanguage(): string {
     const urlParams = new URLSearchParams(window.location.search);
     const language = urlParams.get('language');
     if (language === 'zh-tw') {
-      this.currentLang = 'cnt';
+      return 'cnt';
     } else if (language === 'en') {
-      this.currentLang = 'en';
+      return 'en';
     } else {
-      this.currentLang = 'cns';
+      return 'cns';
     }
   }
 
-  // 獲取當前語言
+  // 獲取當前語言（靜態方法）
+  static getCurrentLang(): string {
+    return ResourceManager.currentLang;
+  }
+
+  // 設置當前語言（靜態方法）
+  static setCurrentLang(lang: string): void {
+    ResourceManager.currentLang = lang;
+  }
+
+  // 獲取當前語言（實例方法，向後兼容）
   getCurrentLang(): string {
-    return this.currentLang;
+    return ResourceManager.currentLang;
   }
 
   // 單例模式
@@ -515,23 +525,14 @@ export class ResourceManager {
       textureVariants.push(`manual/${id}.png`);
     }
     
-    // 4. 對於 info_bar 資源，嘗試添加語言後綴
-    if (id.startsWith('info_bar_')) {
-      textureVariants.push(`${id}_${this.currentLang}.png`);
-    }
-    
-    // 5. 對於 game_logo 資源，已經包含語言後綴，直接使用
-    if (id.startsWith('game_logo_')) {
-      textureVariants.push(`${id}.png`);
-    }
-    
-    // 優先從 sprite sheet 對象中直接獲取紋理（避免警告）
-    const spriteSheetId = 'titans_spritesheet';
-    const spriteSheet = this.resources.get(spriteSheetId);
-    if (spriteSheet && spriteSheet.textures) {
-      for (const variant of textureVariants) {
-        if (spriteSheet.textures[variant]) {
-          return spriteSheet.textures[variant];
+    // 嘗試從所有已載入的 sprite sheet 中查找紋理
+    // 遍歷所有資源，找出 sprite sheet 類型的資源
+    for (const [resourceId, resource] of this.resources.entries()) {
+      if (resource && typeof resource === 'object' && resource.textures) {
+        for (const variant of textureVariants) {
+          if (resource.textures[variant]) {
+            return resource.textures[variant];
+          }
         }
       }
     }

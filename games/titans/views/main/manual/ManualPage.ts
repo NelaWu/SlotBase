@@ -138,7 +138,13 @@ export class ManualPage extends PIXI.Container {
 
   private addTextSprite(sprites: PIXI.Sprite[], resourceId: string, position?: { x: number, y: number }): void {
     const resourceManager = ResourceManager.getInstance();
-    const texture = resourceManager.getTexture(resourceId);
+    // 對於 manual_page 相關的資源，自動添加語系後綴
+    const currentLang = ResourceManager.getCurrentLang();
+    let texture = resourceManager.getTexture(`${resourceId}_${currentLang}`);
+    // 如果找不到帶語系後綴的版本，嘗試原始 ID（用於不需要多語系的資源）
+    if (!texture) {
+      texture = resourceManager.getTexture(resourceId);
+    }
     if (texture) {
       const sprite = new PIXI.Sprite(texture);
       if (position) {

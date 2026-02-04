@@ -130,7 +130,7 @@ export class BetPanel extends PIXI.Container {
           this.addChild(betPanelSprite2);
         }
 
-        const titleTexture = resourceManager.getTexture('bet_title');
+        const titleTexture = resourceManager.getTexture(`bet_title_${ResourceManager.getCurrentLang()}`);
         if (titleTexture) {
           const titleSprite = new PIXI.Sprite(titleTexture);
           titleSprite.position.set(385,780);
