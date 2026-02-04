@@ -176,8 +176,7 @@ export class GameScene extends PIXI.Container {
     this.setMG();
     
     // 初始化時播放主遊戲背景音樂
-    const soundManager = SoundManager.getInstance();
-    soundManager.playBGM('mg_bgm', 0.5);
+    // SoundManager.playBGM('mg_bgm', 0.5);
   }
   setFG(): void {
     const resourceManager = ResourceManager.getInstance();
@@ -199,8 +198,7 @@ export class GameScene extends PIXI.Container {
     this.multiBallBigSpine!.visible = true;
     
     // 切換到免費遊戲背景音樂
-    const soundManager = SoundManager.getInstance();
-    soundManager.playBGM('fg_bgm', 0.5);
+    SoundManager.playBGM('fg_bgm', 0.5);
   }
 
   setMG(): void {
@@ -223,12 +221,11 @@ export class GameScene extends PIXI.Container {
     this.multiBallBigSpine!.visible = false;
     
     // 切換回主遊戲背景音樂
-    const soundManager = SoundManager.getInstance();
-    soundManager.playBGM('mg_bgm', 0.5);
+    // SoundManager.playBGM('mg_bgm', 0.5);
   }
 
   public playMultiBallAnimation(): void {
-    // 播放 Multiplier_Low 動畫，完成後自動播放 Idle 動畫
+    SoundManager.playSound('gaint_angry');
     this.characterSpine!.state.setAnimation(0, "Multiplier_Low", false);
     this.characterSpine!.state.addAnimation(0, "Idle", true, 0);
   }

@@ -261,7 +261,7 @@ async function startTitansSlotGame() {
       // 背景音樂（循環播放）
       { id: 'mg_bgm', url: asset('games/titans/assets/audio/mg_bgm.mp3'), type: 'audio' }, // mg主旋律（循環播放）
       { id: 'fg_bgm', url: asset('games/titans/assets/audio/fg_bgm.mp3'), type: 'audio' }, // fg主旋律（循環播放）
-      { id: 'btm_fg_out_bgm', url: asset('games/titans/assets/audio/ btm_fg_out_bgm.mp3'), type: 'audio' }, // fg結算畫面的背景循環音樂
+      { id: 'btm_fg_out_bgm', url: asset('games/titans/assets/audio/btm_fg_out_bgm.mp3'), type: 'audio' }, // fg結算畫面的背景循環音樂
       
       // 按鈕音效
       { id: 'btm_butt', url: asset('games/titans/assets/audio/btm_butt.mp3'), type: 'audio' }, // 一般按鈕按下音效
@@ -288,7 +288,7 @@ async function startTitansSlotGame() {
       { id: 'gaint_angry', url: asset('games/titans/assets/audio/gaint_angry.mp3'), type: 'audio' }, // 巨人怒吼音效
       { id: 'btm_trans', url: asset('games/titans/assets/audio/btm_trans.mp3'), type: 'audio' }, // 閃電雲的轉場音效
       { id: 'treasure_chest_open', url: asset('games/titans/assets/audio/treasure_chest_open.mp3'), type: 'audio' }, // 寶箱開啟的整段畫面的音效
-      { id: 'btm_fg_out', url: asset('games/titans/assets/audio/ btm_fg_out.mp3'), type: 'audio' }, // fg結算畫面彈出時的爆炸音效
+      { id: 'btm_fg_out', url: asset('games/titans/assets/audio/btm_fg_out.mp3'), type: 'audio' }, // fg結算畫面彈出時的爆炸音效
       { id: 'btm_counting', url: asset('games/titans/assets/audio/btm_counting.mp3'), type: 'audio' }, // 金額跑分時播放的單顆錢幣音效（每跳兩個數字播一次）
       // spine 動畫資源 - @esotericsoftware/spine-pixi-v8 需要分別載入 atlas 和 skeleton
       // 主目錄下的 Spine 資源
