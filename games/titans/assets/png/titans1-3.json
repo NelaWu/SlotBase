@@ -1,0 +1,53 @@
+{"frames": {
+
+"manual/manual_page_04_text01_cns.png":
+{
+	"frame": {"x":0,"y":0,"w":868,"h":636},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":868,"h":636},
+	"sourceSize": {"w":868,"h":636}
+},
+"manual/manual_page_04_text01_cnt.png":
+{
+	"frame": {"x":868,"y":0,"w":868,"h":636},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":868,"h":636},
+	"sourceSize": {"w":868,"h":636}
+},
+"manual/manual_page_04_text01_en.png":
+{
+	"frame": {"x":0,"y":636,"w":873,"h":682},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":873,"h":682},
+	"sourceSize": {"w":873,"h":682}
+},
+"manual/manual_page_06.png":
+{
+	"frame": {"x":873,"y":636,"w":740,"h":650},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":740,"h":650},
+	"sourceSize": {"w":740,"h":650}
+},
+"Symbol/Symbol_4.2.png":
+{
+	"frame": {"x":0,"y":1318,"w":1972,"h":620},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1972,"h":620},
+	"sourceSize": {"w":1972,"h":620}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.1",
+	"image": "titans1-3.png",
+	"format": "RGBA8888",
+	"size": {"w":1972,"h":1938},
+	"scale": "1",
+	"related_multi_packs": [ "titans1-0.json", "titans1-1.json", "titans1-2.json", "titans1-4.json", "titans1-5.json", "titans1-6.json", "titans1-7.json", "titans1-8.json", "titans1-9.json" ],
+	"smartupdate": "$TexturePacker:SmartUpdate:68eb8c011bf9f515c6f8d8088c703bc7:1fd8705ff25988ab12f42f27fb89d995:2cc2ecfc54c7e2096eb55d04965fa95b$"
+}
+}

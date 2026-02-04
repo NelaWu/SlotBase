@@ -1,0 +1,29 @@
+{"frames": {
+
+"fg_summary_alart_bg.png":
+{
+	"frame": {"x":0,"y":0,"w":958,"h":1180},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":958,"h":1180},
+	"sourceSize": {"w":958,"h":1180}
+},
+"manual/manual_page_basic.png":
+{
+	"frame": {"x":958,"y":0,"w":1017,"h":1149},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1017,"h":1149},
+	"sourceSize": {"w":1017,"h":1149}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.1",
+	"image": "titans1-5.png",
+	"format": "RGBA8888",
+	"size": {"w":1975,"h":1180},
+	"scale": "1",
+	"related_multi_packs": [ "titans1-0.json", "titans1-1.json", "titans1-2.json", "titans1-3.json", "titans1-4.json", "titans1-6.json", "titans1-7.json", "titans1-8.json", "titans1-9.json" ],
+	"smartupdate": "$TexturePacker:SmartUpdate:68eb8c011bf9f515c6f8d8088c703bc7:1fd8705ff25988ab12f42f27fb89d995:2cc2ecfc54c7e2096eb55d04965fa95b$"
+}
+}

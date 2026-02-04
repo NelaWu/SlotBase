@@ -1,0 +1,93 @@
+{"frames": {
+
+"fg_btn_normal.png":
+{
+	"frame": {"x":0,"y":291,"w":1080,"h":314},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1080,"h":314},
+	"sourceSize": {"w":1080,"h":314}
+},
+"fg_info_bg.png":
+{
+	"frame": {"x":880,"y":1390,"w":1080,"h":618},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":1080,"h":618},
+	"sourceSize": {"w":1080,"h":618}
+},
+"manual/manual_page_02.png":
+{
+	"frame": {"x":1080,"y":291,"w":588,"h":324},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":588,"h":324},
+	"sourceSize": {"w":588,"h":324}
+},
+"manual/manual_page_02_text01_cns.png":
+{
+	"frame": {"x":0,"y":0,"w":783,"h":291},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":783,"h":291},
+	"sourceSize": {"w":783,"h":291}
+},
+"manual/manual_page_02_text01_cnt.png":
+{
+	"frame": {"x":783,"y":0,"w":783,"h":291},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":783,"h":291},
+	"sourceSize": {"w":783,"h":291}
+},
+"manual/manual_page_02_text01_en.png":
+{
+	"frame": {"x":854,"y":996,"w":812,"h":394},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":812,"h":394},
+	"sourceSize": {"w":812,"h":394}
+},
+"manual/manual_page_03_text01_cns.png":
+{
+	"frame": {"x":803,"y":615,"w":854,"h":381},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":854,"h":381},
+	"sourceSize": {"w":854,"h":381}
+},
+"manual/manual_page_03_text01_cnt.png":
+{
+	"frame": {"x":0,"y":996,"w":854,"h":381},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":854,"h":381},
+	"sourceSize": {"w":854,"h":381}
+},
+"manual/manual_page_03_text01_en.png":
+{
+	"frame": {"x":0,"y":1390,"w":880,"h":423},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":880,"h":423},
+	"sourceSize": {"w":880,"h":423}
+},
+"manual/manual_page_05_text01_en.png":
+{
+	"frame": {"x":0,"y":615,"w":803,"h":338},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":803,"h":338},
+	"sourceSize": {"w":803,"h":338}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.1",
+	"image": "titans1-2.png",
+	"format": "RGBA8888",
+	"size": {"w":1960,"h":2008},
+	"scale": "1",
+	"related_multi_packs": [ "titans1-0.json", "titans1-1.json", "titans1-3.json", "titans1-4.json", "titans1-5.json", "titans1-6.json", "titans1-7.json", "titans1-8.json", "titans1-9.json" ],
+	"smartupdate": "$TexturePacker:SmartUpdate:68eb8c011bf9f515c6f8d8088c703bc7:1fd8705ff25988ab12f42f27fb89d995:2cc2ecfc54c7e2096eb55d04965fa95b$"
+}
+}

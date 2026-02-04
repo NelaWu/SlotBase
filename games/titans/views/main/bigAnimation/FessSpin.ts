@@ -28,12 +28,18 @@ export class FessSpin extends PIXI.Container  {
 
 
     const resourceManager = ResourceManager.getInstance();
-    const title:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('buyfg_title01') as string));
-    title.position.set(433, 853);
-    this.addChild(title);
-    const title1:PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('buyfg_title02') as string));
-    title1.position.set(341, 938);
-    this.addChild(title1);
+    const titleTexture = resourceManager.getTexture('buyfg_title01');
+    if (titleTexture) {
+      const title:PIXI.Sprite = new PIXI.Sprite(titleTexture);
+      title.position.set(433, 853);
+      this.addChild(title);
+    }
+    const title1Texture = resourceManager.getTexture('buyfg_title02');
+    if (title1Texture) {
+      const title1:PIXI.Sprite = new PIXI.Sprite(title1Texture);
+      title1.position.set(341, 938);
+      this.addChild(title1);
+    }
 
 
     const costText = new BaseNumber({

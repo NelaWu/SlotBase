@@ -163,12 +163,18 @@ export class MainGame extends PIXI.Container {
     this.spinButton.addChildAt(spinSpine, 1);
     spinSpine.state.setAnimation(0, "Idle", true);
 
-    const spineLogo: PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('spin_btn_logo') as string));
-    spineLogo.anchor.set(0.5);
-    this.spinButton.addChild(spineLogo);
-    const spineShadow: PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('spin_btn_shadow') as string));
-    spineShadow.anchor.set(0.5);
-    this.spinButton.addChildAt(spineShadow, 0);
+    const spineLogoTexture = resourceManager.getTexture('spin_btn_logo');
+    if (spineLogoTexture) {
+      const spineLogo: PIXI.Sprite = new PIXI.Sprite(spineLogoTexture);
+      spineLogo.anchor.set(0.5);
+      this.spinButton.addChild(spineLogo);
+    }
+    const spineShadowTexture = resourceManager.getTexture('spin_btn_shadow');
+    if (spineShadowTexture) {
+      const spineShadow: PIXI.Sprite = new PIXI.Sprite(spineShadowTexture);
+      spineShadow.anchor.set(0.5);
+      this.spinButton.addChildAt(spineShadow, 0);
+    }
     this.betButtonContainer.addChild(this.spinButton);
   }
 
@@ -228,9 +234,12 @@ export class MainGame extends PIXI.Container {
     this.betButtonContainer.addChild(this.freeTimes);
     this.freeTimes.position.set(300, 1750);
     this.freeTimes.showText('0');
-    this.freeTimesText = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('fg_info_text') as string));
-    this.freeTimesText.position.set(650, 1750);
-    this.freeTimesText.anchor.set(0.5);
+    const freeTimesTexture = resourceManager.getTexture('fg_info_text');
+    if (freeTimesTexture) {
+      this.freeTimesText = new PIXI.Sprite(freeTimesTexture);
+      this.freeTimesText.position.set(650, 1750);
+      this.freeTimesText.anchor.set(0.5);
+    }
     this.freeTimesText.visible = false;
     this.betButtonContainer.addChild(this.freeTimesText);
 
@@ -296,9 +305,12 @@ export class MainGame extends PIXI.Container {
     };
 
     // 餘額顯示
-    const balanceIcon: PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('wallet_ui') as string));
-    balanceIcon.position.set(15, 1536);
-    this.addChild(balanceIcon);
+    const balanceIconTexture = resourceManager.getTexture('wallet_ui');
+    if (balanceIconTexture) {
+      const balanceIcon: PIXI.Sprite = new PIXI.Sprite(balanceIconTexture);
+      balanceIcon.position.set(15, 1536);
+      this.addChild(balanceIcon);
+    }
     this.balanceText = new PIXI.Text({
       text: '0',
       style: textStyle
@@ -308,9 +320,12 @@ export class MainGame extends PIXI.Container {
     this.addChild(this.balanceText);
 
     // 投注顯示
-    const betIcon: PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('multiple_ui') as string));
-    betIcon.position.set(376, 1539);
-    this.addChild(betIcon);
+    const betIconTexture = resourceManager.getTexture('multiple_ui');
+    if (betIconTexture) {
+      const betIcon: PIXI.Sprite = new PIXI.Sprite(betIconTexture);
+      betIcon.position.set(376, 1539);
+      this.addChild(betIcon);
+    }
     this.betText = new PIXI.Text({
       text: '0',
       style: textStyle
@@ -337,9 +352,12 @@ export class MainGame extends PIXI.Container {
     this.addChild(betBackground);
 
     // 獲勝金額顯示（底部）
-    const winIcon: PIXI.Sprite = new PIXI.Sprite(PIXI.Texture.from(resourceManager.getResource('trophy_ui') as string));
-    winIcon.position.set(723, 1539);
-    this.addChild(winIcon);
+    const winIconTexture = resourceManager.getTexture('trophy_ui');
+    if (winIconTexture) {
+      const winIcon: PIXI.Sprite = new PIXI.Sprite(winIconTexture);
+      winIcon.position.set(723, 1539);
+      this.addChild(winIcon);
+    }
     this.winText = new PIXI.Text({
       text: '0',
       style: textStyle

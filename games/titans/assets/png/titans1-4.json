@@ -1,0 +1,45 @@
+{"frames": {
+
+"bet_panel.png":
+{
+	"frame": {"x":0,"y":0,"w":457,"h":823},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":457,"h":823},
+	"sourceSize": {"w":457,"h":823}
+},
+"fg_frame.png":
+{
+	"frame": {"x":457,"y":0,"w":540,"h":914},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":540,"h":914},
+	"sourceSize": {"w":540,"h":914}
+},
+"manual/manual_page_01.png":
+{
+	"frame": {"x":0,"y":914,"w":962,"h":806},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":962,"h":806},
+	"sourceSize": {"w":962,"h":806}
+},
+"mg_frame.png":
+{
+	"frame": {"x":997,"y":0,"w":540,"h":914},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":540,"h":914},
+	"sourceSize": {"w":540,"h":914}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.1",
+	"image": "titans1-4.png",
+	"format": "RGBA8888",
+	"size": {"w":1537,"h":1720},
+	"scale": "1",
+	"related_multi_packs": [ "titans1-0.json", "titans1-1.json", "titans1-2.json", "titans1-3.json", "titans1-5.json", "titans1-6.json", "titans1-7.json", "titans1-8.json", "titans1-9.json" ],
+	"smartupdate": "$TexturePacker:SmartUpdate:68eb8c011bf9f515c6f8d8088c703bc7:1fd8705ff25988ab12f42f27fb89d995:2cc2ecfc54c7e2096eb55d04965fa95b$"
+}
+}

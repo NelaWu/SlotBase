@@ -120,10 +120,9 @@ export class BaseButton extends PIXI.Container {
    * 載入文字 texture
    */
   private loadTextTexture(textureId: string, anchor: number, resourceManager: ResourceManager, textPosition?: { x: number, y: number }): void {
-    const resource = resourceManager.getResource(textureId);
+    const texture = resourceManager.getTexture(textureId);
     
-    if (resource) {
-      const texture = PIXI.Texture.from(resource);
+    if (texture) {
       this.textSprite = new PIXI.Sprite(texture);
       this.textSprite.anchor.set(anchor);
       this.textSprite.label = 'text';
@@ -140,10 +139,9 @@ export class BaseButton extends PIXI.Container {
    * 載入按下狀態的文字 texture
    */
   private loadTextPressTexture(textureId: string, anchor: number, resourceManager: ResourceManager, textPosition?: { x: number, y: number }): void {
-    const resource = resourceManager.getResource(textureId);
+    const texture = resourceManager.getTexture(textureId);
     
-    if (resource) {
-      const texture = PIXI.Texture.from(resource);
+    if (texture) {
       this.textPressSprite = new PIXI.Sprite(texture);
       this.textPressSprite.anchor.set(anchor);
       this.textPressSprite.label = 'textPress';
@@ -171,10 +169,9 @@ export class BaseButton extends PIXI.Container {
 
     states.forEach((state) => {
       const resourceId = `${baseName}_${state}`;
-      const resource = resourceManager.getResource(resourceId);
+      const texture = resourceManager.getTexture(resourceId);
 
-      if (resource) {
-        const texture = PIXI.Texture.from(resource);
+      if (texture) {
         const sprite = new PIXI.Sprite(texture);
         sprite.anchor.set(anchor);
         // 將字符串狀態轉換為 ButtonState enum

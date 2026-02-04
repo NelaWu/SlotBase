@@ -43,7 +43,7 @@ export class GameScene extends PIXI.Container {
     ];
 
     bgResources.forEach(bgResource => {
-      const bgTexture = PIXI.Texture.from(resourceManager.getResource(bgResource.textureName) as string);
+      const bgTexture = resourceManager.getTexture(bgResource.textureName);
       if (bgTexture) {
         this.bgSprites.push(new PIXI.Sprite(bgTexture));
         this.bgSprites[this.bgSprites.length - 1].position.set(bgResource.position.x, bgResource.position.y);
@@ -82,7 +82,7 @@ export class GameScene extends PIXI.Container {
     this.characterSpine.skeleton.setSkinByName("Mg");
 
     // 3. 載入屋頂圖片
-    const roofTexture = PIXI.Texture.from(resourceManager.getResource('mg_frame_roof') as string);
+    const roofTexture = resourceManager.getTexture('mg_frame_roof');
     if (roofTexture) {
       this.roofSprite1 = new PIXI.Sprite(roofTexture);
       this.roofSprite1.position.set(0, 585);
@@ -93,9 +93,8 @@ export class GameScene extends PIXI.Container {
       this.addChild(this.roofSprite2);
     }
     // 4. 載入框架圖片（疊加在背景上）
-    const frameResource = resourceManager.getResource('mg_frame');
-    if (frameResource) {
-      const frameTexture = PIXI.Texture.from(frameResource);
+    const frameTexture = resourceManager.getTexture('mg_frame');
+    if (frameTexture) {
       this.frameSprite1 = new PIXI.Sprite(frameTexture);
       this.frameSprite1.position.set(0, 692);
       this.addChild(this.frameSprite1);
@@ -105,10 +104,9 @@ export class GameScene extends PIXI.Container {
       this.addChild(this.frameSprite2);
     }
     // 5. 載入LOGO
-    const logoResource = resourceManager.getResource('game_logo_cnt');
-    if (logoResource) {
-      const frameTexture = PIXI.Texture.from(logoResource);
-      this.logoSprite = new PIXI.Sprite(frameTexture);
+    const logoTexture = resourceManager.getTexture('game_logo_cnt');
+    if (logoTexture) {
+      this.logoSprite = new PIXI.Sprite(logoTexture);
       this.logoSprite.position.set(426, 582);
       this.addChild(this.logoSprite);
     }
@@ -140,9 +138,8 @@ export class GameScene extends PIXI.Container {
     this.bgWinBarContainer.addChild(this.bgWinBarMultiplierText);
 
     // 6. 載入資訊背景圖片
-    const infoBgResource = resourceManager.getResource('fg_info_bg');
-    if (infoBgResource) {
-      const infoBgTexture = PIXI.Texture.from(infoBgResource);
+    const infoBgTexture = resourceManager.getTexture('fg_info_bg');
+    if (infoBgTexture) {
       const infoBgSprite = new PIXI.Sprite(infoBgTexture);
       infoBgSprite.position.set(0, 1606);
       infoBgSprite.label = 'infoBgSprite';
@@ -180,18 +177,24 @@ export class GameScene extends PIXI.Container {
   }
   setFG(): void {
     const resourceManager = ResourceManager.getInstance();
-    const freeBgResource = resourceManager.getResource('fg_bg');
-    this.bgSprites[0].texture = PIXI.Texture.from(freeBgResource);
+    const freeBgTexture = resourceManager.getTexture('fg_bg');
+    if (freeBgTexture) {
+      this.bgSprites[0].texture = freeBgTexture;
+    }
     this.bgSprites[1].visible = false;
     this.bgSprites[2].visible = false;
     this.mainSpine!.visible = false;
     this.freeSpine!.visible = true;
-    let roofTexture = resourceManager.getResource('fg_frame_roof');
-    let frameTexture = resourceManager.getResource('fg_frame');
-    this.roofSprite1!.texture = PIXI.Texture.from(roofTexture);
-    this.roofSprite2!.texture = PIXI.Texture.from(roofTexture);
-    this.frameSprite1!.texture = PIXI.Texture.from(frameTexture);
-    this.frameSprite2!.texture = PIXI.Texture.from(frameTexture);
+    const roofTexture = resourceManager.getTexture('fg_frame_roof');
+    const frameTexture = resourceManager.getTexture('fg_frame');
+    if (roofTexture) {
+      this.roofSprite1!.texture = roofTexture;
+      this.roofSprite2!.texture = roofTexture;
+    }
+    if (frameTexture) {
+      this.frameSprite1!.texture = frameTexture;
+      this.frameSprite2!.texture = frameTexture;
+    }
     this.characterSpine!.skeleton.setSkinByName("Fg");
     this.bgWinBarSpine!.visible = true;
     this.multiBallBigText!.visible = true;
@@ -203,18 +206,24 @@ export class GameScene extends PIXI.Container {
 
   setMG(): void {
     const resourceManager = ResourceManager.getInstance();
-    const freeBgResource = resourceManager.getResource('mg_bg_00');
-    this.bgSprites[0].texture = PIXI.Texture.from(freeBgResource);
+    const freeBgTexture = resourceManager.getTexture('mg_bg_00');
+    if (freeBgTexture) {
+      this.bgSprites[0].texture = freeBgTexture;
+    }
     this.bgSprites[1].visible = true;
     this.bgSprites[2].visible = true;
     this.mainSpine!.visible = true;
     this.freeSpine!.visible = false;
-    let roofTexture = resourceManager.getResource('mg_frame_roof');
-    let frameTexture = resourceManager.getResource('mg_frame');
-    this.roofSprite1!.texture = PIXI.Texture.from(roofTexture);
-    this.roofSprite2!.texture = PIXI.Texture.from(roofTexture);
-    this.frameSprite1!.texture = PIXI.Texture.from(frameTexture);
-    this.frameSprite2!.texture = PIXI.Texture.from(frameTexture);
+    const roofTexture = resourceManager.getTexture('mg_frame_roof');
+    const frameTexture = resourceManager.getTexture('mg_frame');
+    if (roofTexture) {
+      this.roofSprite1!.texture = roofTexture;
+      this.roofSprite2!.texture = roofTexture;
+    }
+    if (frameTexture) {
+      this.frameSprite1!.texture = frameTexture;
+      this.frameSprite2!.texture = frameTexture;
+    }
     this.characterSpine!.skeleton.setSkinByName("Mg");
     this.bgWinBarContainer!.visible = false;
     this.multiBallBigText!.visible = false;
@@ -332,9 +341,9 @@ export class GameScene extends PIXI.Container {
   private showInfoBar(index: number): void {
     const resourceManager = ResourceManager.getInstance();
     const resourceId = `info_bar_${index}`;
-    const resource = resourceManager.getResource(resourceId);
+    const texture = resourceManager.getTexture(resourceId);
     
-    if (!resource) {
+    if (!texture) {
       console.warn(`[GameScene] 找不到資源: ${resourceId}`);
       return;
     }
@@ -346,7 +355,7 @@ export class GameScene extends PIXI.Container {
     }
 
     // 創建新的 sprite
-    this.infoBarSprite = new PIXI.Sprite(PIXI.Texture.from(resource));
+    this.infoBarSprite = new PIXI.Sprite(texture);
     this.infoBarSprite.anchor.set(0.5);
     // 設置位置（可以根據需要調整）
     this.infoBarSprite.position.set(540, 100);

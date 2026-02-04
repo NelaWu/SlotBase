@@ -24,12 +24,13 @@ export class FreeEnd extends PIXI.Container {
         bg.position.set(540,900);
         bg.state.setAnimation(0, "Idle", true);
         this.addChild(bg);
-        const title = resourceManager.getResource('fg_summary_alart_Title');
-        const titleTexture = PIXI.Texture.from(title);
-        const titleSprite = new PIXI.Sprite(titleTexture);
-        titleSprite.anchor.set(0.5);
-        titleSprite.position.set(540,670);
-        this.addChild(titleSprite);
+        const titleTexture = resourceManager.getTexture('fg_summary_alart_Title');
+        if (titleTexture) {
+          const titleSprite = new PIXI.Sprite(titleTexture);
+          titleSprite.anchor.set(0.5);
+          titleSprite.position.set(540,670);
+          this.addChild(titleSprite);
+        }
         
         const closeBtn = new BaseButton({
             baseName: 'fg_summary_alart_btn',

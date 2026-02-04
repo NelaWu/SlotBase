@@ -58,10 +58,9 @@ export class TitansSymbol extends BaseSymbol {
       this.isSpecialSymbol = false;
       this.sprite.visible = true;
     }
-    const symbolResource = ResourceManager.getInstance().getResource(symbolName);
+    const symbolTexture = ResourceManager.getInstance().getTexture(symbolName);
     
-    if (symbolResource) {
-      const symbolTexture = PIXI.Texture.from(symbolResource);
+    if (symbolTexture) {
       this.sprite.texture = symbolTexture;
     }
 

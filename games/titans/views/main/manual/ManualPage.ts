@@ -32,9 +32,9 @@ export class ManualPage extends PIXI.Container {
     this.addChildAt(backgroundMask, 0);
 
     // 加载背景
-    const bgResource = resourceManager.getResource('manual_page_basic');
-    if (bgResource) {
-      this.backgroundSprite = new PIXI.Sprite(PIXI.Texture.from(bgResource));
+    const bgTexture = resourceManager.getTexture('manual_page_basic');
+    if (bgTexture) {
+      this.backgroundSprite = new PIXI.Sprite(bgTexture);
       this.backgroundSprite.position.set(31, 365);
       this.pageContainer.addChild(this.backgroundSprite);
     }
@@ -138,9 +138,9 @@ export class ManualPage extends PIXI.Container {
 
   private addTextSprite(sprites: PIXI.Sprite[], resourceId: string, position?: { x: number, y: number }): void {
     const resourceManager = ResourceManager.getInstance();
-    const resource = resourceManager.getResource(resourceId);
-    if (resource) {
-      const sprite = new PIXI.Sprite(PIXI.Texture.from(resource));
+    const texture = resourceManager.getTexture(resourceId);
+    if (texture) {
+      const sprite = new PIXI.Sprite(texture);
       if (position) {
         // 如果传入了位置，使用左上角 anchor，这样坐标 (x, y) 就是左上角位置
         sprite.anchor.set(0, 0);

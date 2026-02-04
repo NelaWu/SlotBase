@@ -4,7 +4,7 @@ import * as PIXI from 'pixi.js';
 export interface ResourceDefinition {
   id: string;
   url: string;
-  type: 'image' | 'audio' | 'json' | 'font' | 'spine' | 'atlas' | 'skel';
+  type: 'image' | 'audio' | 'json' | 'font' | 'spine' | 'atlas' | 'skel' | 'spritesheet';
   preload?: boolean;
 }
 
@@ -25,12 +25,34 @@ export class ResourceManager {
   private resources: Map<string, any> = new Map();
   private loadedResources: Set<string> = new Set();
   private loadingPromises: Map<string, Promise<any>> = new Map();
+  private currentLang: string = 'cns'; // 默認語言
   
   private onProgress?: LoadProgressCallback;
   private onComplete?: LoadCompleteCallback;
   private onError?: LoadErrorCallback;
 
-  private constructor() {}
+  private constructor() {
+    // 從 URL 參數獲取語言
+    this.detectLanguage();
+  }
+
+  // 檢測語言
+  private detectLanguage(): void {
+    const urlParams = new URLSearchParams(window.location.search);
+    const language = urlParams.get('language');
+    if (language === 'zh-tw') {
+      this.currentLang = 'cnt';
+    } else if (language === 'en') {
+      this.currentLang = 'en';
+    } else {
+      this.currentLang = 'cns';
+    }
+  }
+
+  // 獲取當前語言
+  getCurrentLang(): string {
+    return this.currentLang;
+  }
 
   // 單例模式
   static getInstance(): ResourceManager {
@@ -135,6 +157,9 @@ export class ResourceManager {
       case 'skel':
         // Skeleton 文件（.skel）需要載入到 PIXI.Assets 以供 spine-pixi-v8 使用
         return this.loadSkel(definition.id, definition.url);
+      case 'spritesheet':
+        // Sprite sheet 使用 PIXI.Assets 載入，會自動處理 multipack
+        return this.loadSpritesheet(definition.id, definition.url);
       default:
         throw new Error(`不支援的資源類型: ${definition.type}`);
     }
@@ -222,6 +247,45 @@ export class ResourceManager {
     }
   }
 
+  // 載入 Sprite Sheet 資源（使用 PIXI.Assets API，適用於 PixiJS v8）
+  // 支援 TexturePacker multipack 格式，只需要載入第一個 JSON 文件
+  private async loadSpritesheet(id: string, url: string): Promise<any> {
+    try {
+      console.log(`[ResourceManager] 開始載入 Sprite Sheet: ${id} from ${url}`);
+      
+      // 使用 PIXI.Assets.load() 載入 sprite sheet
+      // PixiJS 會自動處理 multipack，只需要載入第一個 JSON 文件
+      const resource = await PIXI.Assets.load({
+        alias: id,
+        src: url
+      });
+
+      console.log(`[ResourceManager] Sprite Sheet ${id} 載入完成`);
+      
+      // 檢查資源結構並記錄可用的紋理鍵名（用於調試）
+      if (resource && typeof resource === 'object') {
+        if (resource.textures) {
+          const textureKeys = Object.keys(resource.textures).slice(0, 10); // 只顯示前10個
+          console.log(`[ResourceManager] Sprite Sheet 包含 ${Object.keys(resource.textures).length} 個紋理，前10個示例:`, textureKeys);
+        }
+        if (resource.data && resource.data.frames) {
+          const frameKeys = Object.keys(resource.data.frames).slice(0, 10); // 只顯示前10個
+          console.log(`[ResourceManager] Sprite Sheet JSON 包含 ${Object.keys(resource.data.frames).length} 個幀，前10個示例:`, frameKeys);
+        }
+        
+        // 檢查是否有 Spritesheet 對象
+        if (resource instanceof PIXI.Spritesheet) {
+          console.log(`[ResourceManager] Sprite Sheet 是 PIXI.Spritesheet 實例`);
+        }
+      }
+      
+      // 返回 sprite sheet 資源（包含 textures 和 animations）
+      return resource;
+    } catch (error) {
+      throw new Error(`Sprite Sheet 資源載入失敗: ${id} - ${error}`);
+    }
+  }
+
   // 載入 Spine 資源（使用 PIXI.Assets API，適用於 PixiJS v8）
   private async loadSpine(id: string, url: string): Promise<any> {
     try {
@@ -269,8 +333,49 @@ export class ResourceManager {
   }
 
   // 獲取資源
+  // 對於 sprite sheet 中的紋理，會自動從 PixiJS Assets cache 中查找
   getResource<T = any>(id: string): T | undefined {
-    return this.resources.get(id);
+    // 首先從本地資源映射中查找
+    const localResource = this.resources.get(id);
+    if (localResource !== undefined) {
+      return localResource as T;
+    }
+
+    // 對於 sprite sheet 中的紋理，直接使用 PIXI.Texture.from() 來查找
+    // 這樣可以避免不必要的 Cache 查找警告
+    // PIXI.Texture.from() 會自動從 sprite sheet 中查找紋理
+    const textureVariants = [
+      id,                    // 1. 直接使用 id
+      `${id}.png`,           // 2. 添加 .png 後綴
+    ];
+
+    // 3. 對於 symbol 資源，嘗試添加 Symbol/ 前綴
+    if (id.startsWith('symbol_')) {
+      textureVariants.push(`Symbol/${id}.png`);
+    }
+
+    // 4. 對於 manual 資源，嘗試添加 manual/ 前綴
+    if (id.startsWith('manual_page_')) {
+      textureVariants.push(`manual/${id}.png`);
+    }
+
+    // 嘗試每個變體來查找 Texture（使用 silent 模式避免警告）
+    for (const variant of textureVariants) {
+      try {
+        // 使用 PIXI.Texture.from() 會自動從 sprite sheet 中查找
+        const texture = PIXI.Texture.from(variant);
+        if (texture && texture !== PIXI.Texture.EMPTY) {
+          // 找到有效的 Texture，直接返回
+          return texture as T;
+        }
+      } catch (error) {
+        // 忽略錯誤，繼續嘗試下一個變體
+      }
+    }
+
+    // 如果都沒找到，返回 id 字符串，讓調用者使用 PIXI.Texture.from() 來查找
+    // 這樣可以保持向後兼容性
+    return id as T;
   }
 
   // 檢查資源是否已載入
@@ -305,5 +410,70 @@ export class ResourceManager {
   getLoadProgress(): number {
     const total = this.getTotalCount();
     return total > 0 ? (this.getLoadedCount() / total) * 100 : 0;
+  }
+
+  // 輔助方法：將資源轉換為 Texture 對象
+  // 如果資源已經是 Texture，直接返回；如果是字符串，使用 PIXI.Texture.from() 轉換
+  // 對於 sprite sheet 中的紋理，會嘗試多種名稱變體來查找
+  getTexture(id: string): PIXI.Texture | null {
+    const resource = this.getResource(id);
+    
+    // 如果資源已經是 Texture 對象，直接返回
+    if (resource instanceof PIXI.Texture) {
+      return resource;
+    }
+    
+    // 構建所有可能的紋理名稱變體
+    const textureVariants: string[] = [];
+    
+    // 1. 基本變體
+    textureVariants.push(`${id}.png`, id);
+    
+    // 2. 對於 symbol 資源，嘗試添加 Symbol/ 前綴
+    if (id.startsWith('symbol_')) {
+      textureVariants.push(`Symbol/${id}.png`);
+    }
+    
+    // 3. 對於 manual 資源，嘗試添加 manual/ 前綴
+    if (id.startsWith('manual_page_')) {
+      textureVariants.push(`manual/${id}.png`);
+    }
+    
+    // 4. 對於 info_bar 資源，嘗試添加語言後綴
+    if (id.startsWith('info_bar_')) {
+      textureVariants.push(`${id}_${this.currentLang}.png`);
+    }
+    
+    // 5. 對於 game_logo 資源，已經包含語言後綴，直接使用
+    if (id.startsWith('game_logo_')) {
+      textureVariants.push(`${id}.png`);
+    }
+    
+    // 優先從 sprite sheet 對象中直接獲取紋理（避免警告）
+    const spriteSheetId = 'titans_spritesheet';
+    const spriteSheet = this.resources.get(spriteSheetId);
+    if (spriteSheet && spriteSheet.textures) {
+      for (const variant of textureVariants) {
+        if (spriteSheet.textures[variant]) {
+          return spriteSheet.textures[variant];
+        }
+      }
+    }
+    
+    // 如果從 sprite sheet 對象中找不到，使用 PIXI.Texture.from() 來查找
+    // 這會自動從 PixiJS 的 cache 中查找（包括 sprite sheet 中的紋理）
+    for (const variant of textureVariants) {
+      try {
+        const texture = PIXI.Texture.from(variant);
+        if (texture && texture !== PIXI.Texture.EMPTY) {
+          return texture;
+        }
+      } catch (error) {
+        // 忽略錯誤，繼續嘗試下一個變體
+      }
+    }
+    
+    // 如果所有變體都失敗，返回 null
+    return null;
   }
 } 
