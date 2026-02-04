@@ -2,6 +2,7 @@ import * as PIXI from 'pixi.js';
 import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { BigWinType, GameEventEnum } from '../../../enum/gameEnum';
 import { BaseNumber } from '@/views/components/BaseNumber';
+import { SoundManager } from '../../../core/SoundManager';
 
 // Big Win 階段配置
 interface BigWinStageConfig {
@@ -150,11 +151,15 @@ export class BigWin extends PIXI.Container {
         let stageStartTime = Date.now();
         let currentStageIndex = 0;
         let stageStartAmount = 0;
+        let lastSoundTime = 0; // 記錄上次播放音效的時間
 
         // 初始化為第一個階段
         if (this.winTitle) {
             this.winTitle.skeleton.setSkinByName(BIG_WIN_STAGES[0].skin);
         }
+
+        // 初始化音效計時
+        lastSoundTime = performance.now();
 
         const animate = () => {
             // 先根據當前金額判斷應該在哪個階段
@@ -208,6 +213,12 @@ export class BigWin extends PIXI.Container {
             // 更新顯示
             if (this.moneyText) {
                 this.moneyText.showText(currentAmount.toFixed(2));
+            }
+            
+            const currentTime = performance.now();
+            if (currentTime - lastSoundTime >= 200) {
+                SoundManager.playSound('btm_counting');
+                lastSoundTime = currentTime;
             }
 
             // 繼續動畫或結束

@@ -58,10 +58,9 @@ export class TitansSymbol extends BaseSymbol {
       this.isSpecialSymbol = false;
       this.sprite.visible = true;
     }
-    const symbolResource = ResourceManager.getInstance().getResource(symbolName);
+    const symbolTexture = ResourceManager.getInstance().getTexture(symbolName);
     
-    if (symbolResource) {
-      const symbolTexture = PIXI.Texture.from(symbolResource);
+    if (symbolTexture) {
       this.sprite.texture = symbolTexture;
     }
 
@@ -174,11 +173,6 @@ export class TitansSymbol extends BaseSymbol {
               }
             });
             this.spine?.state?.setAnimation(0, "Hit", false);
-            // if(this.symbolId >=100) {
-            //   SoundManager.playSound('btm_fx_symbol_function_2_100x');
-            // } else {
-            //   SoundManager.playSound('btm_fx_symbol_function_2');
-            // }
           }, 400);
         }
       }

@@ -9,3 +9,7 @@ export enum BigWinType{
     BIG_WIN = 'bigWin',
     JP_WIN = 'jpWin',
 }
+export enum SymbolID {
+    SCATTER = 10,  // Scatter (symbol_10)
+    JP = 11,       // Jp (symbol_11)
+  }

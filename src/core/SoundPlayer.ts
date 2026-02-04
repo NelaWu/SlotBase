@@ -8,6 +8,12 @@ export class SoundPlayer {
   private volume: number = 1.0; // 音量範圍 0.0 - 1.0
   private isPlaying: boolean = false;
   private onEndedCallback?: () => void;
+  
+  // 保存事件監聽器引用，以便正確移除
+  private endedHandler?: () => void;
+  private playHandler?: () => void;
+  private pauseHandler?: () => void;
+  private errorHandler?: (e: Event) => void;
 
   /**
    * 創建聲音播放器實例
@@ -68,29 +74,98 @@ export class SoundPlayer {
   private setupEventListeners(): void {
     if (!this.audio) return;
 
+    // 先移除舊的事件監聽器（如果存在）
+    this.removeEventListeners();
+
     // 播放結束事件
-    this.audio.addEventListener('ended', () => {
+    this.endedHandler = () => {
       this.isPlaying = false;
       if (this.onEndedCallback) {
         this.onEndedCallback();
       }
-    });
+    };
+    this.audio.addEventListener('ended', this.endedHandler);
 
     // 播放開始事件
-    this.audio.addEventListener('play', () => {
+    this.playHandler = () => {
       this.isPlaying = true;
-    });
+    };
+    this.audio.addEventListener('play', this.playHandler);
 
     // 暫停事件
-    this.audio.addEventListener('pause', () => {
+    this.pauseHandler = () => {
       this.isPlaying = false;
-    });
+    };
+    this.audio.addEventListener('pause', this.pauseHandler);
 
     // 錯誤處理
-    this.audio.addEventListener('error', (e) => {
-      console.error('[SoundPlayer] 音頻播放錯誤:', e);
+    this.errorHandler = (e: Event) => {
+      // 使用閉包保存 audio 引用，避免在清理後訪問 null
+      const audio = this.audio;
+      if (!audio) {
+        console.error('[SoundPlayer] 音頻播放錯誤: audio 元素為 null（可能已被清理）');
+        this.isPlaying = false;
+        return;
+      }
+      
+      const error = audio.error;
+      let errorMessage = '[SoundPlayer] 音頻播放錯誤: ';
+      
+      if (error) {
+        switch (error.code) {
+          case MediaError.MEDIA_ERR_ABORTED:
+            errorMessage += 'MEDIA_ERR_ABORTED - 用戶中止了音頻加載';
+            break;
+          case MediaError.MEDIA_ERR_NETWORK:
+            errorMessage += 'MEDIA_ERR_NETWORK - 網絡錯誤導致音頻下載失敗';
+            break;
+          case MediaError.MEDIA_ERR_DECODE:
+            errorMessage += 'MEDIA_ERR_DECODE - 音頻解碼失敗（文件可能損壞或格式不支持）';
+            break;
+          case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+            errorMessage += `MEDIA_ERR_SRC_NOT_SUPPORTED - 音頻格式不支持或文件路徑錯誤。URL: ${audio.src || '未知'}`;
+            break;
+          default:
+            errorMessage += `未知錯誤 (code: ${error.code})`;
+        }
+      } else {
+        errorMessage += '未知錯誤（無法獲取錯誤代碼）';
+      }
+      
+      console.error(errorMessage, {
+        error,
+        src: audio.src || '未知',
+        networkState: audio.networkState,
+        readyState: audio.readyState
+      });
+      
       this.isPlaying = false;
-    });
+    };
+    this.audio.addEventListener('error', this.errorHandler);
+  }
+
+  /**
+   * 移除事件監聽器
+   */
+  private removeEventListeners(): void {
+    if (!this.audio) return;
+
+    if (this.endedHandler) {
+      this.audio.removeEventListener('ended', this.endedHandler);
+      this.endedHandler = undefined;
+    }
+    if (this.playHandler) {
+      this.audio.removeEventListener('play', this.playHandler);
+      this.playHandler = undefined;
+    }
+    if (this.pauseHandler) {
+      this.audio.removeEventListener('pause', this.pauseHandler);
+      this.pauseHandler = undefined;
+    }
+    if (this.errorHandler) {
+      this.audio.removeEventListener('error', this.errorHandler);
+      this.errorHandler = undefined;
+    }
   }
 
   /**
@@ -257,13 +332,10 @@ export class SoundPlayer {
    * 清理資源
    */
   private cleanup(): void {
+    // 先移除事件監聽器（在設置 audio 為 null 之前）
+    this.removeEventListeners();
+    
     if (this.audio) {
-      // 移除事件監聽器
-      this.audio.removeEventListener('ended', () => {});
-      this.audio.removeEventListener('play', () => {});
-      this.audio.removeEventListener('pause', () => {});
-      this.audio.removeEventListener('error', () => {});
-      
       // 停止播放
       this.audio.pause();
       this.audio.src = '';

@@ -29,18 +29,18 @@ export class JpInfo extends PIXI.Container {
         const resourceManager = ResourceManager.getInstance();
         
         // 背景
-        const bgResource = resourceManager.getResource('title_jp_bg');
-        if (bgResource) {
-            this.bgSprite = new PIXI.Sprite(PIXI.Texture.from(bgResource));
+        const bgTexture = resourceManager.getTexture('title_jp_bg');
+        if (bgTexture) {
+            this.bgSprite = new PIXI.Sprite(bgTexture);
             this.bgSprite.width = 1080;
             this.bgSprite.position.set(0, 0);
             this.addChild(this.bgSprite);
         }
 
         // Grand Jackpot (JPLevel 1)
-        const grandResource = resourceManager.getResource('title_jp_grand');
-        if (grandResource) {
-            this.grandSprite = new PIXI.Sprite(PIXI.Texture.from(grandResource));
+        const grandTexture = resourceManager.getTexture('title_jp_grand');
+        if (grandTexture) {
+            this.grandSprite = new PIXI.Sprite(grandTexture);
             this.grandSprite.position.set(15, 0);
             this.addChild(this.grandSprite);
         }
@@ -57,9 +57,9 @@ export class JpInfo extends PIXI.Container {
         this.grandNumber.showText('0');
 
         // Major Jackpot (JPLevel 2)
-        const majorResource = resourceManager.getResource('title_jp_major');
-        if (majorResource) {
-            this.majorSprite = new PIXI.Sprite(PIXI.Texture.from(majorResource));
+        const majorTexture = resourceManager.getTexture('title_jp_major');
+        if (majorTexture) {
+            this.majorSprite = new PIXI.Sprite(majorTexture);
             this.majorSprite.position.set(314, 0);
             this.addChild(this.majorSprite);
         }
@@ -76,9 +76,9 @@ export class JpInfo extends PIXI.Container {
         this.majorNumber.showText('0');
 
         // Minor Jackpot (JPLevel 3)
-        const minorResource = resourceManager.getResource('title_jp_minor');
-        if (minorResource) {
-            this.minorSprite = new PIXI.Sprite(PIXI.Texture.from(minorResource));
+        const minorTexture = resourceManager.getTexture('title_jp_minor');
+        if (minorTexture) {
+            this.minorSprite = new PIXI.Sprite(minorTexture);
             this.minorSprite.position.set(598, 0);
             this.addChild(this.minorSprite);
         }
@@ -95,9 +95,9 @@ export class JpInfo extends PIXI.Container {
         this.minorNumber.showText('0');
 
         // Mini Jackpot (JPLevel 4)
-        const miniResource = resourceManager.getResource('title_jp_mini');
-        if (miniResource) {
-            this.miniSprite = new PIXI.Sprite(PIXI.Texture.from(miniResource));
+        const miniTexture = resourceManager.getTexture('title_jp_mini');
+        if (miniTexture) {
+            this.miniSprite = new PIXI.Sprite(miniTexture);
             this.miniSprite.position.set(950, 0);
             this.addChild(this.miniSprite);
         }

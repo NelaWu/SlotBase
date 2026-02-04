@@ -16,10 +16,11 @@ class BetItem extends PIXI.Container {
 
     private init(multiple: number): void {
         const resourceManager = ResourceManager.getInstance();
-        const betbg = resourceManager.getResource('bet_select');
-        const betbgexture = PIXI.Texture.from(betbg);
-        this.betbgSprite = new PIXI.Sprite(betbgexture);
-        this.addChild(this.betbgSprite);
+        const betbgTexture = resourceManager.getTexture('bet_select');
+        if (betbgTexture) {
+          this.betbgSprite = new PIXI.Sprite(betbgTexture);
+          this.addChild(this.betbgSprite);
+        }
 
         this.multipleText = new PIXI.Text(multiple.toString(), {
             fontFamily: 'Arial',
@@ -118,22 +119,23 @@ export class BetPanel extends PIXI.Container {
         this.addChild(backgroundMask);
 
         const resourceManager = ResourceManager.getInstance();
-        const betPanelResource = resourceManager.getResource('bet_panel');
-        const betPanelTexture1 = PIXI.Texture.from(betPanelResource);
-        const betPanelSprite1 = new PIXI.Sprite(betPanelTexture1);
-        betPanelSprite1.position.set(83,739);
-        this.addChild(betPanelSprite1);
-        const betPanelTexture2 = PIXI.Texture.from(betPanelResource);
-        const betPanelSprite2 = new PIXI.Sprite(betPanelTexture2);
-        betPanelSprite2.scale.x = -1;
-        betPanelSprite2.position.set(997,739);
-        this.addChild(betPanelSprite2);
+        const betPanelTexture = resourceManager.getTexture('bet_panel');
+        if (betPanelTexture) {
+          const betPanelSprite1 = new PIXI.Sprite(betPanelTexture);
+          betPanelSprite1.position.set(83,739);
+          this.addChild(betPanelSprite1);
+          const betPanelSprite2 = new PIXI.Sprite(betPanelTexture);
+          betPanelSprite2.scale.x = -1;
+          betPanelSprite2.position.set(997,739);
+          this.addChild(betPanelSprite2);
+        }
 
-        const title = resourceManager.getResource('bet_title');
-        const titleTexture = PIXI.Texture.from(title);
-        const titleSprite = new PIXI.Sprite(titleTexture);
-        titleSprite.position.set(385,780);
-        this.addChild(titleSprite);
+        const titleTexture = resourceManager.getTexture('bet_title');
+        if (titleTexture) {
+          const titleSprite = new PIXI.Sprite(titleTexture);
+          titleSprite.position.set(385,780);
+          this.addChild(titleSprite);
+        }
 
         this.createBetList(betList);
         

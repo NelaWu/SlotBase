@@ -48,9 +48,9 @@ export class BaseNumber extends PIXI.Container {
     // 載入數字 0-9
     for (let i = 0; i <= 9; i++) {
       const resourceId = `${this.baseName}_${i}`;
-      const resource = this.resourceManager.getResource(resourceId);
-      if (resource) {
-        this.digitTextures.set(String(i), PIXI.Texture.from(resource));
+      const texture = this.resourceManager.getTexture(resourceId);
+      if (texture) {
+        this.digitTextures.set(String(i), texture);
       } else {
         console.warn(`[BaseNumber] 找不到資源: ${resourceId}`);
       }
@@ -58,26 +58,26 @@ export class BaseNumber extends PIXI.Container {
 
     // 載入小數點
     const dotResourceId = `${this.baseName}_.`;
-    const dotResource = this.resourceManager.getResource(dotResourceId);
-    if (dotResource) {
-      this.digitTextures.set('.', PIXI.Texture.from(dotResource));
+    const dotTexture = this.resourceManager.getTexture(dotResourceId);
+    if (dotTexture) {
+      this.digitTextures.set('.', dotTexture);
     } else {
       console.warn(`[BaseNumber] 找不到資源: ${dotResourceId}`);
     }
 
     // 載入千分位符號（逗號）
     const commaResourceId = `${this.baseName}_,`;
-    const commaResource = this.resourceManager.getResource(commaResourceId);
-    if (commaResource) {
-      this.digitTextures.set(',', PIXI.Texture.from(commaResource));
+    const commaTexture = this.resourceManager.getTexture(commaResourceId);
+    if (commaTexture) {
+      this.digitTextures.set(',', commaTexture);
     }
     // 千分位符號是可選的，找不到也不報錯
 
     // 載入倍數符號（x）
     const multiplierResourceId = `${this.baseName}_x`;
-    const multiplierResource = this.resourceManager.getResource(multiplierResourceId);
-    if (multiplierResource) {
-      this.digitTextures.set('x', PIXI.Texture.from(multiplierResource));
+    const multiplierTexture = this.resourceManager.getTexture(multiplierResourceId);
+    if (multiplierTexture) {
+      this.digitTextures.set('x', multiplierTexture);
     }
     // 倍數符號是可選的，找不到也不報錯
     
