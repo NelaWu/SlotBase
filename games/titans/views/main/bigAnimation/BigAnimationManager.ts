@@ -65,6 +65,7 @@ export class BigAnimationManager extends PIXI.Container {
     
     // 監聽關閉事件
     freeEnd.once(GameEventEnum.BIG_ANIMATION_CLOSE, () => {
+      this.bigAnimationContainer.removeChild(freeEnd);
       this.hide();
     });
     
@@ -78,6 +79,7 @@ export class BigAnimationManager extends PIXI.Container {
     return new Promise((resolve) => {
       const freeEnd = this.showFreeEnd(winAmount);
       freeEnd.once(GameEventEnum.BIG_ANIMATION_CLOSE, () => {
+        this.bigAnimationContainer.removeChild(freeEnd);
         resolve();
         this.hide();
       });
@@ -91,6 +93,7 @@ export class BigAnimationManager extends PIXI.Container {
     this.bigAnimationContainer.addChild(transition);
     // 監聽關閉事件
     transition.once(GameEventEnum.BIG_ANIMATION_TRANSITION_COMPLETE, () => {
+      this.bigAnimationContainer.removeChild(transition);
       this.hide();
       this.backgroundMask.visible = true;
     });
@@ -101,6 +104,7 @@ export class BigAnimationManager extends PIXI.Container {
     const bigTreasure = new BigTreasure(win);
     this.bigAnimationContainer.addChild(bigTreasure);
     bigTreasure.once(GameEventEnum.BIG_ANIMATION_BIG_TREASURE_COMPLETE, () => {
+      this.bigAnimationContainer.removeChild(bigTreasure);
       this.hide();
     });
     return bigTreasure;
@@ -113,6 +117,7 @@ export class BigAnimationManager extends PIXI.Container {
     this.bigAnimationContainer.addChild(bigWin);
 
     bigWin.once(GameEventEnum.BIG_ANIMATION_BIG_WIN_COMPLETE, () => {
+      this.bigAnimationContainer.removeChild(bigWin);
       this.hide();
     });
     
@@ -133,6 +138,7 @@ export class BigAnimationManager extends PIXI.Container {
     return new Promise((resolve) => {
       const bigWin = this.showBigWin(money, bet);
       bigWin.once(GameEventEnum.BIG_ANIMATION_BIG_WIN_COMPLETE, () => {
+        this.bigAnimationContainer.removeChild(bigWin);
         resolve();
       });
     });

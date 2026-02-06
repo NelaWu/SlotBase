@@ -85,8 +85,8 @@ export class TitansWheel extends PIXI.Container {
     } as Required<TitansWheelConfig>;
 
     this.animationConfig = {
-      dropSpeed: 3000,
-      gravity: 2000,
+      dropSpeed: 4000,
+      gravity: 2500,
       bounce: 0.1,
       columnDelay: this.originalColumnDelay,
       rowDelay: 0,

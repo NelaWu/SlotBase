@@ -198,6 +198,10 @@ export class TitansSlotView extends BaseView {
     this.mainGame.freeTimes.showText(remaining.toString());
   }
 
+  public autoButtonEnabled(enabled: boolean): void {
+    this.mainGame.autoButton.setToggleState(enabled);
+  }
+
   // 設置旋轉按鈕啟用狀態
   public setSpinButtonEnabled(enabled: boolean): void {
     this.mainGame.spinButton.setEnabled(enabled);
@@ -235,47 +239,6 @@ export class TitansSlotView extends BaseView {
     }
   }
 
-  // 顯示 Bonus 提示
-  public showBonusMessage(message: string): void {
-    const bonusText = new PIXI.Text({
-      text: message,
-      style: {
-        fontFamily: 'Arial',
-        fontSize: 96,  // 原本 48px * 2
-        fill: 0xff00ff,
-        fontWeight: 'bold' as const,
-        stroke: { color: 0x000000, width: 8 } // 原本 4px * 2
-      }
-    });
-    
-    bonusText.anchor.set(0.5);
-    bonusText.x = 540;  // 原本 270px * 2
-    bonusText.y = 786;  // 原本 393px * 2
-    bonusText.scale.set(0);
-    this.addChild(bonusText);
-
-    // 動畫
-    const startTime = Date.now();
-    const duration = 1000;
-    
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      
-      bonusText.scale.set(progress);
-      bonusText.rotation = progress * Math.PI * 2;
-      
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      } else {
-        setTimeout(() => {
-          bonusText.destroy();
-        }, 2000);
-      }
-    };
-    
-    animate();
-  }
 
   // 重寫調整大小方法
   override resize(width: number, height: number): void {

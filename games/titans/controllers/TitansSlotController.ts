@@ -463,8 +463,7 @@ export class TitansSlotController extends BaseController {
 
   private onFreeSpinsAwarded(count: number): void {
     this.log('獲得免費旋轉:', count);
-    this.view.updateFreeSpins(count);
-    this.view.showBonusMessage(`獲得 ${count} 次免費旋轉！`);
+    // this.view.updateFreeSpins(count);
   }
 
   private onFreeSpinsUsed(remaining: number): void {

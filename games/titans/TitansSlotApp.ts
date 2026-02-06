@@ -491,6 +491,7 @@ export class TitansSlotApp extends SlotMachineApp {
     this.freeTotalWin = 0;
     // 切換回主遊戲模式畫面
     this.TitansView.getMainGame().endFreeGame();
+    this.TitansView.autoButtonEnabled(false);
   }
 
   /**
@@ -1011,8 +1012,13 @@ export class TitansSlotApp extends SlotMachineApp {
             }
           }
 
-          // 處理旋轉結果
-          this.handleSpinResult(data);
+          // 免費遊戲的判斷 to do 測試
+          if(data.SpinInfo.FGRemainTimes>0){
+            console.log('中免費遊戲啦啦啦:', data);
+            this.handleBuyFreeGameSpinResult(data);
+          }else{
+            this.handleSpinResult(data);
+          }
           break;
         case 11009:
           console.log('🎰 收到免費遊戲旋轉結果:', data);

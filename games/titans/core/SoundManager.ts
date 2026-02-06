@@ -297,20 +297,16 @@ export class SoundManager {
         if (duration > 0 && duration - currentTime < 0.15 && !nextAudioStarted) {
           if (this.currentBgmAudio === this.bgmAudio1 && this.bgmAudio2) {
             // 提前開始播放 audio2
-            console.log('[SoundManager] ⏩ 提前0.1秒開始播放 audio2（無縫銜接）');
             this.bgmAudio2.currentTime = 0;
             this.bgmAudio2.play().then(() => {
-              console.log('[SoundManager] ✅ audio2 提前播放成功');
             }).catch((error) => {
               console.error('[SoundManager] ❌ audio2 提前播放失敗:', error);
             });
             nextAudioStarted = true;
           } else if (this.currentBgmAudio === this.bgmAudio2 && this.bgmAudio1) {
             // 提前開始播放 audio1
-            console.log('[SoundManager] ⏩ 提前0.1秒開始播放 audio1（無縫銜接）');
             this.bgmAudio1.currentTime = 0;
             this.bgmAudio1.play().then(() => {
-              console.log('[SoundManager] ✅ audio1 提前播放成功');
             }).catch((error) => {
               console.error('[SoundManager] ❌ audio1 提前播放失敗:', error);
             });
