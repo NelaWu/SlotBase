@@ -18,6 +18,9 @@ export interface SlotMachineAppConfig {
   resources: ResourceDefinition[];
   enableOfflineMode?: boolean;
   language?: string; // 語言參數，用於控制資源載入（如 'zh-TW', 'en', 'zh-CN'）
+  onLoadProgress?: (progress: GameLoadProgress) => void; // 外部載入進度回調
+  onLoadComplete?: () => void; // 外部載入完成回調
+  onLoadError?: (error: string, phase: LoadingPhase) => void; // 外部載入錯誤回調
 }
 
 // 拉霸機應用程式主類別
@@ -239,11 +242,29 @@ export class SlotMachineApp {
 
   // 設置載入器
   private setupLoader(): void {
-    this.loader.setCallbacks(
-      (progress: GameLoadProgress) => this.onLoadProgress(progress),
-      () => this.onLoadComplete(),
-      (error: string, phase: LoadingPhase) => this.onLoadError(error, phase)
-    );
+    // 如果有外部回調，則同時調用外部回調和內部回調；否則只使用內部回調
+    const progressCallback = this.config.onLoadProgress 
+      ? (progress: GameLoadProgress) => {
+          this.onLoadProgress(progress);
+          this.config.onLoadProgress!(progress);
+        }
+      : (progress: GameLoadProgress) => this.onLoadProgress(progress);
+
+    const completeCallback = this.config.onLoadComplete
+      ? () => {
+          this.onLoadComplete();
+          this.config.onLoadComplete!();
+        }
+      : () => this.onLoadComplete();
+
+    const errorCallback = this.config.onLoadError
+      ? (error: string, phase: LoadingPhase) => {
+          this.onLoadError(error, phase);
+          this.config.onLoadError!(error, phase);
+        }
+      : (error: string, phase: LoadingPhase) => this.onLoadError(error, phase);
+
+    this.loader.setCallbacks(progressCallback, completeCallback, errorCallback);
   }
 
   // 設置響應式

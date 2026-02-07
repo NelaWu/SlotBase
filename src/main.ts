@@ -4,9 +4,10 @@ import { GameLoadProgress } from '@core/GameLoader';
 
 // DOM 元素
 const loadingScreen = document.getElementById('loading-screen')!;
-const loadingText = document.getElementById('loading-text')!;
-const loadingDetails = document.getElementById('loading-details')!;
-const progressFill = document.getElementById('progress-fill')!;
+const loadingPercentage = document.getElementById('loading-percentage')!;
+const loadingMessage = document.getElementById('loading-message')!;
+const progressBarFill = document.getElementById('progress-bar-fill')!;
+const progressBarEffect = document.getElementById('progress-bar-effect')!;
 const controlPanel = document.getElementById('control-panel')!;
 const errorMessage = document.getElementById('error-message')!;
 const errorText = document.getElementById('error-text')!;
@@ -77,9 +78,14 @@ function hideLoadingScreen(): void {
 
 // 更新載入進度
 function updateLoadingProgress(progress: GameLoadProgress): void {
-  loadingText.textContent = progress.message;
-  loadingDetails.textContent = progress.details || '';
-  progressFill.style.width = `${progress.percentage}%`;
+  const percentage = Math.round(progress.percentage);
+  loadingPercentage.textContent = `${percentage}%`;
+  loadingMessage.textContent = progress.message || progress.details || '正在載入資源...';
+  
+  // 更新進度條寬度
+  const width = `${progress.percentage}%`;
+  progressBarFill.style.width = width;
+  progressBarEffect.style.width = width;
 }
 
 // 更新 UI 顯示

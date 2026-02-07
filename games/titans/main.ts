@@ -1,4 +1,5 @@
 import { TitansSlotApp, TitansSlotAppConfig } from './TitansSlotApp';
+import { GameLoadProgress } from '@/core/GameLoader';
 import '@esotericsoftware/spine-pixi-v8';
 
 // 型別宣告：確保可以使用 import.meta.env.BASE_URL
@@ -176,14 +177,81 @@ async function startTitansSlotGame() {
     },
 
     // 開發時啟用離線模式
-    enableOfflineMode: true
+    enableOfflineMode: true,
+
+    // 載入進度回調（使用 GameLoadProgress 類型）
+    onLoadProgress: (progress: GameLoadProgress) => {
+      updateLoadingProgress(progress);
+    },
+    onLoadComplete: () => {
+      updateProgressBars(1, 'transform 0.5s ease-out');
+      updateLoadingProgress({ percentage: 100, message: '載入完成', phase: 'completed' as any });
+      setTimeout(hideLoadingScreen, 600);
+    },
+    onLoadError: (error: string) => {
+      console.error('載入錯誤:', error);
+      showError(`載入失敗: ${error}`);
+    }
+  };
+
+  // 獲取 loading 頁面元素
+  const loadingScreen = document.getElementById('loading-screen');
+  const loadingPercentage = document.getElementById('loading-percentage');
+  const loadingMessage = document.getElementById('loading-message');
+  const progressBarFill = document.getElementById('progress-bar-fill');
+  const progressBarEffect = document.getElementById('progress-bar-effect');
+
+  // 更新進度條動畫
+  const updateProgressBars = (scaleX: number, transition?: string) => {
+    [progressBarFill, progressBarEffect].forEach(el => {
+      if (el) {
+        if (transition) el.style.transition = transition;
+        el.style.transform = `scaleX(${scaleX})`;
+      }
+    });
+  };
+
+  // 顯示錯誤訊息
+  const showError = (message: string) => {
+    if (loadingMessage) {
+      loadingMessage.textContent = message;
+      loadingMessage.style.color = '#e74c3c';
+    }
+    if (loadingPercentage) {
+      loadingPercentage.textContent = '錯誤';
+      loadingPercentage.style.color = '#e74c3c';
+    }
+  };
+
+  // 更新載入進度
+  const updateLoadingProgress = (progress: GameLoadProgress) => {
+    const percentage = Math.round(progress.percentage);
+    
+    if (loadingPercentage) {
+      loadingPercentage.textContent = `${percentage}%`;
+    }
+    if (loadingMessage) {
+      loadingMessage.textContent = progress.message || progress.details || '正在載入資源...';
+    }
+    
+    updateProgressBars(progress.percentage / 100);
+  };
+
+  // 隱藏載入畫面
+  const hideLoadingScreen = () => {
+    if (loadingScreen) {
+      loadingScreen.classList.add('hidden');
+      setTimeout(() => {
+        loadingScreen?.style && (loadingScreen.style.display = 'none');
+      }, 500);
+    }
   };
 
   try {
-    // 創建遊戲應用程式
+    // 創建遊戲應用程式（載入回調已經在 config 中設置）
     const app = new TitansSlotApp(config);
 
-    // 初始化
+    // 初始化（這會觸發資源載入，載入進度會通過 config 中的回調更新）
     await app.initialize();
 
     // 開始運行
@@ -197,107 +265,14 @@ async function startTitansSlotGame() {
 
   } catch (error) {
     console.error('❌ 遊戲啟動失敗:', error);
+    const errorMessage = error instanceof Error ? error.message : '未知錯誤';
+    showError(`遊戲啟動失敗: ${errorMessage}`);
   }
-}
-
-// 設置測試控制按鈕
-function setupTestControls(app: TitansSlotApp) {
-  // 創建控制面板
-  const controlPanel = document.createElement('div');
-  controlPanel.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 20px;
-    border-radius: 10px;
-    font-family: Arial, sans-serif;
-    z-index: 1000;
-  `;
-
-  controlPanel.innerHTML = `
-    <h3 style="margin: 0 0 15px 0;">🎮 測試控制台</h3>
-    <div style="display: flex; flex-direction: column; gap: 10px;">
-      <button id="test-spin" style="padding: 10px; cursor: pointer;">旋轉</button>
-      <button id="test-add-balance" style="padding: 10px; cursor: pointer;">增加餘額 (+1000)</button>
-      <button id="test-set-bet-10" style="padding: 10px; cursor: pointer;">設置投注 $10</button>
-      <button id="test-set-bet-50" style="padding: 10px; cursor: pointer;">設置投注 $50</button>
-      <button id="test-bonus-free" style="padding: 10px; cursor: pointer;">觸發免費旋轉</button>
-      <button id="test-reset" style="padding: 10px; cursor: pointer;">重設遊戲</button>
-    </div>
-    <div style="margin-top: 15px; font-size: 12px;">
-      <div id="test-info"></div>
-    </div>
-  `;
-
-  document.body.appendChild(controlPanel);
-
-  // 綁定事件
-  document.getElementById('test-spin')?.addEventListener('click', () => {
-    console.log('🎲 測試：旋轉');
-    app.spin();
-  });
-
-  document.getElementById('test-add-balance')?.addEventListener('click', () => {
-    console.log('💰 測試：增加餘額');
-    app.addBalance(1000);
-  });
-
-  document.getElementById('test-set-bet-10')?.addEventListener('click', () => {
-    console.log('💵 測試：設置投注 $10');
-    app.setBet(10);
-  });
-
-  document.getElementById('test-set-bet-50')?.addEventListener('click', () => {
-    console.log('💵 測試：設置投注 $50');
-    app.setBet(50);
-  });
-
-  document.getElementById('test-bonus-free')?.addEventListener('click', () => {
-    console.log('🎁 測試：觸發免費旋轉');
-    app.triggerBonus('freeSpins');
-  });
-
-  document.getElementById('test-reset')?.addEventListener('click', () => {
-    console.log('🔄 測試：重設遊戲');
-    app.resetGame();
-  });
-
-  // 更新資訊顯示
-  const updateInfo = () => {
-    const infoDiv = document.getElementById('test-info');
-    if (infoDiv) {
-      infoDiv.innerHTML = `
-        <strong>狀態:</strong> ${app.getCurrentState()}<br>
-        <strong>餘額:</strong> $${app.getBalance()}<br>
-        <strong>投注:</strong> $${app.getTitansModel().getCurrentBet()}<br>
-        <strong>免費旋轉:</strong> ${app.getFreeSpinsRemaining()}
-      `;
-    }
-  };
-
-  // 定期更新資訊
-  setInterval(updateInfo, 500);
-  updateInfo();
 }
 
 // 啟動遊戲
-startTitansSlotGame().then(() => {
-  // 隱藏載入畫面（支援兩種 ID：loading 和 loading-screen）
-  const loading = document.getElementById('loading') || document.getElementById('loading-screen');
-  if (loading) {
-    loading.classList.add('hidden');
-  }
-}).catch((error) => {
+startTitansSlotGame().catch((error) => {
   console.error('遊戲啟動失敗:', error);
-  const loading = document.getElementById('loading') || document.getElementById('loading-screen');
-  if (loading) {
-    loading.innerHTML = `
-      <h2>❌ 載入失敗</h2>
-      <p>${error.message}</p>
-      <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; cursor: pointer;">重新載入</button>
-    `;
-  }
+  // 錯誤處理已在 startTitansSlotGame 中完成
 });
 
