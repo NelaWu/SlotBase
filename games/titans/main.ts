@@ -43,21 +43,7 @@ async function startTitansSlotGame() {
     width: 1080,
     height: 1920,
     backgroundColor: 0x000000, // 黑色背景
-    // iOS 優化：降低 resolution 以提升性能
-    // iPhone 通常 devicePixelRatio 為 2-3，但使用較低 resolution 可以大幅提升 FPS
-    resolution: (() => {
-      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
-                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-      const devicePixelRatio = window.devicePixelRatio || 1;
-      
-      if (isIOS) {
-        // iOS 設備：限制 resolution 最高為 1.5，以提升性能
-        return Math.min(1.5, devicePixelRatio);
-      }
-      
-      // 其他設備：使用原始 devicePixelRatio
-      return devicePixelRatio;
-    })(),
+    resolution: window.devicePixelRatio || 1,
 
     // API 配置
     apiConfig: {
