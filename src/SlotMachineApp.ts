@@ -124,14 +124,39 @@ export class SlotMachineApp {
     return 'en';
   }
 
+  // 檢測是否為 iOS 設備
+  private isIOS(): boolean {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
   // 初始化 PIXI
   private async initializePixi(): Promise<void> {
+    const isIOS = this.isIOS();
+    
+    // iOS 優化：降低 resolution 以提升性能
+    // iPhone 通常 devicePixelRatio 為 2-3，降低到 1-1.5 可以大幅提升性能
+    let optimizedResolution = this.config.resolution;
+    if (isIOS && optimizedResolution && optimizedResolution > 1.5) {
+      optimizedResolution = Math.min(1.5, optimizedResolution);
+      console.log(`📱 iOS 設備檢測：將 resolution 從 ${this.config.resolution} 降低到 ${optimizedResolution} 以提升性能`);
+    }
+
     await this.app.init({
       width: this.config.width,
       height: this.config.height,
       backgroundColor: this.config.backgroundColor,
-      resolution: this.config.resolution,
-      autoDensity: true
+      resolution: optimizedResolution,
+      autoDensity: true,
+      // iOS 優化：禁用抗鋸齒和 context alpha 以提升性能
+      antialias: !isIOS, // iOS 上禁用抗鋸齒
+      useContextAlpha: !isIOS, // iOS 上禁用 context alpha
+      // 其他 WebGL 優化選項
+      webgl: {
+        antialias: !isIOS,
+        powerPreference: 'high-performance' as WebGLPowerPreference,
+        failIfMajorPerformanceCaveat: false
+      }
     });
 
     // 將 PIXI canvas 添加到容器
