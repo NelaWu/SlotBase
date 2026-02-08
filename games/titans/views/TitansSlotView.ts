@@ -10,6 +10,7 @@ import { SoundManager } from '../core/SoundManager';
 export class TitansSlotView extends BaseView {
   private mainGame!: MainGame;
   private onSpinAnimationCompleteCallback?: () => void; // 旋轉動畫完成回調
+  private errorOverlay?: PIXI.Container; // 錯誤覆蓋層
 
   constructor(app: PIXI.Application) {
     super(app);
@@ -248,6 +249,40 @@ export class TitansSlotView extends BaseView {
     const scale = Math.min(scaleX, scaleY);
     
     this.scale.set(scale);
+
+    // 如果錯誤覆蓋層存在，更新其大小
+    if (this.errorOverlay) {
+      const bg = this.errorOverlay.children[0] as PIXI.Graphics;
+      if (bg) {
+        bg.clear();
+        bg.beginFill(0x000000, 1);
+        bg.drawRect(0, 0, width, height);
+        bg.endFill();
+      }
+      
+      const errorText = this.errorOverlay.children[1] as PIXI.Text;
+      if (errorText) {
+        errorText.x = width / 2;
+        errorText.y = height / 2 - 100;
+        errorText.style.wordWrapWidth = width - 100;
+      }
+
+      // 如果有按鈕，更新按鈕位置
+      const buttonBg = this.errorOverlay.children.find(child => child instanceof PIXI.Graphics && child !== bg) as PIXI.Graphics | undefined;
+      const buttonText = this.errorOverlay.children.find(child => child instanceof PIXI.Text && child !== errorText) as PIXI.Text | undefined;
+      
+      if (buttonBg && buttonText) {
+        const buttonWidth = 200;
+        const buttonHeight = 60;
+        const buttonX = width / 2;
+        const buttonY = height / 2 + 100;
+
+        buttonBg.x = buttonX;
+        buttonBg.y = buttonY;
+        buttonText.x = buttonX;
+        buttonText.y = buttonY;
+      }
+    }
   }
 
   // 獲取 MainGame 實例
@@ -288,5 +323,154 @@ export class TitansSlotView extends BaseView {
   }
   public updateJpInfo(jpDataArray: JpData[]): void {  
     this.mainGame.updateJpInfo(jpDataArray);
+  }
+
+  /**
+   * 顯示錯誤訊息（全屏黑色背景）
+   * @param message 錯誤訊息
+   * @param exitUrl 退出 URL（可選）
+   */
+  public showErrorOverlay(message: string, exitUrl?: string): void {
+    // 如果已經有錯誤覆蓋層，先移除
+    if (this.errorOverlay) {
+      this.removeChild(this.errorOverlay);
+      this.errorOverlay.destroy({ children: true });
+    }
+
+    // 創建錯誤覆蓋層
+    this.errorOverlay = new PIXI.Container();
+    
+    // 獲取實際畫布尺寸
+    const width = this.app.screen.width;
+    const height = this.app.screen.height;
+    
+    // 創建黑色背景（全屏）
+    const bg = new PIXI.Graphics();
+    bg.beginFill(0x000000, 1);
+    bg.drawRect(0, 0, width, height);
+    bg.endFill();
+    this.errorOverlay.addChild(bg);
+
+    // 創建文字樣式
+    const textStyle = new PIXI.TextStyle({
+      fontFamily: 'Arial',
+      fontSize: 48,
+      fill: 0xffffff,
+      align: 'center',
+      wordWrap: true,
+      wordWrapWidth: width - 100,
+    });
+
+    // 創建錯誤訊息文字
+    const errorText = new PIXI.Text(message, textStyle);
+    errorText.anchor.set(0.5);
+    errorText.x = width / 2;
+    errorText.y = height / 2 - 100; // 向上移動一點，為按鈕留出空間
+    this.errorOverlay.addChild(errorText);
+
+    // 始終創建確認按鈕
+    // 按鈕尺寸
+    const buttonWidth = 300;
+    const buttonHeight = 100;
+    const buttonX = width / 2;
+    const buttonY = height / 2 + 100; // 中間下方
+
+    // 創建按鈕背景（橘色）
+    const buttonBg = new PIXI.Graphics();
+    buttonBg.beginFill(0xFF6600, 1); // 橘色
+    buttonBg.drawRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 10);
+    buttonBg.endFill();
+    buttonBg.x = buttonX;
+    buttonBg.y = buttonY;
+    buttonBg.interactive = true;
+    buttonBg.buttonMode = true;
+    buttonBg.cursor = 'pointer';
+    // 設置點擊區域
+    buttonBg.hitArea = new PIXI.RoundedRectangle(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 10);
+
+    // 按鈕文字樣式
+    const buttonTextStyle = new PIXI.TextStyle({
+      fontFamily: 'Arial',
+      fontSize: 50,
+      fill: 0xffffff,
+      align: 'center',
+      fontWeight: 'bold',
+    });
+
+    // 創建按鈕文字
+    const buttonText = new PIXI.Text('confirm', buttonTextStyle);
+    buttonText.anchor.set(0.5);
+    buttonText.x = buttonX;
+    buttonText.y = buttonY;
+    buttonText.zIndex = 1; // 確保文字在按鈕上方
+
+    // 按鈕點擊事件
+    const onButtonClick = () => {
+      if (exitUrl && exitUrl.trim() !== '') {
+        console.log('🔗 導向退出 URL:', exitUrl);
+        window.location.href = exitUrl;
+      } else {
+        console.log('🔒 exitUrl 為空，關閉視窗');
+        window.close();
+      }
+    };
+
+      // 按鈕懸停效果
+      buttonBg.on('pointerover', () => {
+        buttonBg.clear();
+        buttonBg.beginFill(0xFF8800, 1); // 稍亮的橘色
+        buttonBg.drawRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 10);
+        buttonBg.endFill();
+      });
+
+      buttonBg.on('pointerout', () => {
+        buttonBg.clear();
+        buttonBg.beginFill(0xFF6600, 1); // 恢復原色
+        buttonBg.drawRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 10);
+        buttonBg.endFill();
+      });
+
+      buttonBg.on('pointerdown', () => {
+        buttonBg.clear();
+        buttonBg.beginFill(0xFF4400, 1); // 按下時更深的橘色
+        buttonBg.drawRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 10);
+        buttonBg.endFill();
+      });
+
+      buttonBg.on('pointerup', () => {
+        buttonBg.clear();
+        buttonBg.beginFill(0xFF6600, 1); // 恢復原色
+        buttonBg.drawRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 10);
+        buttonBg.endFill();
+        onButtonClick();
+      });
+
+    buttonBg.on('pointerupoutside', () => {
+      buttonBg.clear();
+      buttonBg.beginFill(0xFF6600, 1); // 恢復原色
+      buttonBg.drawRoundedRect(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 10);
+      buttonBg.endFill();
+    });
+
+    // 先添加按鈕背景，再添加文字（確保文字在按鈕上方）
+    this.errorOverlay.addChild(buttonBg);
+    this.errorOverlay.addChild(buttonText);
+
+    // 將錯誤覆蓋層添加到舞台最上層
+    this.addChild(this.errorOverlay);
+    
+    // 設置 z-index（確保在最上層）
+    this.errorOverlay.zIndex = 9999;
+  }
+
+  /**
+   * 隱藏錯誤訊息
+   */
+  public hideErrorOverlay(): void {
+    if (this.errorOverlay) {
+      this.removeChild(this.errorOverlay);
+      this.errorOverlay.destroy({ children: true });
+      this.errorOverlay = undefined;
+    }
   }
 }

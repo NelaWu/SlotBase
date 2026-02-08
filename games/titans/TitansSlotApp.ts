@@ -32,6 +32,12 @@ export class TitansSlotApp extends SlotMachineApp {
   private multiplier:number = 1; // 倍數
   private useMockData: boolean = false; // 是否使用假資料測試
   private mockDataIndex: number = 0; // 假資料索引
+  private exitUrl: string = ''; // 離開 URL（從 URL 參數 r 獲取）
+  private errorMessages: Record<string, string> = {
+    'IdleForceClose': '闲置时间过久，请重新登入',
+    'ConnectClose': 'Connect Close.',
+    'TokenInvalid': 'Token Invalid.'
+  };
 
   /**
    * 將服務器金額轉換為客戶端金額（用於 BetMultiples/BetMultiple）
@@ -176,6 +182,7 @@ export class TitansSlotApp extends SlotMachineApp {
       let _exitUrl: string = '';
       if (exitUrlParam) {
         _exitUrl = decodeBase64(exitUrlParam);
+        this.exitUrl = _exitUrl; // 保存退出 URL
       }
 
       // 拼接 WebSocket URL
@@ -193,7 +200,7 @@ export class TitansSlotApp extends SlotMachineApp {
         reconnectInterval: 3000,        // 3秒重連間隔
         maxReconnectAttempts: -1,      // 無限重連
         heartbeatInterval: 5000,      // 30秒心跳（確保 > 0 才會發送心跳）
-        autoReconnect: true,
+        autoReconnect: false,          // 禁用自動重連
         initMessage: {
           GameToken: tokenParam,
           GameID: 7,
@@ -204,11 +211,15 @@ export class TitansSlotApp extends SlotMachineApp {
       // 監聽連接事件
       this.wsManager.on(WebSocketEvent.CONNECT, (data) => {
         console.log('✅ WebSocket 連接成功', data);
+        // 連接成功時隱藏錯誤訊息
+        this.TitansView.hideErrorOverlay();
       });
 
       // 監聽斷開事件
-      this.wsManager.on(WebSocketEvent.DISCONNECT, (event) => {
+      this.wsManager.on(WebSocketEvent.DISCONNECT, (event: CloseEvent) => {
         console.warn('⚠️  WebSocket 連接斷開:', event);
+        // 根據關閉原因判斷錯誤類型
+        this.handleWebSocketDisconnect(event);
       });
 
       // 監聽消息事件
@@ -219,11 +230,8 @@ export class TitansSlotApp extends SlotMachineApp {
       // 監聽錯誤事件
       this.wsManager.on(WebSocketEvent.ERROR, (error) => {
         console.error('❌ WebSocket 錯誤:', error);
-      });
-
-      // 監聽重連事件
-      this.wsManager.on(WebSocketEvent.RECONNECT, (attempts) => {
-        console.log(`🔄 WebSocket 重連中 (第 ${attempts} 次)...`);
+        // 顯示連接錯誤訊息
+        this.showError('ConnectClose');
       });
 
       // 開始連接
@@ -944,9 +952,59 @@ export class TitansSlotApp extends SlotMachineApp {
   }
 
   /**
+   * 處理 WebSocket 斷開連接
+   * @param event CloseEvent 關閉事件
+   */
+  private handleWebSocketDisconnect(event: CloseEvent): void {
+    // 禁用自動重連（確保不會重連）
+    if (this.wsManager) {
+      this.wsManager.disconnect();
+    }
+
+    // 根據關閉原因判斷錯誤類型
+    let errorType = 'ConnectClose'; // 預設錯誤類型
+    
+    // 檢查關閉原因（reason）是否包含錯誤類型
+    if (event.reason) {
+      const reason = event.reason.trim();
+      if (reason === 'IdleForceClose' || reason.includes('IdleForceClose')) {
+        errorType = 'IdleForceClose';
+      } else if (reason === 'TokenInvalid' || reason.includes('TokenInvalid')) {
+        errorType = 'TokenInvalid';
+      } else if (reason === 'ConnectClose' || reason.includes('ConnectClose')) {
+        errorType = 'ConnectClose';
+      }
+    }
+
+    // 顯示錯誤訊息
+    this.showError(errorType);
+  }
+
+  /**
+   * 顯示錯誤訊息
+   * @param errorType 錯誤類型
+   */
+  private showError(errorType: string): void {
+    const message = this.errorMessages[errorType] || this.errorMessages['ConnectClose'];
+    console.error(`❌ WebSocket 錯誤: ${errorType} - ${message}`);
+    this.TitansView.showErrorOverlay(message, this.exitUrl);
+  }
+
+  /**
    * 處理 WebSocket 消息
    */
   private async handleWebSocketMessage(data: any): Promise<void> {
+    // 檢查是否有錯誤代碼（負數或特定的錯誤代碼）
+    if (typeof data === 'object' && typeof data.Code === 'number') {
+      // 檢查是否為錯誤消息（根據實際協議調整）
+      if (data.Code < 0 && data.Code !== -2) { // -2 是心跳回應
+        // 根據錯誤代碼判斷錯誤類型
+        if (data.ErrorType) {
+          this.showError(data.ErrorType);
+          return;
+        }
+      }
+    }
     // 根據 Code 處理不同的消息類型
     if (typeof data === 'object' && typeof data.Code === 'number') {
       switch (data.Code) {
