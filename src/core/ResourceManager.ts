@@ -180,7 +180,7 @@ export class ResourceManager {
       case 'image':
         return this.loadImage(definition.url);
       case 'audio':
-        return this.loadAudio(definition.url);
+        return this.loadAudioWithWebAudio(definition.id, definition.url);
       case 'json':
         return this.loadJson(definition.url);
       case 'font':
@@ -201,6 +201,29 @@ export class ResourceManager {
     }
   }
 
+  // 載入音頻（支持 Web Audio API 和 HTMLAudioElement）
+  private async loadAudioWithWebAudio(id: string, url: string): Promise<HTMLAudioElement | ArrayBuffer> {
+    const audioData = await this.loadAudio(url);
+    
+    // iOS 優化：如果是 ArrayBuffer，解碼到 WebAudioManager
+    if (audioData instanceof ArrayBuffer) {
+      try {
+        const { WebAudioManager } = await import('@/core/WebAudioManager');
+        const webAudioManager = WebAudioManager.getInstance();
+        await webAudioManager.loadAudio(id, audioData);
+        console.log(`[ResourceManager] iOS: 音頻 ${id} 已載入到 WebAudioManager`);
+        // 返回 ArrayBuffer 作為標記（實際播放使用 WebAudioManager）
+        return audioData;
+      } catch (error) {
+        console.error(`[ResourceManager] iOS: WebAudioManager 載入失敗: ${id}`, error);
+        throw error;
+      }
+    }
+    
+    // 非 iOS 設備：返回 HTMLAudioElement
+    return audioData as HTMLAudioElement;
+  }
+
   // 載入圖片
   private loadImage(url: string): Promise<HTMLImageElement> {
     return new Promise((resolve, reject) => {
@@ -211,8 +234,35 @@ export class ResourceManager {
     });
   }
 
-  // 載入音效
-  private loadAudio(url: string): Promise<HTMLAudioElement> {
+  // 載入音效（支持 Web Audio API 和 HTMLAudioElement）
+  private async loadAudio(url: string): Promise<HTMLAudioElement | ArrayBuffer> {
+    // iOS 優化：使用 Web Audio API（載入為 ArrayBuffer）
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    
+    if (isIOS) {
+      try {
+        console.log(`[ResourceManager] iOS: 使用 Web Audio API 載入音頻: ${url}`);
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        console.log(`[ResourceManager] iOS: 音頻 ArrayBuffer 載入完成: ${url}, 大小: ${(arrayBuffer.byteLength / 1024).toFixed(2)}KB`);
+        return arrayBuffer;
+      } catch (error) {
+        console.error(`[ResourceManager] iOS: Web Audio API 載入失敗，回退到 HTMLAudioElement: ${url}`, error);
+        // 回退到 HTMLAudioElement
+        return this.loadAudioHTML5(url);
+      }
+    }
+    
+    // 非 iOS 設備：使用 HTMLAudioElement
+    return this.loadAudioHTML5(url);
+  }
+
+  // 載入音效（HTML5 Audio）
+  private loadAudioHTML5(url: string): Promise<HTMLAudioElement> {
     return new Promise((resolve, reject) => {
       const audio = new Audio();
       let resolved = false;
@@ -242,8 +292,6 @@ export class ResourceManager {
       };
 
       const onLoadedData = () => {
-        // 對於某些瀏覽器（特別是 iOS Safari），loadeddata 事件可能比 canplaythrough 更早觸發
-        // 但我們仍然等待 canplaythrough 以確保音頻可以播放
         console.log(`[ResourceManager] 音效數據已載入 (loadeddata): ${url}`);
       };
 
@@ -262,7 +310,7 @@ export class ResourceManager {
       audio.addEventListener('loadeddata', onLoadedData);
       audio.addEventListener('error', onError);
       
-      // 設置 preload 屬性（iOS Safari 可能需要）
+      // 設置 preload 屬性
       audio.preload = 'auto';
       
       // 開始載入

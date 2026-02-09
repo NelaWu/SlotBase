@@ -1,5 +1,6 @@
 import { ResourceManager } from '@/core/ResourceManager';
 import { SoundPlayer } from '@/core/SoundPlayer';
+import { WebAudioManager } from '@/core/WebAudioManager';
 
 /**
  * 音效說明
@@ -31,6 +32,14 @@ import { SoundPlayer } from '@/core/SoundPlayer';
  * 音效管理器
  * 統一管理遊戲中的所有音效播放
  */
+/**
+ * 檢測是否為 iOS 設備
+ */
+function isIOS(): boolean {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
 export class SoundManager {
   private static instance: SoundManager;
   private resourceManager: ResourceManager;
@@ -41,7 +50,11 @@ export class SoundManager {
   private pendingBgmId: string | null = null; // 待播放的背景音樂ID（用戶交互後播放）
   private pendingBgmVolume: number = 0.5; // 待播放的背景音樂音量
   
-  // BGM 無縫循環相關（提前0.1秒播放）
+  // iOS 優化：使用 Web Audio API
+  private readonly isIOSDevice: boolean = isIOS();
+  private webAudioManager?: WebAudioManager; // Web Audio API 管理器（僅 iOS）
+  
+  // BGM 無縫循環相關（提前0.1秒播放）- 僅非 iOS 設備使用
   private bgmAudio1: HTMLAudioElement | null = null; // BGM 音頻元素1（用於無縫循環）
   private bgmAudio2: HTMLAudioElement | null = null; // BGM 音頻元素2（用於無縫循環）
   private currentBgmAudio: HTMLAudioElement | null = null; // 當前播放的BGM音頻元素
@@ -53,6 +66,12 @@ export class SoundManager {
   private constructor() {
     this.resourceManager = ResourceManager.getInstance();
     this.setupUserInteractionListener();
+    
+    // iOS 優化：初始化 Web Audio Manager
+    if (this.isIOSDevice) {
+      this.webAudioManager = WebAudioManager.getInstance();
+      console.log('[SoundManager] iOS: 使用 Web Audio API 管理音頻');
+    }
   }
 
   /**
@@ -66,8 +85,13 @@ export class SoundManager {
         
         // 如果有待播放的背景音樂，現在播放
         if (this.pendingBgmId) {
-          this.playBGM(this.pendingBgmId as 'mg_bgm' | 'fg_bgm', this.pendingBgmVolume, false);
+          this.playBGM(this.pendingBgmId as 'mg_bgm' | 'fg_bgm' | 'btm_fg_out_bgm', this.pendingBgmVolume, false);
           this.pendingBgmId = null;
+        }
+        
+        // iOS 優化：恢復 Web Audio API 的 AudioContext
+        if (this.isIOSDevice && this.webAudioManager) {
+          this.webAudioManager.resume();
         }
       }
     };
@@ -119,6 +143,19 @@ export class SoundManager {
     }
   ): SoundPlayer | null {
     try {
+      // iOS 優化：使用 Web Audio API
+      if (this.isIOSDevice && this.webAudioManager) {
+        if (this.webAudioManager.isLoaded(soundId)) {
+          this.webAudioManager.play(soundId, options?.loop || false, options?.volume);
+          // Web Audio API 不需要返回 SoundPlayer，返回 null 表示成功
+          return null;
+        } else {
+          console.warn(`[SoundManager] iOS: 音效未載入: ${soundId}`);
+          return null;
+        }
+      }
+
+      // 非 iOS 設備：使用 HTMLAudioElement
       const audioResource = this.resourceManager.getResource(soundId);
       if (!audioResource || !(audioResource instanceof HTMLAudioElement)) {
         console.warn(`[SoundManager] 找不到音效資源: ${soundId}`);
@@ -169,6 +206,13 @@ export class SoundManager {
    * @param soundId 音效ID
    */
   private stopSound(soundId: string): void {
+    // iOS 優化：使用 Web Audio API
+    if (this.isIOSDevice && this.webAudioManager) {
+      this.webAudioManager.stop(soundId);
+      return;
+    }
+
+    // 非 iOS 設備：使用 SoundPlayer
     const player = this.soundPlayers.get(soundId);
     if (player) {
       player.stop();
@@ -232,6 +276,37 @@ export class SoundManager {
    * @param waitForInteraction 是否等待用戶交互（默認 true，如果用戶未交互則延遲播放）
    */
   private playBGM(bgmId: 'mg_bgm' | 'fg_bgm' | 'btm_fg_out_bgm', volume: number = 0.5, waitForInteraction: boolean = true): void {
+    // iOS 優化：使用 Web Audio API
+    if (this.isIOSDevice && this.webAudioManager) {
+      // 如果正在播放相同的BGM，不重複播放
+      if (this.currentBgmId === bgmId && this.webAudioManager.isPlaying(bgmId)) {
+        return;
+      }
+
+      // 如果用戶尚未交互且需要等待，則保存待播放的BGM
+      if (waitForInteraction && !this.userInteracted) {
+        console.log(`[SoundManager] iOS: 用戶尚未交互，BGM ${bgmId} 將在用戶交互後播放`);
+        this.pendingBgmId = bgmId;
+        this.pendingBgmVolume = volume;
+        return;
+      }
+
+      // 停止當前BGM
+      this.stopBGM();
+
+      // 使用 Web Audio API 播放（支持循環）
+      if (this.webAudioManager.isLoaded(bgmId)) {
+        this.webAudioManager.play(bgmId, true, volume); // loop = true
+        this.currentBgmId = bgmId;
+        this.bgmVolume = volume;
+        console.log(`[SoundManager] iOS: BGM ${bgmId} 開始播放（Web Audio API）`);
+      } else {
+        console.warn(`[SoundManager] iOS: BGM 未載入: ${bgmId}`);
+      }
+      return;
+    }
+
+    // 非 iOS 設備：使用 HTMLAudioElement 無縫循環
     // 如果正在播放相同的BGM，不重複播放
     if (this.currentBgmId === bgmId && this.currentBgmAudio && !this.currentBgmAudio.paused) {
       return;
@@ -453,6 +528,15 @@ export class SoundManager {
    * 停止背景音樂（實例方法）
    */
   private stopBGM(): void {
+    // iOS 優化：使用 Web Audio API
+    if (this.isIOSDevice && this.webAudioManager && this.currentBgmId) {
+      this.webAudioManager.stop(this.currentBgmId);
+      this.currentBgmId = null;
+      this.bgmPlayer = null;
+      return;
+    }
+
+    // 非 iOS 設備：使用 HTMLAudioElement
     if (this.bgmPlayer) {
       this.bgmPlayer.stop();
       this.bgmPlayer.destroy();
@@ -476,6 +560,14 @@ export class SoundManager {
    */
   private setBGMVolume(volume: number): void {
     this.bgmVolume = volume;
+    
+    // iOS 優化：使用 Web Audio API
+    if (this.isIOSDevice && this.webAudioManager && this.currentBgmId) {
+      this.webAudioManager.setVolume(this.currentBgmId, volume);
+      return;
+    }
+
+    // 非 iOS 設備：使用 HTMLAudioElement
     if (this.bgmAudio1) this.bgmAudio1.volume = volume;
     if (this.bgmAudio2) this.bgmAudio2.volume = volume;
     if (this.bgmPlayer) {
