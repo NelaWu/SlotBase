@@ -43,7 +43,7 @@ export class FPSDisplay extends PIXI.Container {
       fill: 0x00ff00,
       fontWeight: 'bold',
       stroke: 0x000000,
-      strokeThickness: 2,
+      strokeWidth: 2,
     });
 
     // FPS 顯示
@@ -109,38 +109,87 @@ export class FPSDisplay extends PIXI.Container {
 
   private estimateDrawcalls(): number {
     // 優化：緩存結果，每 30 幀更新一次（大幅減少計算開銷）
-    if (!this.drawcallUpdateFrame) {
-      this.drawcallUpdateFrame = 0;
-      this.cachedDrawcalls = 0;
-    }
-    
     this.drawcallUpdateFrame++;
+    
+    // 每 30 幀更新一次計算
     if (this.drawcallUpdateFrame < 30) {
       return this.cachedDrawcalls; // 返回緩存值
     }
     
+    // 重置計數器
     this.drawcallUpdateFrame = 0;
     
-    // 簡化計算：只計算直接子對象，不遞歸（避免性能問題）
+    // 嘗試從渲染器獲取實際的 drawcall 數量（最準確）
     let count = 0;
-    const maxChildren = 100; // 限制計算的子對象數量
+    try {
+      const renderer = this.app.renderer as any;
+      if (renderer && typeof renderer.gl !== 'undefined') {
+        // WebGL 渲染器：從統計信息獲取
+        if (renderer.gl && renderer.gl.drawElements) {
+          // 嘗試從 PIXI 的統計信息獲取（如果可用）
+          const stats = (renderer as any).stats;
+          if (stats && typeof stats.drawCalls !== 'undefined') {
+            count = stats.drawCalls;
+          }
+        }
+      }
+    } catch (e) {
+      // 如果無法獲取，使用估算方法
+    }
     
-    // 只計算 stage 的直接子對象，不遞歸
+    // 如果無法從渲染器獲取，使用估算方法
+    if (count === 0) {
+      count = this.estimateDrawcallsByScene();
+    }
+    
+    this.cachedDrawcalls = count;
+    return count;
+  }
+
+  /**
+   * 通過遍歷場景估算 drawcall 數量
+   */
+  private estimateDrawcallsByScene(): number {
+    let count = 0;
+    const maxChildren = 200; // 增加限制以提高準確性
+    
+    // 遞歸計算所有可見的可渲染對象
+    const countRecursive = (container: PIXI.Container, depth: number = 0): void => {
+      // 限制遞歸深度，避免性能問題
+      if (depth > 5) return;
+      
+      for (const child of container.children) {
+        if (!child.visible) continue;
+        
+        if (child instanceof PIXI.Sprite || 
+            child instanceof PIXI.Graphics || 
+            child instanceof PIXI.Mesh ||
+            child instanceof PIXI.NineSlicePlane ||
+            child instanceof PIXI.AnimatedSprite) {
+          count++;
+        } else if (child instanceof PIXI.Container) {
+          // 遞歸計算子容器
+          countRecursive(child, depth + 1);
+        }
+      }
+    };
+    
+    // 從 stage 開始計算
     for (let i = 0; i < Math.min(this.app.stage.children.length, maxChildren); i++) {
       const child = this.app.stage.children[i];
       if (child.visible) {
         if (child instanceof PIXI.Sprite || 
             child instanceof PIXI.Graphics || 
-            child instanceof PIXI.Mesh) {
+            child instanceof PIXI.Mesh ||
+            child instanceof PIXI.NineSlicePlane ||
+            child instanceof PIXI.AnimatedSprite) {
           count++;
         } else if (child instanceof PIXI.Container) {
-          // 只計算第一層子對象
-          count += Math.min(child.children.length, 20); // 限制每個容器的子對象數量
+          countRecursive(child, 0);
         }
       }
     }
     
-    this.cachedDrawcalls = count;
     return count;
   }
 
