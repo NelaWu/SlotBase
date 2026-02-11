@@ -27,9 +27,10 @@ export class TitansSlotApp extends SlotMachineApp {
   private pendingServerBalance: number | null = null; // 暫存 1005 的 Balance（服務器金額）
   private betPurchaseCost: number = 0; // 購買免費遊戲的費用（從 11001 消息獲取）
   private freeTotalWin: number = 0; // 免費遊戲總獲勝金額
-  private totalWin: number = 0; // 總獲勝金額(11011才重置)
+  private totalWin: number = 0; // 總獲勝金額(11011才重置) - 累積的是未乘以倍數的原始金額
   private jpOn: boolean = false;
   private multiplier:number = 1; // 倍數
+  private totalMultiplier: number = 1; // 累積的總倍數（所有倍數球的乘積）
   private useMockData: boolean = false; // 是否使用假資料測試
   private mockDataIndex: number = 0; // 假資料索引
   private exitUrl: string = ''; // 離開 URL（從 URL 參數 r 獲取）
@@ -603,7 +604,12 @@ export class TitansSlotApp extends SlotMachineApp {
         }
 
         // 累計 totalWin（與 handleSpinResult 一致）
-        this.totalWin += respinSpinInfo.Win;
+        // 累積未乘以倍數的原始 Win（服務器返回的 Win 可能已經包含倍數，需要除以當前倍數）
+        const respinMultiplier = respinSpinInfo.Multiplier || 1;
+        const respinBaseWin = respinMultiplier > 1 ? (respinSpinInfo.Win / respinMultiplier) : respinSpinInfo.Win;
+        this.totalWin += respinBaseWin;
+        // 更新總倍數（累積所有倍數球的乘積）
+        this.totalMultiplier *= respinMultiplier;
         const respinTotalWin = this.convertMoneyServerToClient(this.totalWin || 0);
 
         // 提取詳細的獲勝連線信息並轉換符號 ID 和金額
@@ -765,8 +771,13 @@ export class TitansSlotApp extends SlotMachineApp {
       winLines.push(...spinInfo.WinLineInfos.map((info: any) => info.LineNo || info.LineIndex || 0));
     }
 
-    this.totalWin += spinInfo.Win;
-    this.multiplier = spinInfo.Multiplier || 1;
+    // 累積未乘以倍數的原始 Win（服務器返回的 Win 可能已經包含倍數，需要除以當前倍數）
+    const currentMultiplier = spinInfo.Multiplier || 1;
+    const baseWin = currentMultiplier > 1 ? (spinInfo.Win / currentMultiplier) : spinInfo.Win;
+    this.totalWin += baseWin;
+    this.multiplier = currentMultiplier;
+    // 更新總倍數（累積所有倍數球的乘積）
+    this.totalMultiplier *= currentMultiplier;
     // 提取獲勝金額並轉換為客戶端金額（只除以 MoneyFractionMultiple）
     const totalWin = this.convertMoneyServerToClient(this.totalWin || 0);
 
@@ -917,7 +928,7 @@ export class TitansSlotApp extends SlotMachineApp {
           console.log('✅ WaitNGRespin=false，respin 流程結束，重置 isWaitingRespin=false');
           this.isWaitingRespin = false;
           // 動畫表演完畢後，發送 11010
-          console.log('📤11010 respin 動畫表演完畢1，發送 11010',this.convertMoneyServerToClient(this.totalWin)*this.multiplier, this.TitansModel.getCurrentBet());
+          console.log('📤11010 respin 動畫表演完畢1，發送 11010',this.convertMoneyServerToClient(this.totalWin)*this.totalMultiplier, this.TitansModel.getCurrentBet());
           this.sendWebSocketMessage({
             code: 11010
           });
@@ -1095,7 +1106,8 @@ export class TitansSlotApp extends SlotMachineApp {
           this.TitansView.getMainGame().showBGWinBar(false);
           this.TitansView.setSpinButtonEnabled(true);
 
-          const totalWinAmount = this.convertMoneyServerToClient(this.totalWin) * this.multiplier;
+          // 使用累積的總倍數（所有倍數球的乘積）乘以累積的總 Win
+          const totalWinAmount = this.convertMoneyServerToClient(this.totalWin) * this.totalMultiplier;
           const isBigWin = totalWinAmount / this.TitansModel.getCurrentBet() > 20;
           if (isBigWin && this.isFreeGameMode == false) {
             // 显示 BigWin 动画，等待动画完成后再执行后续代码
@@ -1109,6 +1121,7 @@ export class TitansSlotApp extends SlotMachineApp {
 
           // BigWin 动画完成后（或不是 BigWin）执行后续代码
           this.totalWin = 0;
+          this.totalMultiplier = 1; // 重置總倍數
           if (data.Balance !== null && data.Balance !== undefined) {
             const clientBalance = this.convertMoneyServerToClient(data.Balance);
             this.TitansModel.setBalance(clientBalance);
@@ -1226,6 +1239,8 @@ export class TitansSlotApp extends SlotMachineApp {
   // 重設遊戲
   public resetGame(): void {
     this.TitansModel.reset();
+    this.totalWin = 0;
+    this.totalMultiplier = 1; // 重置總倍數
     console.log('🔄 遊戲已重設');
   }
 
