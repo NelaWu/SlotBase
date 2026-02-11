@@ -276,5 +276,34 @@
         </div>
 
     <script type="module" src="/games/titans/main.ts"></script>
+    
+    <script>
+        // 修復 iPhone Chrome 100vh 問題：動態設置實際視窗高度
+        (function() {
+            function setHeight() {
+                const height = window.visualViewport?.height || window.innerHeight;
+                const width = window.innerWidth;
+                document.documentElement.style.height = height + 'px';
+                document.body.style.height = height + 'px';
+                const app = document.getElementById('app-container');
+                const loading = document.getElementById('loading-screen');
+                if (app) {
+                    app.style.height = height + 'px';
+                    app.style.width = width + 'px';
+                }
+                if (loading) {
+                    loading.style.height = height + 'px';
+                    loading.style.width = width + 'px';
+                }
+            }
+            
+            setHeight();
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', setHeight);
+            }
+            window.addEventListener('resize', setHeight);
+            window.addEventListener('orientationchange', () => setTimeout(setHeight, 100));
+        })();
+    </script>
 </body>
 </html> 
