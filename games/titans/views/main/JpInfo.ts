@@ -41,7 +41,8 @@ export class JpInfo extends PIXI.Container {
         const grandTexture = resourceManager.getTexture('title_jp_grand');
         if (grandTexture) {
             this.grandSprite = new PIXI.Sprite(grandTexture);
-            this.grandSprite.position.set(15, 0);
+            this.grandSprite.anchor.x = 1; // x 對位點靠右
+            this.grandSprite.position.set(90, 0);
             this.addChild(this.grandSprite);
         }
         
@@ -49,10 +50,10 @@ export class JpInfo extends PIXI.Container {
         this.grandNumber = new BaseNumber({
             baseName: 'jp_number',
             anchor: 0,
-            align: 'center',
+            align: 'left', // x 對位點靠左
             useThousandSeparator: true
         });
-        this.grandNumber.position.set(150, 0); // 在標題下方
+        this.grandNumber.position.set(100, 0); // 在標題下方
         this.addChild(this.grandNumber);
         this.grandNumber.showText('0');
 
@@ -60,7 +61,8 @@ export class JpInfo extends PIXI.Container {
         const majorTexture = resourceManager.getTexture('title_jp_major');
         if (majorTexture) {
             this.majorSprite = new PIXI.Sprite(majorTexture);
-            this.majorSprite.position.set(314, 0);
+            this.majorSprite.anchor.x = 1; // x 對位點靠右
+            this.majorSprite.position.set(360, 0);
             this.addChild(this.majorSprite);
         }
         
@@ -68,10 +70,10 @@ export class JpInfo extends PIXI.Container {
         this.majorNumber = new BaseNumber({
             baseName: 'jp_number',
             anchor: 0,
-            align: 'center',
+            align: 'left', // x 對位點靠左
             useThousandSeparator: true
         });
-        this.majorNumber.position.set(450, 0);
+        this.majorNumber.position.set(370, 0);
         this.addChild(this.majorNumber);
         this.majorNumber.showText('0');
 
@@ -79,7 +81,8 @@ export class JpInfo extends PIXI.Container {
         const minorTexture = resourceManager.getTexture('title_jp_minor');
         if (minorTexture) {
             this.minorSprite = new PIXI.Sprite(minorTexture);
-            this.minorSprite.position.set(598, 0);
+            this.minorSprite.anchor.x = 1; // x 對位點靠右
+            this.minorSprite.position.set(630, 0);
             this.addChild(this.minorSprite);
         }
         
@@ -87,10 +90,10 @@ export class JpInfo extends PIXI.Container {
         this.minorNumber = new BaseNumber({
             baseName: 'jp_number',
             anchor: 0,
-            align: 'center',
+            align: 'left', // x 對位點靠左
             useThousandSeparator: true
         });
-        this.minorNumber.position.set(750, 0);
+        this.minorNumber.position.set(640, 0);
         this.addChild(this.minorNumber);
         this.minorNumber.showText('0');
 
@@ -98,7 +101,8 @@ export class JpInfo extends PIXI.Container {
         const miniTexture = resourceManager.getTexture('title_jp_mini');
         if (miniTexture) {
             this.miniSprite = new PIXI.Sprite(miniTexture);
-            this.miniSprite.position.set(950, 0);
+            this.miniSprite.anchor.x = 1; // x 對位點靠右
+            this.miniSprite.position.set(900, 0);
             this.addChild(this.miniSprite);
         }
         
@@ -106,10 +110,10 @@ export class JpInfo extends PIXI.Container {
         this.miniNumber = new BaseNumber({
             baseName: 'jp_number',
             anchor: 0,
-            align: 'center',
+            align: 'left', // x 對位點靠左
             useThousandSeparator: true
         });
-        this.miniNumber.position.set(1020, 0);
+        this.miniNumber.position.set(910, 0);
         this.addChild(this.miniNumber);
         this.miniNumber.showText('0');
     }
