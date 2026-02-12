@@ -62,10 +62,17 @@ export class SoundManager {
   private bgmTimeUpdateHandler?: () => void; // timeupdate 事件處理器
   private bgmEndedHandler1?: () => void; // audio1 ended 事件處理器
   private bgmEndedHandler2?: () => void; // audio2 ended 事件處理器
+  
+  // 分頁切換和斷線時的 BGM 狀態保存
+  private pausedBgmId: string | null = null; // 暫停前的 BGM ID
+  private pausedBgmVolume: number = 0.5; // 暫停前的 BGM 音量
+  private isPausedByVisibility: boolean = false; // 是否因為分頁隱藏而暫停
+  private isPausedByDisconnect: boolean = false; // 是否因為斷線而暫停
 
   private constructor() {
     this.resourceManager = ResourceManager.getInstance();
     this.setupUserInteractionListener();
+    this.setupVisibilityListener();
     
     // iOS 優化：初始化 Web Audio Manager
     if (this.isIOSDevice) {
@@ -101,6 +108,92 @@ export class SoundManager {
     events.forEach(event => {
       document.addEventListener(event, enableAudio, { once: true, passive: true });
     });
+  }
+
+  /**
+   * 設置分頁可見性監聽器（用於分頁切換時暫停/恢復音樂）
+   */
+  private setupVisibilityListener(): void {
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        // 分頁隱藏：暫停音樂
+        this.pauseBGMForVisibility();
+      } else {
+        // 分頁重新可見：恢復音樂
+        this.resumeBGMForVisibility();
+      }
+    });
+  }
+
+  /**
+   * 因為分頁隱藏而暫停 BGM
+   */
+  private pauseBGMForVisibility(): void {
+    if (this.currentBgmId && !this.isPausedByVisibility && !this.isPausedByDisconnect) {
+      this.pausedBgmId = this.currentBgmId;
+      this.pausedBgmVolume = this.bgmVolume;
+      this.isPausedByVisibility = true;
+      console.log(`[SoundManager] 分頁隱藏，暫停 BGM: ${this.currentBgmId}`);
+      this.stopBGM();
+    }
+  }
+
+  /**
+   * 因為分頁重新可見而恢復 BGM
+   */
+  private resumeBGMForVisibility(): void {
+    if (this.isPausedByVisibility && this.pausedBgmId && !this.isPausedByDisconnect) {
+      console.log(`[SoundManager] 分頁重新可見，恢復 BGM: ${this.pausedBgmId}`);
+      this.isPausedByVisibility = false;
+      // 延遲一點播放，確保用戶交互已完成
+      setTimeout(() => {
+        if (this.pausedBgmId && !this.isPausedByDisconnect) {
+          this.playBGM(
+            this.pausedBgmId as 'mg_bgm' | 'fg_bgm' | 'btm_fg_out_bgm',
+            this.pausedBgmVolume,
+            false
+          );
+        }
+      }, 100);
+    }
+  }
+
+  /**
+   * 因為斷線而暫停 BGM（公開方法，供外部調用）
+   */
+  public pauseBGMForDisconnect(): void {
+    if (this.currentBgmId && !this.isPausedByDisconnect) {
+      this.pausedBgmId = this.currentBgmId;
+      this.pausedBgmVolume = this.bgmVolume;
+      this.isPausedByDisconnect = true;
+      console.log(`[SoundManager] WebSocket 斷線，暫停 BGM: ${this.currentBgmId}`);
+      this.stopBGM();
+    }
+  }
+
+  /**
+   * 因為重新連接而恢復 BGM（公開方法，供外部調用）
+   */
+  public resumeBGMForReconnect(): void {
+    if (this.isPausedByDisconnect && this.pausedBgmId) {
+      console.log(`[SoundManager] WebSocket 重新連接，恢復 BGM: ${this.pausedBgmId}`);
+      this.isPausedByDisconnect = false;
+      // 如果分頁可見，則恢復播放
+      if (!document.hidden) {
+        setTimeout(() => {
+          if (this.pausedBgmId && !this.isPausedByDisconnect) {
+            this.playBGM(
+              this.pausedBgmId as 'mg_bgm' | 'fg_bgm' | 'btm_fg_out_bgm',
+              this.pausedBgmVolume,
+              false
+            );
+          }
+        }, 100);
+      } else {
+        // 如果分頁仍然隱藏，標記為因可見性暫停
+        this.isPausedByVisibility = true;
+      }
+    }
   }
 
   /**

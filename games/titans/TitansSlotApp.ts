@@ -5,6 +5,7 @@ import { TitansSlotController } from './controllers/TitansSlotController';
 import { WebSocketManager, WebSocketEvent } from '@/core/WebSocketManager';
 import { SymbolMapper } from './constants/SymbolMapper';
 import { MathUtil } from '@/core/MathUtil';
+import { SoundManager } from './core/SoundManager';
 
 // Titans 拉霸應用程式配置
 export interface TitansSlotAppConfig extends SlotMachineAppConfig {
@@ -214,11 +215,15 @@ export class TitansSlotApp extends SlotMachineApp {
         console.log('✅ WebSocket 連接成功', data);
         // 連接成功時隱藏錯誤訊息
         this.TitansView.hideErrorOverlay();
+        // 恢復背景音樂
+        SoundManager.getInstance().resumeBGMForReconnect();
       });
 
       // 監聽斷開事件
       this.wsManager.on(WebSocketEvent.DISCONNECT, (event: CloseEvent) => {
         console.warn('⚠️  WebSocket 連接斷開:', event);
+        // 暫停背景音樂
+        SoundManager.getInstance().pauseBGMForDisconnect();
         // 根據關閉原因判斷錯誤類型
         this.handleWebSocketDisconnect(event);
       });
