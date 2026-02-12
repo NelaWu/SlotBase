@@ -69,11 +69,15 @@ export class TitansWheel extends PIXI.Container {
   private isClearing: boolean = false;
   private clearStartTime: number = 0;
   private originalColumnDelay: number = 80;
+  private originalDropSpeed: number = 3000;
+  private originalGravity: number = 4000;
+  private originalBounce: number = 0.08;
   private app?: PIXI.Application; // PixiJS 應用實例
   private tickerHandler?: (ticker: PIXI.Ticker) => void; // Ticker 處理器
   private pendingSoundQueue: Array<{ soundId: string; timestamp: number }> = []; // 待播放音效隊列
   private lastSoundPlayTime: number = 0; // 上次播放音效的時間
   private readonly SOUND_COOLDOWN = 50; // 音效冷卻時間（毫秒），避免過於頻繁播放
+  private isFastDropMode: boolean = false; // 快速掉落模式標誌
 
   constructor(config: TitansWheelConfig) {
     super();
@@ -85,9 +89,9 @@ export class TitansWheel extends PIXI.Container {
     } as Required<TitansWheelConfig>;
 
     this.animationConfig = {
-      dropSpeed: 3000,
-      gravity: 4000,
-      bounce: 0.08,
+      dropSpeed: this.originalDropSpeed,
+      gravity: this.originalGravity,
+      bounce: this.originalBounce,
       columnDelay: this.originalColumnDelay,
       rowDelay: 0,
       ...config.animation
@@ -213,10 +217,17 @@ export class TitansWheel extends PIXI.Container {
       return;
     }
 
-    if (fastDrop) {
+    // 如果啟用了快速掉落模式，或者傳入了 fastDrop 參數，使用快速模式
+    if (fastDrop || this.isFastDropMode) {
       this.animationConfig.columnDelay = 0;
+      this.animationConfig.dropSpeed = 5000;
+      this.animationConfig.gravity = 6000;
+      this.animationConfig.bounce = 0;
     } else {
       this.animationConfig.columnDelay = this.originalColumnDelay;
+      this.animationConfig.dropSpeed = this.originalDropSpeed;
+      this.animationConfig.gravity = this.originalGravity;
+      this.animationConfig.bounce = this.originalBounce;
     }
 
     this.clearSymbols();
@@ -230,11 +241,19 @@ export class TitansWheel extends PIXI.Container {
   }): void {
     // console.log('wheel::stopSpin', result); // 註釋掉以提升性能
     const { symbolIds, onComplete, onClearComplete, fastDrop } = result;
+    console.log('wheel::stopSpin', fastDrop, this.isFastDropMode);
     
-    if (fastDrop) {
+    // 如果啟用了快速掉落模式，或者傳入了 fastDrop 參數，使用快速模式
+    if (fastDrop || this.isFastDropMode) {
       this.animationConfig.columnDelay = 0;
+      this.animationConfig.dropSpeed = 5000;
+      this.animationConfig.gravity = 6000;
+      this.animationConfig.bounce = 0;
     } else {
       this.animationConfig.columnDelay = this.originalColumnDelay;
+      this.animationConfig.dropSpeed = this.originalDropSpeed;
+      this.animationConfig.gravity = this.originalGravity;
+      this.animationConfig.bounce = this.originalBounce;
     }
 
     if (!symbolIds || !Array.isArray(symbolIds) || symbolIds.length === 0) {
@@ -939,10 +958,17 @@ export class TitansWheel extends PIXI.Container {
     this.isFillingEmptySlots = true;
     this.fillEmptySlotsCompleteCallback = onComplete;
     
-    if (fastDrop) {
+    // 如果啟用了快速掉落模式，或者傳入了 fastDrop 參數，使用快速模式
+    if (fastDrop || this.isFastDropMode) {
       this.animationConfig.columnDelay = 0;
+      this.animationConfig.dropSpeed = 5000;
+      this.animationConfig.gravity = 6000;
+      this.animationConfig.bounce = 0;
     } else {
       this.animationConfig.columnDelay = this.originalColumnDelay;
+      this.animationConfig.dropSpeed = this.originalDropSpeed;
+      this.animationConfig.gravity = this.originalGravity;
+      this.animationConfig.bounce = this.originalBounce;
     }
 
     if (!symbolIds || !Array.isArray(symbolIds)) {

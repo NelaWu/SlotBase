@@ -11,6 +11,11 @@ export class TitansSlotView extends BaseView {
   private mainGame!: MainGame;
   private onSpinAnimationCompleteCallback?: () => void; // 旋轉動畫完成回調
   private errorOverlay?: PIXI.Container; // 錯誤覆蓋層
+  private lastSpinClickTime: number = 0; // 上次點擊時間（用於雙擊檢測）
+  private readonly DOUBLE_CLICK_THRESHOLD = 200; // 雙擊時間閾值（毫秒）
+  private spinClickTimeout?: NodeJS.Timeout; // 單擊延遲執行的定時器
+  private pendingFastDrop: boolean = false; // 待執行的快速模式標誌（雙擊時設置，僅對當前 Spin 有效）
+  private currentSpinFastDrop: boolean = false; // 當前 Spin 的快速模式標誌（用於 stopSpin）
 
   constructor(app: PIXI.Application) {
     super(app);
@@ -51,6 +56,12 @@ export class TitansSlotView extends BaseView {
 
   // 解綁事件
   protected unbindEvents(): void {
+    // 清除可能存在的延遲執行定時器
+    if (this.spinClickTimeout) {
+      clearTimeout(this.spinClickTimeout);
+      this.spinClickTimeout = undefined;
+    }
+    
     this.mainGame.spinButton.off(ButtonEvent.BUTTON_CLICKED, this.onSpinButtonClick.bind(this));
     this.mainGame.settingsButton.off(ButtonEvent.BUTTON_CLICKED, this.onSettingsButtonClick.bind(this));
     this.mainGame.settingsBackButton.off(ButtonEvent.BUTTON_CLICKED, this.onSettingsButtonClick.bind(this));
@@ -62,9 +73,51 @@ export class TitansSlotView extends BaseView {
 
   // 按鈕點擊事件
   private onSpinButtonClick(): void {
-    SoundManager.playSound('btm_spin');
-    this.mainGame.playSpinAnimation();
-    this.emit('spinButtonClicked');
+    const currentTime = Date.now();
+    const timeSinceLastClick = currentTime - this.lastSpinClickTime;
+    
+    // 檢測雙擊：如果距離上次點擊時間小於閾值，且上次點擊的延遲執行還沒觸發
+    if (this.lastSpinClickTime > 0 && timeSinceLastClick < this.DOUBLE_CLICK_THRESHOLD) {
+      // 取消上次點擊的延遲執行
+      if (this.spinClickTimeout) {
+        clearTimeout(this.spinClickTimeout);
+        this.spinClickTimeout = undefined;
+      }
+      
+      // 雙擊：設置快速模式標誌，執行 Spin（僅對當前 Spin 有效）
+      this.pendingFastDrop = true;
+      console.log('🔄 雙擊 Spin 按鈕，當前 Spin 使用快速掉落模式');
+      
+      // 執行 Spin（使用快速模式）
+      SoundManager.playSound('btm_spin');
+      this.mainGame.playSpinAnimation();
+      this.emit('spinButtonClicked');
+      
+      // 重置點擊時間，避免連續觸發
+      this.lastSpinClickTime = 0;
+      return;
+    }
+    
+    // 單擊：延遲執行，給用戶時間進行第二次點擊（雙擊檢測）
+    this.lastSpinClickTime = currentTime;
+    this.pendingFastDrop = false; // 單擊時使用正常模式
+    
+    // 清除之前的延遲執行（如果有的話）
+    if (this.spinClickTimeout) {
+      clearTimeout(this.spinClickTimeout);
+    }
+    
+    // 設置延遲執行單擊操作
+    this.spinClickTimeout = setTimeout(() => {
+      // 延遲時間到了，執行單擊操作（正常模式）
+      SoundManager.playSound('btm_spin');
+      this.mainGame.playSpinAnimation();
+      this.emit('spinButtonClicked');
+      
+      // 重置狀態
+      this.lastSpinClickTime = 0;
+      this.spinClickTimeout = undefined;
+    }, this.DOUBLE_CLICK_THRESHOLD);
   }
 
   private onSettingsButtonClick(): void {
@@ -109,15 +162,31 @@ export class TitansSlotView extends BaseView {
     this.setSpinButtonEnabled(false);
     this.hideWinAmount();
     this.updateWinAmount(0);
-    this.mainGame.wheel.startSpin(fastDrop);
+    
+    // 優先使用雙擊快速模式（pendingFastDrop），如果沒有則使用傳入的參數（通常是 Turbo 模式）
+    const shouldFastDrop = this.pendingFastDrop || (fastDrop || false);
+    
+    // 保存當前 Spin 的快速模式標誌（用於 stopSpin）
+    this.currentSpinFastDrop = shouldFastDrop;
+    
+    // 清除待執行的快速模式標誌（已經使用）
+    this.pendingFastDrop = false;
+    
+    this.mainGame.wheel.startSpin(shouldFastDrop);
   }
 
   // 公開方法 - 停止旋轉動畫
   public stopSpinAnimation(results: number[][], onClearComplete?: () => void, onDropComplete?: () => void, fastDrop?: boolean): void {
+    // 優先使用當前 Spin 的快速模式標誌（雙擊時設置），如果沒有則使用傳入的參數
+    const shouldFastDrop = this.currentSpinFastDrop || (fastDrop || false);
+    
+    // 清除當前 Spin 的快速模式標誌（已經使用）
+    this.currentSpinFastDrop = false;
+    
     this.mainGame.wheel.stopSpin({
       symbolIds: results,  // 直接傳入陣列
       onClearComplete: onClearComplete, // 清空完成回調
-      fastDrop: fastDrop, // 快速掉落（自動旋轉模式）
+      fastDrop: shouldFastDrop, // 快速掉落（使用當前 Spin 的快速模式標誌）
       onComplete: () => {
         // 符號掉落完成後的回調（用於自動旋轉）
         if (onDropComplete) {
@@ -382,8 +451,7 @@ export class TitansSlotView extends BaseView {
     buttonBg.endFill();
     buttonBg.x = buttonX;
     buttonBg.y = buttonY;
-    buttonBg.interactive = true;
-    buttonBg.buttonMode = true;
+    buttonBg.eventMode = 'static';
     buttonBg.cursor = 'pointer';
     // 設置點擊區域
     buttonBg.hitArea = new PIXI.RoundedRectangle(-buttonWidth / 2, -buttonHeight / 2, buttonWidth, buttonHeight, 10);
