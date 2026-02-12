@@ -956,7 +956,7 @@ export class TitansSlotApp extends SlotMachineApp {
         console.log('🔄 removeWinSymbols 完成，自動發送 respin 請求（不清空牌面）');
         // 自動發送 spin 請求（使用相同的投注金額）
         const betMultiple = this.TitansModel.getCurrentBet();
-        this.sendWebSocketMessage({
+        this.sendWebSocketMessage({ 
           code: 11002,
           BetMultiple: this.convertBetClientToServer(betMultiple)
         });
@@ -1139,7 +1139,7 @@ export class TitansSlotApp extends SlotMachineApp {
             // 稍微延遲後自動旋轉，確保動畫完全結束
             setTimeout(() => {
               this.TitansModel.startSpin();
-            }, 500);
+            }, 0);
           }
           break;
 

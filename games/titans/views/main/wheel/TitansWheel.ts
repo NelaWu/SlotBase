@@ -68,7 +68,7 @@ export class TitansWheel extends PIXI.Container {
   private isFillingEmptySlots: boolean = false;
   private isClearing: boolean = false;
   private clearStartTime: number = 0;
-  private originalColumnDelay: number = 100;
+  private originalColumnDelay: number = 80;
   private app?: PIXI.Application; // PixiJS 應用實例
   private tickerHandler?: (ticker: PIXI.Ticker) => void; // Ticker 處理器
   private pendingSoundQueue: Array<{ soundId: string; timestamp: number }> = []; // 待播放音效隊列
@@ -85,9 +85,9 @@ export class TitansWheel extends PIXI.Container {
     } as Required<TitansWheelConfig>;
 
     this.animationConfig = {
-      dropSpeed: 4000,
-      gravity: 2500,
-      bounce: 0.1,
+      dropSpeed: 3000,
+      gravity: 4000,
+      bounce: 0.08,
       columnDelay: this.originalColumnDelay,
       rowDelay: 0,
       ...config.animation
@@ -190,8 +190,8 @@ export class TitansWheel extends PIXI.Container {
         if (state.symbol && !state.symbol.destroyed) {
         gsap.to(state.symbol, {
           y: this.config.reelHeight + this.symbolHeight,
-          duration: 0.17*(this.config.symbolsPerReel - state.row),
-            delay: 0.1*this.animationConfig.columnDelay/100*state.col,
+          duration: 0.14*(this.config.symbolsPerReel - state.row),
+            delay: 0.08*this.animationConfig.columnDelay/100*state.col,
           ease: 'power2.inOut',
           onComplete: () => {
             state.symbol.destroy();
