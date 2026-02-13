@@ -220,30 +220,91 @@
             z-index: 1001;
         }
 
-        /* 響應式設計 */
-        @media (max-width: 768px) {
-            #control-panel {
-                flex-direction: column;
-                gap: 10px;
-            }
+        /* 彈窗 iframe 容器 */
+        #popup-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            contain: layout style paint;
+        }
 
-            .progress-bar-container {
-                width: 280px;
-            }
+        #popup-wrapper.show {
+            width: 100%;
+            height: 100%;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
 
-            .loading-logo {
-                max-width: 200px;
-                max-height: 100px;
-                margin-bottom: 40px;
-            }
+        /* iframe */
+        #popup {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
 
-            .loading-percentage {
-                font-size: 20px;
-            }
+        /* 關閉按鈕 */
+        #popup-close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2001;
+            transition: all 0.3s ease;
+            padding: 0;
+            line-height: 1;
+        }
 
-            .loading-message {
-                font-size: 16px;
-            }
+        #popup-close-btn:hover {
+            background: rgba(255, 0, 0, 0.8);
+            transform: scale(1.1);
+        }
+
+        #popup-close-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* 打開按鈕 */
+        #popup-open-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1500;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #popup-open-btn.hidden {
+            display: none;
         }
     </style>
 </head>
@@ -252,13 +313,17 @@
         <!-- 遊戲畫布容器 -->
         <div id="game-container"></div>
         
+        <!-- 彈窗 iframe -->
+        <div id="popup-wrapper">
+            <iframe id="popup" name="popup" scrolling="auto" frameborder="0" title="Game Info"></iframe>
+            <button id="popup-close-btn">×</button>
+        </div>
+        
         <!-- 載入畫面 -->
         <div id="loading-screen">
             <div class="loading-content">
-                <!-- Logo - 置於正中間 -->
                 <img id="loading-logo" class="loading-logo" src="src/assets/logo.png" alt="Logo" onerror="this.style.display='none'">
                 
-                <!-- 進度條容器 -->
                 <div class="progress-bar-container">
                     <div class="progress-bar-bg"></div>
                     <div class="progress-bar-fill" id="progress-bar-fill"></div>
@@ -267,17 +332,57 @@
             </div>
         </div>
 
-        <!-- 錯誤訊息 -->
-        <div id="error-message">
-            <div id="error-text"></div>
-            <button onclick="location.reload()" style="margin-top: 10px; padding: 5px 10px; background: rgba(255,255,255,0.2); border: none; color: white; border-radius: 3px; cursor: pointer;">
-                重新載入
-            </button>
-        </div>
-
     <script type="module" src="/games/titans/main.ts"></script>
     
     <script>
+        // 打開 iframe 的函數
+        function openPopup(url) {
+            const popupWrapper = document.getElementById('popup-wrapper');
+            const popup = document.getElementById('popup');
+            const openBtn = document.getElementById('popup-open-btn');
+            if (popupWrapper && popup) {
+                popup.src = url || 'https://www.google.com';
+                popupWrapper.classList.add('show');
+                if (openBtn) {
+                    openBtn.classList.add('hidden');
+                }
+                console.log('打開 iframe:', url || 'https://www.google.com');
+            }
+        }
+
+        // 將 openPopup 暴露到全局，供 TypeScript 代碼調用
+        window.openPopup = openPopup;
+
+        // 關閉 iframe 的函數
+        function closePopup() {
+            const popupWrapper = document.getElementById('popup-wrapper');
+            const popup = document.getElementById('popup');
+            const openBtn = document.getElementById('popup-open-btn');
+            if (popupWrapper) {
+                popupWrapper.classList.remove('show');
+                if (openBtn) {
+                    openBtn.classList.remove('hidden');
+                }
+                console.log('關閉 iframe');
+            }
+        }
+
+        // 綁定按鈕事件
+        document.addEventListener('DOMContentLoaded', function() {
+            const closeBtn = document.getElementById('popup-close-btn');
+            const openBtn = document.getElementById('popup-open-btn');
+            
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closePopup);
+            }
+            
+            if (openBtn) {
+                openBtn.addEventListener('click', function() {
+                    openPopup('https://www.google.com');
+                });
+            }
+        });
+        
         // 修復 iPhone Chrome 100vh 問題：動態設置實際視窗高度
         (function() {
             function setHeight() {
