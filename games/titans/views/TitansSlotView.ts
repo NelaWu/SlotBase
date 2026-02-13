@@ -276,6 +276,8 @@ export class TitansSlotView extends BaseView {
   public setSpinButtonEnabled(enabled: boolean): void {
     this.mainGame.spinButton.setEnabled(enabled);
     this.mainGame.buyFreeSpinsButton.setEnabled(enabled);
+    this.mainGame.plusButton.setEnabled(enabled);
+    this.mainGame.minusButton.setEnabled(enabled);
   }
 
   // 設置所有按鈕啟用狀態
