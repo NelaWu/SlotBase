@@ -65,6 +65,7 @@ async function startTitansSlotGame() {
       // 背景音樂（循環播放）
       { id: 'mg_bgm', url: asset('games/titans/assets/audio/mg_bgm.mp3'), type: 'audio' }, // mg主旋律（循環播放）
       { id: 'fg_bgm', url: asset('games/titans/assets/audio/fg_bgm.mp3'), type: 'audio' }, // fg主旋律（循環播放）
+      { id: 'bigwin_bgm', url: asset('games/titans/assets/audio/bigwin_bgm.mp3'), type: 'audio' }, // bigwin 背景音樂
       { id: 'btm_fg_out_bgm', url: asset('games/titans/assets/audio/btm_fg_out_bgm.mp3'), type: 'audio' }, // fg結算畫面的背景循環音樂
       
       // 按鈕音效

@@ -46,6 +46,28 @@ export default defineConfig({
       output: {
         format: 'iife',
         inlineDynamicImports: true,
+        // 為 assets 添加 hash
+        assetFileNames: (assetInfo) => {
+          const info = assetInfo.name?.split('.') || [];
+          const ext = info[info.length - 1];
+          if (/png|jpe?g|svg|gif|tiff|bmp|ico|webp/i.test(ext)) {
+            return `assets/images/[name]-[hash][extname]`;
+          }
+          if (/woff2?|eot|ttf|otf/i.test(ext)) {
+            return `assets/fonts/[name]-[hash][extname]`;
+          }
+          if (/mp3|wav|ogg|m4a/i.test(ext)) {
+            return `assets/audio/[name]-[hash][extname]`;
+          }
+          if (/mp4|webm|ogg|mov/i.test(ext)) {
+            return `assets/video/[name]-[hash][extname]`;
+          }
+          // 其他資源文件
+          return `assets/[name]-[hash][extname]`;
+        },
+        // 為 chunk 文件添加 hash（如果需要的話）
+        chunkFileNames: 'assets/js/[name]-[hash].js',
+        entryFileNames: 'assets/js/[name]-[hash].js',
       }
     }
   }

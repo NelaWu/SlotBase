@@ -5,6 +5,7 @@ import { Transition } from './Transition';
 import { BigWinType, GameEventEnum } from '../../../enum/gameEnum';
 import { BigTreasure } from './BigTreasure';
 import { BigWin } from './BigWin';
+import { SoundManager } from 'games/titans/core/SoundManager';
 
 export class BigAnimationManager extends PIXI.Container {
   private bigAnimationContainer: PIXI.Container;
@@ -117,6 +118,7 @@ export class BigAnimationManager extends PIXI.Container {
     this.bigAnimationContainer.addChild(bigWin);
 
     bigWin.once(GameEventEnum.BIG_ANIMATION_BIG_WIN_COMPLETE, () => {
+      SoundManager.playBGM('mg_bgm');
       this.bigAnimationContainer.removeChild(bigWin);
       this.hide();
     });

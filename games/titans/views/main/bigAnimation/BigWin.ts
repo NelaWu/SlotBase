@@ -147,6 +147,7 @@ export class BigWin extends PIXI.Container {
      * @param multiplier 倍數
      */
     private startStagedScrollAnimation(winAmount: number, bet: number, multiplier: number): void {
+        SoundManager.playBGM('bigwin_bgm');
         let currentAmount = 0;
         let stageStartTime = Date.now();
         let currentStageIndex = 0;
