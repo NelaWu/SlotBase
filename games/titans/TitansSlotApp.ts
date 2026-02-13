@@ -144,10 +144,35 @@ export class TitansSlotApp extends SlotMachineApp {
   }
 
   /**
+   * 載入遊戲配置文件
+   */
+  private async loadGameConfig(): Promise<{ demoOn: boolean }> {
+    try {
+      // 根據 Vite 的 base 自動組資源路徑
+      const configPath = `${import.meta.env.BASE_URL}games/titans/config/game-config.json`;
+      const response = await fetch(configPath);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const config = await response.json();
+      console.log('📋 載入遊戲配置:', config);
+      return config;
+    } catch (error) {
+      console.warn('⚠️  無法載入遊戲配置文件，使用預設值:', error);
+      // 如果載入失敗，返回預設值
+      return { demoOn: false };
+    }
+  }
+
+  /**
    * 初始化 WebSocket 連接
    */
   private async initializeWebSocket(): Promise<void> {
     try {
+      // 載入遊戲配置文件
+      const gameConfig = await this.loadGameConfig();
+      const demoOn = gameConfig.demoOn ?? false; 
+
       // 獲取 URL 參數
       const urlParams = new URLSearchParams(window.location.search);
       const language = urlParams.get('language') || 'en';
@@ -194,6 +219,7 @@ export class TitansSlotApp extends SlotMachineApp {
       console.log('🔗 WebSocket URL:', url);
       console.log('🔗 Bet Query:', _betQuery);
       console.log('🔗 Exit URL:', _exitUrl);
+      console.log('🎮 Demo Mode:', demoOn);
 
       // 創建 WebSocket 管理器實例
       this.wsManager = WebSocketManager.getInstance({
@@ -206,7 +232,7 @@ export class TitansSlotApp extends SlotMachineApp {
         initMessage: {
           GameToken: tokenParam,
           GameID: 7,
-          DemoOn: true,
+          DemoOn: demoOn,
           Lang: language.toLowerCase() // 轉換為小寫，如 'zh-cn'
         }
       });

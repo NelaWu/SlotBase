@@ -67,6 +67,7 @@ export class WebSocketManager {
   private heartbeatTimer: number | null = null;
   private reconnectAttempts: number = 0;
   private messageQueue: any[] = []; // 消息隊列，用於在連接前暫存消息
+  private gameConfigCache: { demoOn: boolean } | null = null; // 緩存遊戲配置
 
   private constructor(config: WebSocketConfig) {
     this.config = {
