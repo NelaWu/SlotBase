@@ -5,7 +5,7 @@ import { Transition } from './Transition';
 import { BigWinType, GameEventEnum } from '../../../enum/gameEnum';
 import { BigTreasure } from './BigTreasure';
 import { BigWin } from './BigWin';
-import { SoundManager } from 'games/titans/core/SoundManager';
+import { SoundManager } from '../../../core/SoundManager';
 
 export class BigAnimationManager extends PIXI.Container {
   private bigAnimationContainer: PIXI.Container;

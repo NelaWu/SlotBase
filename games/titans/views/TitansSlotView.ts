@@ -230,14 +230,31 @@ export class TitansSlotView extends BaseView {
     this.mainGame.winAmountText.visible = false;
   }
 
+  /**
+   * 格式化金額顯示，處理浮點數精度問題
+   * @param amount 金額
+   * @returns 格式化後的字串
+   */
+  private formatAmount(amount: number): string {
+    // 處理 NaN 和 Infinity
+    if (!isFinite(amount)) {
+      return '0';
+    }
+    
+    // 使用 toFixed(2) 處理精度問題，然後移除多餘的尾隨零
+    const fixed = amount.toFixed(2);
+    // 移除尾隨零和小數點（如果小數部分為 0）
+    return parseFloat(fixed).toString();
+  }
+
   // 更新餘額顯示
   public updateBalance(balance: number): void {
-    this.mainGame.balanceText.text = `${balance}`;
+    this.mainGame.balanceText.text = this.formatAmount(balance);
   }
 
   // 更新投注顯示
   public updateBet(bet: number): void {
-    this.mainGame.betText.text = `${bet}`;
+    this.mainGame.betText.text = this.formatAmount(bet);
   }
 
   // 更新獲勝金額顯示（底部）
