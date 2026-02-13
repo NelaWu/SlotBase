@@ -333,20 +333,48 @@
         </div>
 
     <script type="module" src="/games/titans/main.ts"></script>
+    <script type="module">
+        // 導入 Entry 類
+        import { Entry } from './src/core/Entry.js';
+        
+        // 將 Entry 暴露到全局
+        window.Entry = Entry;
+    </script>
     
     <script>
         // 打開 iframe 的函數
-        function openPopup(url) {
+        function openPopup(url, gameInfo) {
             const popupWrapper = document.getElementById('popup-wrapper');
             const popup = document.getElementById('popup');
             const openBtn = document.getElementById('popup-open-btn');
             if (popupWrapper && popup) {
-                popup.src = url || 'https://www.google.com';
+                // 移除所有可能隱藏 iframe 的 class
+                popupWrapper.classList.remove('hide', 'hidden');
                 popupWrapper.classList.add('show');
+                
+                // 強制設置樣式，確保顯示
+                popupWrapper.style.position = 'fixed';
+                popupWrapper.style.top = '0';
+                popupWrapper.style.left = '0';
+                popupWrapper.style.zIndex = '99999';
+                popupWrapper.style.display = '';
+                popupWrapper.style.visibility = '';
+                popupWrapper.style.opacity = '';
+                
+                // 保存 gameDetail 到 Entry（如果提供了 gameInfo）
+                if (gameInfo && window.Entry) {
+                    window.Entry.setGameDetail(gameInfo);
+                }
+                
+                popup.src = url || 'https://www.google.com';
+                
                 if (openBtn) {
                     openBtn.classList.add('hidden');
                 }
                 console.log('打開 iframe:', url || 'https://www.google.com');
+                if (gameInfo) {
+                    console.log('保存 gameDetail:', gameInfo);
+                }
             }
         }
 
@@ -378,11 +406,17 @@
             
             if (openBtn) {
                 openBtn.addEventListener('click', function() {
-                    openPopup('https://www.google.com');
+                    openPopup('https://www.google.com', {
+                        apiURL: '',
+                        gameCode: 'test',
+                        gameLanguage: 'en',
+                        gameToken: 'test-token',
+                        url: 'https://www.google.com'
+                    });
                 });
             }
         });
-        
+
         // 修復 iPhone Chrome 100vh 問題：動態設置實際視窗高度
         (function() {
             function setHeight() {

@@ -29,73 +29,6 @@ export class MainGame extends PIXI.Container {
   public logoutButton!: BaseButton;
   public recordButton!: BaseButton;
   public infoButton!: BaseButton;
-
-  /**
-   * 打開注單記錄彈窗（iframe）
-   */
-  private openRecordPopup(): void {
-    try {
-      // 獲取 URL 參數
-      const urlParams = new URLSearchParams(window.location.search);
-      const gameToken = urlParams.get('token') || '';
-      const gameLanguage = urlParams.get('language') || 'en';
-      const gameCode = 'WK07';
-
-      // 解碼 s 參數獲取 apiURL（注單網址是 s 解開的第二個）
-      let apiURL = '';
-      const serverParam = urlParams.get('s') || '';
-      if (serverParam) {
-        try {
-          const decode = atob(serverParam);
-          const parts = decode.split(',');
-          apiURL = parts[1] || ''; // 第二個是注單網址
-        } catch (error) {
-          console.error('Base64 解碼失敗:', error);
-        }
-      }
-
-      // URL resolve 函數
-      const urlResolve = (base: string, relative: string): string => {
-        try {
-          return new URL(relative, base).href;
-        } catch (error) {
-          const baseUrl = new URL(base);
-          if (relative.startsWith('/')) {
-            return `${baseUrl.protocol}//${baseUrl.host}${relative}`;
-          } else if (relative.startsWith('../')) {
-            const basePath = baseUrl.pathname.substring(0, baseUrl.pathname.lastIndexOf('/'));
-            const relativePath = relative.replace(/^\.\.\//, '');
-            return `${baseUrl.protocol}//${baseUrl.host}${basePath}/${relativePath}`;
-          } else {
-            const basePath = baseUrl.pathname.substring(0, baseUrl.pathname.lastIndexOf('/'));
-            return `${baseUrl.protocol}//${baseUrl.host}${basePath}/${relative}`;
-          }
-        }
-      };
-
-      // 使用 _betQuery（apiURL）作為 iframe 的 URL
-      let iframeUrl = apiURL;
-      if (!iframeUrl) {
-        // 如果沒有 apiURL，使用默認的 GameInfo 路徑
-        const currentHref = window.location.href;
-        const gameInfoPath = `../GameCommon/GameInfo/${gameCode}.html`;
-        iframeUrl = urlResolve(currentHref, gameInfoPath);
-      }
-
-      console.log('🔍 openRecordPopup - apiURL:', apiURL);
-      console.log('🔍 openRecordPopup - iframeUrl:', iframeUrl);
-
-      // 調用全局的 openPopup 函數
-      if (typeof (window as any).openPopup === 'function') {
-        iframeUrl = 'https://www.google.com';
-        (window as any).openPopup(iframeUrl);
-      } else {
-        console.warn('openPopup 函數未找到，請確保 index.html 已載入');
-      }
-    } catch (error) {
-      console.error('開啟注單記錄視窗失敗:', error);
-    }
-  }
   public winAmountText!: PIXI.Text;
   public balanceText!: PIXI.Text;
   public betText!: PIXI.Text;
@@ -753,19 +686,56 @@ export class MainGame extends PIXI.Container {
 
       // 使用 _betQuery（apiURL）作為 iframe 的 URL
       let iframeUrl = apiURL;
-      const currentHref = window.location.href;
-      const gameInfoPath = `../GameCommon/GameInfo/${gameCode}.html`;
-      iframeUrl = urlResolve(currentHref, gameInfoPath);
+      if (!iframeUrl) {
+        // 如果沒有 apiURL，使用默認的 GameInfo 路徑
+        const currentHref = window.location.href;
+        const gameInfoPath = `../GameCommon/GameInfo/${gameCode}.html`;
+        iframeUrl = urlResolve(currentHref, gameInfoPath);
+      }
+
+      // 構建帶參數的 URL（如果需要傳遞參數給 iframe）
+      const params = new URLSearchParams();
+      if (gameToken) params.append('gameToken', gameToken);
+      if (gameLanguage) params.append('gameLanguage', gameLanguage);
+      if (gameCode) params.append('gameCode', gameCode);
+      if (apiURL) params.append('apiURL', apiURL);
+      
+      // 如果 URL 已經有參數，使用 & 連接，否則使用 ?
+      const separator = iframeUrl.includes('?') ? '&' : '?';
+      if (params.toString()) {
+        iframeUrl = `${iframeUrl}${separator}${params.toString()}`;
+      }
+
+      // 構建 gameInfo 對象（用於 Entry.getDetail）
+      const gameInfo = {
+        apiURL: apiURL,
+        gameCode: gameCode,
+        gameLanguage: gameLanguage,
+        gameToken: gameToken,
+        url: iframeUrl
+      };
 
       console.log('🔍 openRecordPopup - apiURL:', apiURL);
       console.log('🔍 openRecordPopup - iframeUrl:', iframeUrl);
+      console.log('🔍 openRecordPopup - gameInfo:', gameInfo);
 
-      // 調用全局的 openPopup 函數
-      if (typeof (window as any).openPopup === 'function') {
-        (window as any).openPopup(iframeUrl);
-      } else {
-        console.warn('openPopup 函數未找到，請確保 index.html 已載入');
-      }
+      // 調用全局的 openPopup 函數，使用 requestAnimationFrame 確保 DOM 準備好且不被 canvas 覆蓋
+      const tryOpenPopup = () => {
+        if (typeof (window as any).openPopup === 'function') {
+          // 使用 requestAnimationFrame + setTimeout 確保在渲染完成後執行，避免被 canvas 覆蓋
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              (window as any).openPopup(iframeUrl, gameInfo);
+            }, 0);
+          });
+        } else {
+          console.warn('openPopup 函數未找到，100ms 後重試');
+          // 如果函數還沒載入，等待一下再試
+          setTimeout(tryOpenPopup, 100);
+        }
+      };
+      
+      tryOpenPopup();
     } catch (error) {
       console.error('開啟注單記錄視窗失敗:', error);
     }
