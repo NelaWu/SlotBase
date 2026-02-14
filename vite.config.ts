@@ -2,10 +2,12 @@ import { defineConfig } from 'vite'
 import { resolve } from 'path'
 import { fileURLToPath, URL } from 'node:url'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
+import { vitePluginBuildVersion } from './vite-plugin-build-version'
 
 export default defineConfig({
   base: './',
   plugins: [
+    vitePluginBuildVersion(), // 版本號管理插件（需要在最前面）
     viteStaticCopy({
       targets: [
         {

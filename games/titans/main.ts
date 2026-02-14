@@ -2,16 +2,23 @@ import { TitansSlotApp, TitansSlotAppConfig } from './TitansSlotApp';
 import { GameLoadProgress } from '@/core/GameLoader';
 import '@esotericsoftware/spine-pixi-v8';
 
-// 型別宣告：確保可以使用 import.meta.env.BASE_URL
+// 型別宣告：確保可以使用 import.meta.env.BASE_URL 和 BUILD_VERSION
 interface ImportMetaEnv {
   readonly BASE_URL: string;
+  readonly BUILD_VERSION?: string;
 }
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
-// 根據 Vite 的 base 自動組資源路徑
-const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+// 根據 Vite 的 base 自動組資源路徑，並添加版本號查詢參數
+const asset = (path: string) => {
+  const baseUrl = `${import.meta.env.BASE_URL}${path}`;
+  const version = import.meta.env.BUILD_VERSION || '1';
+  // 如果 URL 已經有查詢參數，使用 &，否則使用 ?
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  return `${baseUrl}${separator}v=${version}`;
+};
 
 // Titans 拉霸遊戲入口
 async function startTitansSlotGame() {
