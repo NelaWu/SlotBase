@@ -674,7 +674,7 @@ export class MainGame extends PIXI.Container {
     try {
       // 獲取 URL 參數
       const urlParams = new URLSearchParams(window.location.search);
-      const serverParam = urlParams.get('s') || '';
+      const serverParam = urlParams.get('r') || '';
       
       // 解碼 s 參數獲取登出網址（s 解開的第一個）
       let logoutUrl = '';

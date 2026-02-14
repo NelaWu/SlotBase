@@ -226,8 +226,11 @@ export class BaseNumber extends PIXI.Container {
       }
 
       // Y 位置：如果是小數點或逗號，需要底部對齊到數字底部
-      if (isPunctuation) {
-        const offsetY = maxDigitHeight - height;
+      if (isPunctuation ) {
+        let offsetY = maxDigitHeight - height;
+        if(this.punctuationSpacing === 0){
+          offsetY = (maxDigitHeight - height) / 2;
+        }
         sprite.y = offsetY;
       } else {
         // 數字和倍數符號保持在 y=0 (中心對齊)
