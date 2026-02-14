@@ -51,7 +51,8 @@ export class JpInfo extends PIXI.Container {
             baseName: 'jp_number',
             anchor: 0,
             align: 'left', // x 對位點靠左
-            useThousandSeparator: true
+            useThousandSeparator: true,
+            punctuationSpacing: 2
         });
         this.grandNumber.position.set(100, 0); // 在標題下方
         this.addChild(this.grandNumber);
@@ -71,7 +72,8 @@ export class JpInfo extends PIXI.Container {
             baseName: 'jp_number',
             anchor: 0,
             align: 'left', // x 對位點靠左
-            useThousandSeparator: true
+            useThousandSeparator: true,
+            punctuationSpacing: 1
         });
         this.majorNumber.position.set(370, 0);
         this.addChild(this.majorNumber);
@@ -91,7 +93,8 @@ export class JpInfo extends PIXI.Container {
             baseName: 'jp_number',
             anchor: 0,
             align: 'left', // x 對位點靠左
-            useThousandSeparator: true
+            useThousandSeparator: true,
+            punctuationSpacing: 2
         });
         this.minorNumber.position.set(640, 0);
         this.addChild(this.minorNumber);
@@ -111,7 +114,8 @@ export class JpInfo extends PIXI.Container {
             baseName: 'jp_number',
             anchor: 0,
             align: 'left', // x 對位點靠左
-            useThousandSeparator: true
+            useThousandSeparator: true,
+            punctuationSpacing: 1
         });
         this.miniNumber.position.set(910, 0);
         this.addChild(this.miniNumber);

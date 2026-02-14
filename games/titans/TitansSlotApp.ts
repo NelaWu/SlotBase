@@ -1175,7 +1175,12 @@ export class TitansSlotApp extends SlotMachineApp {
         
         case 1013:
           if (this.jpOn == true) {
-            this.TitansView.updateJpInfo(data.JPViews);
+            const convertedJPViews = (data.JPViews || []).map((jpView: any) => ({
+              ...jpView,
+              Value: this.convertMoneyServerToClient(jpView.Value || 0)
+            }));
+            console.log('🔄 收到 JPViews:', convertedJPViews);
+            this.TitansView.updateJpInfo(convertedJPViews);
           }
           break;
         default:

@@ -563,12 +563,19 @@ export class ResourceManager {
     // 1. 基本變體
     textureVariants.push(`${id}.png`, id);
     
-    // 2. 對於 symbol 資源，嘗試添加 Symbol/ 前綴
+    // 2. 特殊處理：如果 id 以 `_.` 結尾（例如 `jp_number_.`），嘗試匹配 `_..png`（兩個點）
+    // 因為某些 sprite sheet 中的小數點資源名稱是 `_..png` 而不是 `_.png`
+    if (id.endsWith('_.')) {
+      const baseId = id.slice(0, -2); // 移除 `_.`
+      textureVariants.push(`${baseId}_..png`, `${baseId}_..`);
+    }
+    
+    // 3. 對於 symbol 資源，嘗試添加 Symbol/ 前綴
     if (id.startsWith('symbol_')) {
       textureVariants.push(`Symbol/${id}.png`);
     }
     
-    // 3. 對於 manual 資源，嘗試添加 manual/ 前綴
+    // 4. 對於 manual 資源，嘗試添加 manual/ 前綴
     if (id.startsWith('manual_page_')) {
       textureVariants.push(`manual/${id}.png`);
     }

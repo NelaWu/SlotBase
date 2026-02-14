@@ -8,6 +8,7 @@ export interface BaseNumberOptions {
   anchor?: number; // 錨點，預設 0.5 (置中)
   align?: TextAlign; // 對齊方式，預設 'center'
   useThousandSeparator?: boolean; // 是否使用千分位，預設 false
+  punctuationSpacing?: number; // 標點符號（. ,）左右間距，預設 0
 }
 
 /**
@@ -19,6 +20,7 @@ export class BaseNumber extends PIXI.Container {
   private anchor: number;
   private align: TextAlign;
   private useThousandSeparator: boolean;
+  private punctuationSpacing: number; // 標點符號（. ,）左右間距
   private resourceManager: ResourceManager;
   private digitSprites: PIXI.Sprite[] = [];
   private digitTextures: Map<string, PIXI.Texture> = new Map();
@@ -35,6 +37,7 @@ export class BaseNumber extends PIXI.Container {
     this.anchor = options.anchor ?? 0.5;
     this.align = options.align ?? 'center';
     this.useThousandSeparator = options.useThousandSeparator ?? false;
+    this.punctuationSpacing = options.punctuationSpacing ?? 0;
     this.resourceManager = ResourceManager.getInstance();
 
     // 預載入所有數字和小數點的 texture
@@ -167,12 +170,17 @@ export class BaseNumber extends PIXI.Container {
       const sprite = this.digitSprites[i];
       const width = sprite.width;
       const height = sprite.height;
-      widths.push(width);
+      const char = chars[i];
+      
+      // 如果是標點符號（. ,），增加左右間距
+      const spacing = (char === '.' || char === ',') ? this.punctuationSpacing * 2 : 0;
+      const effectiveWidth = width + spacing;
+      
+      widths.push(effectiveWidth);
       heights.push(height);
-      totalWidth += width;
+      totalWidth += effectiveWidth;
 
       // 只計算數字字符的最大高度（不包括小數點和逗號）
-      const char = chars[i];
       if (char && /[0-9]/.test(char)) {
         maxDigitHeight = Math.max(maxDigitHeight, height);
       }
@@ -198,21 +206,28 @@ export class BaseNumber extends PIXI.Container {
     // 設置每個 sprite 的位置
     for (let i = 0; i < this.digitSprites.length; i++) {
       const sprite = this.digitSprites[i];
-      const width = widths[i];
+      const effectiveWidth = widths[i];
       const height = heights[i];
       const char = chars[i];
+      const isPunctuation = char === '.' || char === ',';
+      const leftSpacing = isPunctuation ? this.punctuationSpacing : 0;
+      const rightSpacing = isPunctuation ? this.punctuationSpacing : 0;
 
-      // X 位置
-      sprite.x = currentX + width / 2;
-      currentX += width;
+      // X 位置：如果是標點符號，需要考慮左右間距
+      if (isPunctuation) {
+        // 標點符號：先移動左邊間距，然後放置符號（中心對齊）
+        currentX += leftSpacing*2; // 先加上左邊間距
+        sprite.x = currentX + sprite.width / 2;
+        currentX += sprite.width + rightSpacing; // 符號寬度 + 右邊間距
+      } else {
+        // 數字和倍數符號：正常計算
+        sprite.x = currentX + sprite.width / 2;
+        currentX += sprite.width;
+      }
 
       // Y 位置：如果是小數點或逗號，需要底部對齊到數字底部
-      if (char === '.' || char === ',') {
-        // 計算需要向下偏移多少才能底部對齊
-        // 數字底部位置 = maxDigitHeight / 2 (因為 anchor 是 0.5，數字中心在 y=0)
-        // 符號底部位置 = height / 2 (符號中心也在 y=0)
-        // 需要偏移 = (maxDigitHeight - height) / 2
-        const offsetY = (maxDigitHeight - height) / 2;
+      if (isPunctuation) {
+        const offsetY = maxDigitHeight - height;
         sprite.y = offsetY;
       } else {
         // 數字和倍數符號保持在 y=0 (中心對齊)
