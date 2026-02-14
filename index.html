@@ -419,8 +419,12 @@
 
         // 修復 iPhone Chrome 100vh 問題：動態設置實際視窗高度
         (function() {
+            // 檢測是否為 iPhone
+            const isIPhone = /iPhone/.test(navigator.userAgent);
+            
             function setHeight() {
-                const height = window.visualViewport?.height || window.innerHeight;
+                const baseHeight = window.visualViewport?.height || window.innerHeight;
+                const height = isIPhone ? baseHeight + 25 : baseHeight; // 只有 iPhone 多10px
                 const width = window.innerWidth;
                 document.documentElement.style.height = height + 'px';
                 document.body.style.height = height + 'px';
