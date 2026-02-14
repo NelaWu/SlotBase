@@ -1112,6 +1112,11 @@ export class TitansSlotApp extends SlotMachineApp {
             }
           }
 
+          // 更新局號
+          if (data.RoundCode) {
+            this.TitansView.getMainGame().updateRoundCode(data.RoundCode);
+          }
+
           // 免費遊戲的判斷 to do 測試
           if(data.SpinInfo.FGRemainTimes>0){
             console.log('中免費遊戲啦啦啦:', data);
@@ -1179,7 +1184,6 @@ export class TitansSlotApp extends SlotMachineApp {
               ...jpView,
               Value: this.convertMoneyServerToClient(jpView.Value || 0)
             }));
-            console.log('🔄 收到 JPViews:', convertedJPViews);
             this.TitansView.updateJpInfo(convertedJPViews);
           }
           break;

@@ -216,7 +216,7 @@ export class BaseNumber extends PIXI.Container {
       // X 位置：如果是標點符號，需要考慮左右間距
       if (isPunctuation) {
         // 標點符號：先移動左邊間距，然後放置符號（中心對齊）
-        currentX += leftSpacing*2; // 先加上左邊間距
+        currentX += leftSpacing+4; // 先加上左邊間距
         sprite.x = currentX + sprite.width / 2;
         currentX += sprite.width + rightSpacing; // 符號寬度 + 右邊間距
       } else {

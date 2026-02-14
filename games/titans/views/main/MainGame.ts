@@ -33,6 +33,7 @@ export class MainGame extends PIXI.Container {
   public balanceText!: PIXI.Text;
   public betText!: PIXI.Text;
   public winText!: PIXI.Text; // 獲勝金額顯示（底部）
+  public roundCodeText!: PIXI.Text; // 局號顯示
   public betButtonContainer!: PIXI.Container;
   public freeTimes!:BaseNumber;
   public freeTimesText!: PIXI.Sprite;
@@ -368,6 +369,20 @@ export class MainGame extends PIXI.Container {
     this.winText.y = 1540;
     this.addChild(this.winText);
 
+    // 局號顯示
+    this.roundCodeText = new PIXI.Text({
+      text: '',
+      style: {
+        ...textStyle,
+        fontSize: 24, // 局號字體稍小
+        fill: 0xcccccc
+      }
+    });
+    this.roundCodeText.x = 15;
+    this.roundCodeText.y = 22;
+    this.roundCodeText.zIndex = 10; // 設置 zIndex 確保在 jpInfo 上層
+    this.addChild(this.roundCodeText);
+
     // 獲勝金額顯示
     this.winAmountText = new PIXI.Text({
       text: '',
@@ -445,6 +460,16 @@ export class MainGame extends PIXI.Container {
       this.createJpInfo();
     }
     this.jpInfo.updateJpValues(jpDataArray);
+  }
+
+  /**
+   * 更新局號顯示
+   * @param roundCode 局號字串
+   */
+  public updateRoundCode(roundCode: string): void {
+    if (this.roundCodeText) {
+      this.roundCodeText.text = roundCode || '';
+    }
   }
 
   public createBetPanel(betlist: number[], onBetSelected?: (betAmount: number) => void): void {
