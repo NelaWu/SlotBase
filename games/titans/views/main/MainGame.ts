@@ -272,6 +272,7 @@ export class MainGame extends PIXI.Container {
     this.settingsButtonContainer.addChild(this.logoutButton);
     this.logoutButton.on(ButtonEvent.BUTTON_CLICKED, () => {
       SoundManager.playSound('btm_butt');
+      this.handleLogout();
     });
     this.recordButton = new BaseButton({
       baseName: 'record_btn',
@@ -664,6 +665,41 @@ export class MainGame extends PIXI.Container {
     this.multiBallSpine.state.setAnimation(0, animation.pos, false);
     SoundManager.playSound('btm_multiple_total');
 
+  }
+
+  /**
+   * 處理登出（跳轉到登出 URL）
+   */
+  private handleLogout(): void {
+    try {
+      // 獲取 URL 參數
+      const urlParams = new URLSearchParams(window.location.search);
+      const serverParam = urlParams.get('s') || '';
+      
+      // 解碼 s 參數獲取登出網址（s 解開的第一個）
+      let logoutUrl = '';
+      if (serverParam) {
+        try {
+          const decode = atob(serverParam);
+          const parts = decode.split(',');
+          logoutUrl = parts[0] || ''; // 第一個是登出網址
+        } catch (error) {
+          console.error('Base64 解碼失敗:', error);
+        }
+      }
+
+      if (logoutUrl) {
+        console.log('🚪 登出，前往:', logoutUrl);
+        // 跳轉到登出 URL
+        window.location.href = logoutUrl;
+      } else {
+        console.warn('⚠️  未找到登出 URL，關閉頁面');
+        // 沒有登出 URL 時關閉頁面
+        window.close();
+      }
+    } catch (error) {
+      console.error('登出失敗:', error);
+    }
   }
 
   /**
