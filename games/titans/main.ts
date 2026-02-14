@@ -1,5 +1,6 @@
 import { TitansSlotApp, TitansSlotAppConfig } from './TitansSlotApp';
 import { GameLoadProgress } from '@/core/GameLoader';
+import { AssetsManifest } from '@/core/AssetsManifest';
 import '@esotericsoftware/spine-pixi-v8';
 
 // 型別宣告：確保可以使用 import.meta.env.BASE_URL
@@ -10,12 +11,19 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 
-// 根據 Vite 的 base 自動組資源路徑
-const asset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+// 根據 Vite 的 base 自動組資源路徑，並解析 hash 版本
+const asset = (path: string) => {
+  const assetsManifest = AssetsManifest.getInstance();
+  return assetsManifest.resolveUrl(path);
+};
 
 // Titans 拉霸遊戲入口
 async function startTitansSlotGame() {
   console.log('⚡ 啟動 Titans 拉霸遊戲...');
+
+  // 載入 assets manifest（用於解析帶 hash 的文件名）
+  const assetsManifest = AssetsManifest.getInstance();
+  await assetsManifest.loadManifest();
 
   // 獲取遊戲容器
   const container = document.getElementById('game-container');

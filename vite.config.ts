@@ -2,6 +2,7 @@ import { defineConfig } from 'vite'
 import { resolve } from 'path'
 import { fileURLToPath, URL } from 'node:url'
 import { viteStaticCopy } from 'vite-plugin-static-copy'
+import { vitePluginAssetsHash } from './vite-plugin-assets-hash'
 
 export default defineConfig({
   base: './',
@@ -21,7 +22,8 @@ export default defineConfig({
           dest: 'games/titans/config'
         }
       ]
-    })
+    }),
+    vitePluginAssetsHash()
   ],
   resolve: {
     alias: {
