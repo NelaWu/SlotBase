@@ -685,13 +685,11 @@ export class MainGame extends PIXI.Container {
       };
 
       // 使用 _betQuery（apiURL）作為 iframe 的 URL
-      let iframeUrl = apiURL;
-      if (!iframeUrl) {
-        // 如果沒有 apiURL，使用默認的 GameInfo 路徑
-        const currentHref = window.location.href;
-        const gameInfoPath = `../GameCommon/GameInfo/${gameCode}.html`;
-        iframeUrl = urlResolve(currentHref, gameInfoPath);
-      }
+      // let iframeUrl = apiURL;
+      // 如果沒有 apiURL，使用默認的 GameInfo 路徑
+      const currentHref = window.location.href;
+      const gameInfoPath = `../GameCommon/GameInfo/${gameCode}.html`;
+      let iframeUrl = urlResolve(currentHref, gameInfoPath);
 
       // 構建帶參數的 URL（如果需要傳遞參數給 iframe）
       const params = new URLSearchParams();
