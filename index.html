@@ -26,13 +26,13 @@
             justify-content: center;
             position: relative;
         }
-        
+
         #game-container {
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        
+
         #game-container canvas {
             width: 100% !important;
             height: 100% !important;
@@ -312,18 +312,18 @@
     <div id="app-container">
         <!-- 遊戲畫布容器 -->
         <div id="game-container"></div>
-        
+
         <!-- 彈窗 iframe -->
         <div id="popup-wrapper">
             <iframe id="popup" name="popup" scrolling="auto" frameborder="0" title="Game Info"></iframe>
             <button id="popup-close-btn">×</button>
         </div>
-        
+
         <!-- 載入畫面 -->
         <div id="loading-screen">
             <div class="loading-content">
                 <img id="loading-logo" class="loading-logo" src="src/assets/logo.png" alt="Logo" onerror="this.style.display='none'">
-                
+
                 <div class="progress-bar-container">
                     <div class="progress-bar-bg"></div>
                     <div class="progress-bar-fill" id="progress-bar-fill"></div>
@@ -336,11 +336,11 @@
     <script type="module">
         // 導入 Entry 類
         import { Entry } from '/src/core/Entry';
-        
+
         // 將 Entry 暴露到全局
         window.Entry = Entry;
     </script>
-    
+
     <script>
         // 打開 iframe 的函數
         function openPopup(url, gameInfo) {
@@ -351,7 +351,7 @@
                 // 移除所有可能隱藏 iframe 的 class
                 popupWrapper.classList.remove('hide', 'hidden');
                 popupWrapper.classList.add('show');
-                
+
                 // 強制設置樣式，確保顯示
                 popupWrapper.style.position = 'fixed';
                 popupWrapper.style.top = '0';
@@ -360,14 +360,14 @@
                 popupWrapper.style.display = '';
                 popupWrapper.style.visibility = '';
                 popupWrapper.style.opacity = '';
-                
+
                 // 保存 gameDetail 到 Entry（如果提供了 gameInfo）
                 if (gameInfo && window.Entry) {
                     window.Entry.setGameDetail(gameInfo);
                 }
-                
+
                 popup.src = url || 'https://www.google.com';
-                
+
                 if (openBtn) {
                     openBtn.classList.add('hidden');
                 }
@@ -399,15 +399,15 @@
         document.addEventListener('DOMContentLoaded', function() {
             const closeBtn = document.getElementById('popup-close-btn');
             const openBtn = document.getElementById('popup-open-btn');
-            
+
             if (closeBtn) {
                 closeBtn.addEventListener('click', closePopup);
             }
-            
+
             if (openBtn) {
                 openBtn.addEventListener('click', function() {
                     openPopup('https://www.google.com', {
-                        apiURL: '',
+                        betQuery: '',
                         gameCode: 'test',
                         gameLanguage: 'en',
                         gameToken: 'test-token',
@@ -421,7 +421,7 @@
         (function() {
             // 檢測是否為 iPhone
             const isIPhone = /iPhone/.test(navigator.userAgent);
-            
+
             function setHeight() {
                 const baseHeight = window.visualViewport?.height || window.innerHeight;
                 const height = isIPhone ? baseHeight + 25 : baseHeight; // 只有 iPhone 多10px
@@ -439,7 +439,7 @@
                     loading.style.width = width + 'px';
                 }
             }
-            
+
             setHeight();
             if (window.visualViewport) {
                 window.visualViewport.addEventListener('resize', setHeight);
@@ -449,4 +449,4 @@
         })();
     </script>
 </body>
-</html> 
+</html>

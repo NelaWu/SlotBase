@@ -713,14 +713,14 @@ export class MainGame extends PIXI.Container {
       const gameLanguage = urlParams.get('language') || 'en';
       const gameCode = 'WK07';
 
-      // 解碼 s 參數獲取 apiURL（注單網址是 s 解開的第二個）
-      let apiURL = '';
+      // 解碼 s 參數獲取 betQuery（注單API網址是 s 解開的第二個）
+      let betQuery = '';
       const serverParam = urlParams.get('s') || '';
       if (serverParam) {
         try {
           const decode = atob(serverParam);
           const parts = decode.split(',');
-          apiURL = parts[1] || ''; // 第二個是注單網址
+          betQuery = parts[1] || ''; // 第二個是注單API網址
         } catch (error) {
           console.error('Base64 解碼失敗:', error);
         }
@@ -745,36 +745,20 @@ export class MainGame extends PIXI.Container {
         }
       };
 
-      // 使用 _betQuery（apiURL）作為 iframe 的 URL
-      // let iframeUrl = apiURL;
-      // 如果沒有 apiURL，使用默認的 betHistory 路徑
       const currentHref = window.location.href;
       const betHistoryPath = `../GameCommon/GameResult/${gameCode}.html`;
-      let iframeUrl = urlResolve(currentHref, betHistoryPath);
-
-      // 構建帶參數的 URL（如果需要傳遞參數給 iframe）
-      const params = new URLSearchParams();
-      if (gameToken) params.append('gameToken', gameToken);
-      if (gameLanguage) params.append('gameLanguage', gameLanguage);
-      if (gameCode) params.append('gameCode', gameCode);
-      if (apiURL) params.append('apiURL', apiURL);
-
-      // 如果 URL 已經有參數，使用 & 連接，否則使用 ?
-      const separator = iframeUrl.includes('?') ? '&' : '?';
-      if (params.toString()) {
-        iframeUrl = `${iframeUrl}${separator}${params.toString()}`;
-      }
+      const iframeUrl = urlResolve(currentHref, betHistoryPath);
 
       // 構建 gameInfo 對象（用於 Entry.getDetail）
       const gameInfo = {
-        apiURL: apiURL,
-        gameCode: gameCode,
-        gameLanguage: gameLanguage,
-        gameToken: gameToken,
+        betQuery,
+        gameCode,
+        gameLanguage,
+        gameToken,
         url: iframeUrl
       };
 
-      console.log('🔍 openRecordPopup - apiURL:', apiURL);
+      console.log('🔍 openRecordPopup - betQuery:', betQuery);
       console.log('🔍 openRecordPopup - iframeUrl:', iframeUrl);
       console.log('🔍 openRecordPopup - gameInfo:', gameInfo);
 
