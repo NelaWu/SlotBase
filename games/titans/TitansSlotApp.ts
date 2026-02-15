@@ -146,7 +146,7 @@ export class TitansSlotApp extends SlotMachineApp {
   /**
    * 載入遊戲配置文件
    */
-  private async loadGameConfig(): Promise<{ demoOn: boolean }> {
+  private async loadGameConfig(): Promise<{ JpOn: boolean }> {
     try {
       // 根據 Vite 的 base 自動組資源路徑
       const configPath = `${import.meta.env.BASE_URL}games/titans/config/game-config.json`;
@@ -160,7 +160,7 @@ export class TitansSlotApp extends SlotMachineApp {
     } catch (error) {
       console.warn('⚠️  無法載入遊戲配置文件，使用預設值:', error);
       // 如果載入失敗，返回預設值
-      return { demoOn: false };
+      return { JpOn: false };
     }
   }
 
@@ -171,7 +171,7 @@ export class TitansSlotApp extends SlotMachineApp {
     try {
       // 載入遊戲配置文件
       const gameConfig = await this.loadGameConfig();
-      const demoOn = gameConfig.demoOn ?? false; 
+      this.jpOn = gameConfig.JpOn ?? false; 
 
       // 獲取 URL 參數
       const urlParams = new URLSearchParams(window.location.search);
@@ -219,7 +219,7 @@ export class TitansSlotApp extends SlotMachineApp {
       console.log('🔗 WebSocket URL:', url);
       console.log('🔗 Bet Query:', _betQuery);
       console.log('🔗 Exit URL:', _exitUrl);
-      console.log('🎮 Demo Mode:', demoOn);
+      console.log('🎮 Demo Mode:', this.jpOn);
 
       // 創建 WebSocket 管理器實例
       this.wsManager = WebSocketManager.getInstance({
@@ -232,7 +232,7 @@ export class TitansSlotApp extends SlotMachineApp {
         initMessage: {
           GameToken: tokenParam,
           GameID: 7,
-          DemoOn: demoOn,
+          DemoOn: false,
           Lang: language.toLowerCase() // 轉換為小寫，如 'zh-cn'
         }
       });
@@ -1060,7 +1060,7 @@ export class TitansSlotApp extends SlotMachineApp {
           if (data.BetPurchaseCost !== undefined) {
             this.betPurchaseCost = data.BetPurchaseCost;
           }
-          this.jpOn = data.JPOn;
+          // this.jpOn = data.JPOn;
           // 設置 BetMultiples 到 betList
           if (data.BetMultiples && Array.isArray(data.BetMultiples) && data.BetMultiples.length > 0) {
             // 獲取換算參數
