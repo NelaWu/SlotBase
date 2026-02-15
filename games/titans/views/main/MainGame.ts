@@ -675,7 +675,7 @@ export class MainGame extends PIXI.Container {
       // 獲取 URL 參數
       const urlParams = new URLSearchParams(window.location.search);
       const serverParam = urlParams.get('r') || '';
-      
+
       // 解碼 s 參數獲取登出網址（s 解開的第一個）
       let logoutUrl = '';
       if (serverParam) {
@@ -747,10 +747,10 @@ export class MainGame extends PIXI.Container {
 
       // 使用 _betQuery（apiURL）作為 iframe 的 URL
       // let iframeUrl = apiURL;
-      // 如果沒有 apiURL，使用默認的 GameInfo 路徑
+      // 如果沒有 apiURL，使用默認的 betHistory 路徑
       const currentHref = window.location.href;
-      const gameInfoPath = `../GameCommon/GameInfo/${gameCode}.html`;
-      let iframeUrl = urlResolve(currentHref, gameInfoPath);
+      const betHistoryPath = `../GameCommon/GameResult/${gameCode}.html`;
+      let iframeUrl = urlResolve(currentHref, betHistoryPath);
 
       // 構建帶參數的 URL（如果需要傳遞參數給 iframe）
       const params = new URLSearchParams();
@@ -758,7 +758,7 @@ export class MainGame extends PIXI.Container {
       if (gameLanguage) params.append('gameLanguage', gameLanguage);
       if (gameCode) params.append('gameCode', gameCode);
       if (apiURL) params.append('apiURL', apiURL);
-      
+
       // 如果 URL 已經有參數，使用 & 連接，否則使用 ?
       const separator = iframeUrl.includes('?') ? '&' : '?';
       if (params.toString()) {
@@ -793,7 +793,7 @@ export class MainGame extends PIXI.Container {
           setTimeout(tryOpenPopup, 100);
         }
       };
-      
+
       tryOpenPopup();
     } catch (error) {
       console.error('開啟注單記錄視窗失敗:', error);
