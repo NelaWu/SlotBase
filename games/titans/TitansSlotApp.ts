@@ -148,8 +148,10 @@ export class TitansSlotApp extends SlotMachineApp {
    */
   private async loadGameConfig(): Promise<{ JpOn: boolean }> {
     try {
-      // 根據 Vite 的 base 自動組資源路徑
-      const configPath = `${import.meta.env.BASE_URL}games/titans/config/game-config.json`;
+      // 根據 Vite 的 base 自動組資源路徑，並添加版本號查詢參數
+      const baseUrl = `${import.meta.env.BASE_URL}games/titans/config/game-config.json`;
+      const version = import.meta.env.BUILD_VERSION || '1';
+      const configPath = `${baseUrl}?v=${version}`;
       const response = await fetch(configPath);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
