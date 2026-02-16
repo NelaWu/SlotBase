@@ -1063,6 +1063,9 @@ export class TitansSlotApp extends SlotMachineApp {
             this.betPurchaseCost = data.BetPurchaseCost;
           }
           this.jpOn = data.JPOn;
+          if(this.jpOn){
+            this.TitansView.getMainGame().createJpInfo();
+          }
           // 設置 BetMultiples 到 betList
           if (data.BetMultiples && Array.isArray(data.BetMultiples) && data.BetMultiples.length > 0) {
             // 獲取換算參數
@@ -1181,13 +1184,11 @@ export class TitansSlotApp extends SlotMachineApp {
           break;
         
         case 1013:
-          if (this.jpOn == true) {
-            const convertedJPViews = (data.JPViews || []).map((jpView: any) => ({
-              ...jpView,
-              Value: this.convertMoneyServerToClient(jpView.Value || 0)
-            }));
-            this.TitansView.updateJpInfo(convertedJPViews);
-          }
+          const convertedJPViews = (data.JPViews || []).map((jpView: any) => ({
+            ...jpView,
+            Value: this.convertMoneyServerToClient(jpView.Value || 0)
+          }));
+          this.TitansView.updateJpInfo(convertedJPViews);
           break;
         default:
           console.log('📨 收到其他消息 Code:', data.Code, data);

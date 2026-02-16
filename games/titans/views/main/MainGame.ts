@@ -127,7 +127,7 @@ export class MainGame extends PIXI.Container {
     this.settingsButtonContainer.visible = false;
   }
 
-  private createJpInfo(): void {
+  public createJpInfo(): void {
     this.jpInfo = new JpInfo();
     this.addChild(this.jpInfo);
   }
@@ -457,9 +457,6 @@ export class MainGame extends PIXI.Container {
   }
 
   public updateJpInfo(jpDataArray: JpData[]): void {
-    if (!this.jpInfo) {
-      this.createJpInfo();
-    }
     this.jpInfo.updateJpValues(jpDataArray);
   }
 
