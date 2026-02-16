@@ -395,6 +395,31 @@
             }
         }
 
+        // 將 closePopup 暴露到全局，供 iframe 調用
+        window.closePopup = closePopup;
+
+        // 監聽來自 iframe 的 postMessage 事件
+        window.addEventListener('message', function(event) {
+            // 驗證消息來源（可選，根據實際需求調整）
+            // 如果 iframe 來自不同域名，可以檢查 event.origin
+            // if (event.origin !== 'https://expected-domain.com') return;
+
+            // 檢查消息類型
+            if (event.data && typeof event.data === 'object') {
+                // 方式 1: 檢查 type 屬性
+                if (event.data.type === 'closePopup' || event.data.action === 'closePopup') {
+                    console.log('收到 iframe 關閉請求:', event.data);
+                    closePopup();
+                }
+            } else if (typeof event.data === 'string') {
+                // 方式 2: 字符串消息
+                if (event.data === 'closePopup' || event.data === 'close') {
+                    console.log('收到 iframe 關閉請求:', event.data);
+                    closePopup();
+                }
+            }
+        });
+
         // 綁定按鈕事件
         document.addEventListener('DOMContentLoaded', function() {
             const closeBtn = document.getElementById('popup-close-btn');
