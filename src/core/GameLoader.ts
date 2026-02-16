@@ -152,7 +152,10 @@ export class GameLoader {
     // 設置資源載入進度回調
     this.resourceManager.setCallbacks(
       (progress: LoadProgress) => {
-        const phaseProgress = 20 + (progress.percentage * 0.6); // 20-80% 的進度
+        // 資源載入階段佔 20-80%，確保不會超過 80%
+        // 將資源載入進度（0-100%）映射到整體進度的 20-80%
+        const resourceProgress = Math.min(progress.percentage, 100);
+        const phaseProgress = Math.min(20 + (resourceProgress * 0.6), 80); // 20-80% 的進度，確保不超過 80%
         const detailMessage = progress.currentResource 
           ? `${progress.currentResource} (${progress.loaded}/${progress.total})`
           : `(${progress.loaded}/${progress.total})`;
@@ -173,6 +176,14 @@ export class GameLoader {
 
     try {
       await this.resourceManager.loadResources(this.config.resources);
+      
+      // 資源載入完成後，確保進度設置為 80%（資源載入階段的結束）
+      this.updateProgress(
+        LoadingPhase.LOADING_RESOURCES,
+        80,
+        '資源載入完成',
+        `(${this.config.resources.length}/${this.config.resources.length})`
+      );
       
       // 驗證資源 (可選)
       if (!this.config.skipResourceValidation) {
