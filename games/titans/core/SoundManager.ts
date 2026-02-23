@@ -358,7 +358,7 @@ export class SoundManager {
    * @param volume 音量（0.0-1.0，默認 0.5）
    * @param waitForInteraction 是否等待用戶交互（默認 true，如果用戶未交互則延遲播放）
    */
-  public static playBGM(bgmId: 'mg_bgm' | 'fg_bgm' | 'btm_fg_out_bgm' | 'bigwin_bgm', volume: number = 0.5, waitForInteraction: boolean = true): void {
+  public static playBGM(bgmId: 'mg_bgm' | 'fg_bgm' | 'btm_fg_out_bgm' | 'btm_w_win_loop' | 'btm_w_BSM_loop' | 'btm_w_lengendary_loop' | 'btm_w_ultra_loop', volume: number = 0.5, waitForInteraction: boolean = true): void {
     SoundManager.getInstance().playBGM(bgmId, volume, waitForInteraction);
   }
 
@@ -368,7 +368,7 @@ export class SoundManager {
    * @param volume 音量（0.0-1.0，默認 0.5）
    * @param waitForInteraction 是否等待用戶交互（默認 true，如果用戶未交互則延遲播放）
    */
-  private playBGM(bgmId: 'mg_bgm' | 'fg_bgm' | 'btm_fg_out_bgm' | 'bigwin_bgm', volume: number = 0.5, waitForInteraction: boolean = true): void {
+  private playBGM(bgmId: 'mg_bgm' | 'fg_bgm' | 'btm_fg_out_bgm' | 'btm_w_win_loop' | 'btm_w_BSM_loop' | 'btm_w_lengendary_loop' | 'btm_w_ultra_loop', volume: number = 0.5, waitForInteraction: boolean = true): void {
     // iOS 優化：使用 Web Audio API
     if (this.isIOSDevice && this.webAudioManager) {
       // 如果正在播放相同的BGM，不重複播放

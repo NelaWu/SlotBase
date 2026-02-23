@@ -6,6 +6,7 @@ import { BigWinType, GameEventEnum } from '../../../enum/gameEnum';
 import { BigTreasure } from './BigTreasure';
 import { BigWin } from './BigWin';
 import { SoundManager } from '../../../core/SoundManager';
+import gsap from 'gsap';
 
 export class BigAnimationManager extends PIXI.Container {
   private bigAnimationContainer: PIXI.Container;
@@ -18,6 +19,9 @@ export class BigAnimationManager extends PIXI.Container {
     // 創建動畫容器
     this.bigAnimationContainer = new PIXI.Container();
     this.bigAnimationContainer.zIndex = 9999;
+    // 設置容器的 pivot 為中心點，確保從正中間放大
+    this.bigAnimationContainer.pivot.set(540, 960); // 1080/2, 1920/2
+    this.bigAnimationContainer.position.set(540, 960);
     this.addChild(this.bigAnimationContainer);
     
     // 創建遮罩
@@ -31,6 +35,9 @@ export class BigAnimationManager extends PIXI.Container {
 
     // 預設隱藏
     this.hide();
+setTimeout(() => {
+  this.showBigWin('1000000', 100);
+}, 3000);
   }
 
   /**
@@ -113,14 +120,14 @@ export class BigAnimationManager extends PIXI.Container {
 
   public showBigWin( money:string,bet?:number): BigWin {
     let type:BigWinType = BigWinType.BIG_WIN;
-    this.show();
+    this.showAnimation();
     const bigWin = new BigWin(type, money.toString(),bet);
     this.bigAnimationContainer.addChild(bigWin);
 
     bigWin.once(GameEventEnum.BIG_ANIMATION_BIG_WIN_COMPLETE, () => {
       SoundManager.playBGM('mg_bgm');
       this.bigAnimationContainer.removeChild(bigWin);
-      this.hide();
+      this.hideAnimation();
     });
     
     // 添加點擊空白處跳過動畫功能
@@ -151,7 +158,23 @@ export class BigAnimationManager extends PIXI.Container {
    * 顯示動畫容器
    */
   private show(): void {
+    // 確保 scale 為正常值（其他方法調用時）
+    this.bigAnimationContainer.scale.set(1, 1);
     this.visible = true;
+  }
+
+  private showAnimation(): void {
+    // 設置初始 scale 為 0
+    this.bigAnimationContainer.scale.set(0, 0);
+    this.visible = true;
+    SoundManager.playSound('btm_bonus_open');
+    // 使用 GSAP 動畫從 0 放大到 1，持續 0.5 秒，從正中間放大
+    gsap.to(this.bigAnimationContainer.scale, {
+      x: 1,
+      y: 1,
+      duration: 0.2,
+      ease: 'power2.out'
+    });
   }
 
   /**
@@ -159,5 +182,16 @@ export class BigAnimationManager extends PIXI.Container {
    */
   private hide(): void {
     this.visible = false;
+  }
+  private hideAnimation(): void {
+    SoundManager.playSound('btm_bonus_close');
+    gsap.to(this.bigAnimationContainer.scale, {
+      x: 0,
+      y: 0,
+      duration: 0.2,
+      ease: 'power2.in',
+      onComplete: () => {
+      this.hide();
+    }});
   }
 }

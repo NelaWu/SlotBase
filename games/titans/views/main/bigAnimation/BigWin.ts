@@ -147,7 +147,7 @@ export class BigWin extends PIXI.Container {
      * @param multiplier 倍數
      */
     private startStagedScrollAnimation(winAmount: number, bet: number, multiplier: number): void {
-        SoundManager.playBGM('bigwin_bgm');
+        SoundManager.playBGM('btm_w_win_loop');
         let currentAmount = 0;
         let stageStartTime = Date.now();
         let currentStageIndex = 0;
@@ -176,12 +176,36 @@ export class BigWin extends PIXI.Container {
                 if (this.winTitle) {
                     const newStage = BIG_WIN_STAGES[currentStageIndex];
                     try {
+                        SoundManager.playSound('btm_bonus_updrade');
                         // 設置新的 skin
+                        if(currentStageIndex === 0){
+                            SoundManager.playBGM('btm_w_win_loop');
+                        }else if(currentStageIndex === 4){
+                            SoundManager.playBGM('btm_w_lengendary_loop');
+                        }else if(currentStageIndex === 5){
+                            SoundManager.playBGM('btm_w_ultra_loop');
+                        }
+                        else{
+                            SoundManager.playBGM('btm_w_BSM_loop');
+                        }
                         this.winTitle.skeleton.setSkinByName(newStage.skin);
                         // 重置 slot 到 setup pose，確保新的 skin 正確顯示
                         this.winTitle.skeleton.setSlotsToSetupPose();
                         
                         // 播放動畫序列：先播放 In 動畫，然後播放 Idle 動畫
+                        if(currentStageIndex === 0){
+                            SoundManager.playSound('btm_w_win_talk');
+                        }else if(currentStageIndex === 1){
+                            SoundManager.playSound('btm_w_bigwin_talk');
+                        }else if(currentStageIndex === 2){
+                            SoundManager.playSound('btm_w_superwin_talk');
+                        }else if(currentStageIndex === 3){
+                            SoundManager.playSound('btm_w_megawin_talk');
+                        }else if(currentStageIndex === 4){
+                            SoundManager.playSound('btm_w_ultrawin_talk');
+                        }else if(currentStageIndex === 5){
+                            SoundManager.playSound('btm_w_superwin_talk');
+                        }
                         this.winTitle.state.setAnimation(0, "Prize_Win_In", false);
                         this.winTitle.state.addAnimation(0, "Prize_Win_Idle", true, 0);
                         
@@ -228,6 +252,7 @@ export class BigWin extends PIXI.Container {
             } else {
                 // 滾分完成，確保最終顯示目標金額
                 if (this.moneyText) {
+                    SoundManager.playSound('btm_coincount_stop');
                     this.moneyText.showText(winAmount.toFixed(2));
                 }
                 

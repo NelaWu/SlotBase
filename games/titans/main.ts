@@ -102,6 +102,20 @@ async function startTitansSlotGame() {
       { id: 'treasure_chest_open', url: asset('games/titans/assets/audio/treasure_chest_open.mp3'), type: 'audio' }, // 寶箱開啟的整段畫面的音效
       { id: 'btm_fg_out', url: asset('games/titans/assets/audio/btm_fg_out.mp3'), type: 'audio' }, // fg結算畫面彈出時的爆炸音效
       { id: 'btm_counting', url: asset('games/titans/assets/audio/btm_counting.mp3'), type: 'audio' }, // 金額跑分時播放的單顆錢幣音效（每跳兩個數字播一次）
+      { id: 'btm_bonus_close', url: asset('games/titans/assets/audio/btm_bonus_close.mp3'), type: 'audio' }, // 免費遊戲結束時的爆炸音效
+      { id: 'btm_bonus_open', url: asset('games/titans/assets/audio/btm_bonus_open.mp3'), type: 'audio' }, // 免費遊戲開始時的爆炸音效
+      { id: 'btm_bonus_updrade', url: asset('games/titans/assets/audio/btm_bonus_updrade.mp3'), type: 'audio' }, // 免費遊戲升級時的爆炸音效
+      { id: 'btm_coincount_stop', url: asset('games/titans/assets/audio/btm_coincount_stop.mp3'), type: 'audio' }, // 金額跑分停止時的爆炸音效
+      { id: 'btm_w_win_loop', url: asset('games/titans/assets/audio/btm_w_win_loop.mp3'), type: 'audio' }, // 贏分時的音效
+      { id: 'btm_w_BSM_loop', url: asset('games/titans/assets/audio/btm_w_BSM_loop.mp3'), type: 'audio' }, // BSM贏分時的音效
+      { id: 'btm_w_lengendary_loop', url: asset('games/titans/assets/audio/btm_w_lengendary_loop.mp3'), type: 'audio' }, // 傳奇贏分時的音效
+      { id: 'btm_w_ultra_loop', url: asset('games/titans/assets/audio/btm_w_ultra_loop.mp3'), type: 'audio' }, // 超級贏分時的音效
+      { id: 'btm_w_win_talk', url: asset('games/titans/assets/audio/btm_w_win_talk.mp3'), type: 'audio' }, // 贏分時的音效
+      { id: 'btm_w_ultrawin_talk', url: asset('games/titans/assets/audio/btm_w_ultrawin_talk.mp3'), type: 'audio' }, // 超級贏分時的音效
+      { id: 'btm_w_superwin_talk', url: asset('games/titans/assets/audio/btm_w_superwin_talk.mp3'), type: 'audio' }, // 超級贏分時的音效
+      { id: 'btm_w_megawin_talk', url: asset('games/titans/assets/audio/btm_w_megawin_talk.mp3'), type: 'audio' }, // 超級贏分時的音效
+      { id: 'btm_w_legendarywin_talk', url: asset('games/titans/assets/audio/btm_w_legendarywin_talk.mp3'), type: 'audio' }, // 超級贏分時的音效
+      { id: 'btm_w_bigwin_talk', url: asset('games/titans/assets/audio/btm_w_bigwin_talk.mp3'), type: 'audio' }, // 超級贏分時的音效
       // spine 動畫資源 - @esotericsoftware/spine-pixi-v8 需要分別載入 atlas 和 skeleton
       // 主目錄下的 Spine 資源
       { id: 'BG_Multi_Ball_skel', url: asset('games/titans/assets/spine/BG_Multi_Ball.skel'), type: 'skel' },
