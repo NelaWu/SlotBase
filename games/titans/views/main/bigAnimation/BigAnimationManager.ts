@@ -35,9 +35,6 @@ export class BigAnimationManager extends PIXI.Container {
 
     // 預設隱藏
     this.hide();
-setTimeout(() => {
-  this.showBigWin('1000000', 100);
-}, 3000);
   }
 
   /**

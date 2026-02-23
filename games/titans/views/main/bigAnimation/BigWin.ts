@@ -100,7 +100,7 @@ export class BigWin extends PIXI.Container {
             skeleton: 'Prize_Win_skel',
         });
         winTitle.position.set(540, 900);
-        winTitle.skeleton.setSkinByName("JP_01");
+        winTitle.skeleton.setSkinByName("JP_01");//JP_01 JP_02 JP_03 JP_04
         winTitle.state.setAnimation(0, "Prize_Win_Idle", true);
         console.log('winTitle', winTitle);
         
