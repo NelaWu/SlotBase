@@ -30,10 +30,8 @@ export class TitansSlotController extends BaseController {
     this.model.on('spinCompleted', this.onSpinCompleted.bind(this));
     this.model.on('balanceChanged', this.onBalanceChanged.bind(this));
     this.model.on('betChanged', this.onBetChanged.bind(this));
-    this.model.on('bonusTriggered', this.onBonusTriggered.bind(this));
     this.model.on('freeSpinsAwarded', this.onFreeSpinsAwarded.bind(this));
     this.model.on('freeSpinsUsed', this.onFreeSpinsUsed.bind(this));
-    this.model.on('jackpotWon', this.onJackpotWon.bind(this));
     this.model.on('error', this.onError.bind(this));
   }
 
@@ -43,10 +41,8 @@ export class TitansSlotController extends BaseController {
     this.model.off('spinCompleted', this.onSpinCompleted.bind(this));
     this.model.off('balanceChanged', this.onBalanceChanged.bind(this));
     this.model.off('betChanged', this.onBetChanged.bind(this));
-    this.model.off('bonusTriggered', this.onBonusTriggered.bind(this));
     this.model.off('freeSpinsAwarded', this.onFreeSpinsAwarded.bind(this));
     this.model.off('freeSpinsUsed', this.onFreeSpinsUsed.bind(this));
-    this.model.off('jackpotWon', this.onJackpotWon.bind(this));
     this.model.off('error', this.onError.bind(this));
   }
 
@@ -456,10 +452,6 @@ export class TitansSlotController extends BaseController {
     this.view.updateBet(newBet);
   }
 
-  private onBonusTriggered(bonusType: string): void {
-    this.log('觸發 Bonus:', bonusType);
-    this.view.showBonusMessage(`${bonusType.toUpperCase()} BONUS!`);
-  }
 
   private onFreeSpinsAwarded(count: number): void {
     this.log('獲得免費旋轉:', count);
@@ -469,11 +461,6 @@ export class TitansSlotController extends BaseController {
   private onFreeSpinsUsed(remaining: number): void {
     this.log('使用免費旋轉，剩餘:', remaining);
     this.view.updateFreeSpins(remaining);
-  }
-
-  private onJackpotWon(amount: number): void {
-    this.log('中大獎！金額:', amount);
-    this.view.showBonusMessage(`🎉 JACKPOT! $${amount} 🎉`);
   }
 
   private onError(error: string): void {
@@ -594,12 +581,6 @@ export class TitansSlotController extends BaseController {
   // 獲取當前餘額
   public getBalance(): number {
     return this.model.getBalance();
-  }
-
-  // 增加餘額（測試用）
-  public addBalance(amount: number): void {
-    const newBalance = this.model.getBalance() + amount;
-    this.model.setBalance(newBalance);
   }
 
   /**

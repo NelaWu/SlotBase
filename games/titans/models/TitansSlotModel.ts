@@ -163,12 +163,6 @@ export class TitansSlotModel extends SlotMachineModel {
       this.triggerBonusFeature(result.bonusFeature);
     }
 
-    if (result.jackpotWon) {
-      const jackpotAmount = this.getCurrentBet() * this.TitansConfig.jackpotMultiplier;
-      this.setBalance(this.getBalance() + jackpotAmount);
-      this.emit('jackpotWon', jackpotAmount);
-    }
-
     if (result.freeSpins) {
       this.freeSpinsRemaining += result.freeSpins;
     }
@@ -225,10 +219,10 @@ export class TitansSlotModel extends SlotMachineModel {
       
       console.log('[Model] 收到連鎖 Spin 結果:', result);
       
-      // 更新餘額（如果後端有回傳）
-      if (result.balance !== undefined) {
-        this.setBalance(result.balance);
-      }
+      // // 更新餘額（如果後端有回傳）
+      // if (result.balance !== undefined) {
+      //   this.setBalance(result.balance);
+      // }
       
       return result;
     } catch (error) {

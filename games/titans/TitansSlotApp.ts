@@ -285,8 +285,7 @@ export class TitansSlotApp extends SlotMachineApp {
     this.spinStartedHandler = () => {
       const betMultiple = this.TitansModel.getCurrentBet();
       const currentBalance = this.TitansModel.getBalance();
-      const newBalance = MathUtil.subtract(currentBalance, betMultiple);
-      this.TitansModel.setBalance(newBalance);
+      
       if (this.isFreeGameMode) {
         console.log('🔄 免費遊戲 removeWinSymbols 完成2，自動發送下一次 11008');
         // 免費遊戲模式：發送 11008（參數與 11002 相同）
@@ -474,10 +473,6 @@ export class TitansSlotApp extends SlotMachineApp {
       demoModeRound: spinInfo.DemoModeRound
     };
 
-    // 更新餘額
-    if (result.totalWin > 0) {
-      this.TitansModel['setBalance'](this.TitansModel.getBalance() + result.totalWin);
-    }
     this.multiplier = result.multiplier || 1;
 
     // 展示盤面（清空牌面並顯示新結果）
@@ -538,7 +533,7 @@ export class TitansSlotApp extends SlotMachineApp {
   }
 
   /**
-   * 處理免費遊戲旋轉結果 (Code 11015)
+   * 處理免費遊戲旋轉結果 (Code 11009)
    */
   private handleFreeGameSpinResult(data: any): void {
     // 處理邏輯與 11003 類似，但不需要扣除投注金額
@@ -605,11 +600,6 @@ export class TitansSlotApp extends SlotMachineApp {
 
     if (shouldRespin) {
       console.log('🔄 上一盤 WinType == 1，免費遊戲走 respin 流程（不清空牌面）');
-
-      // 先更新餘額（但不觸發 spinCompleted 事件）
-      if (result.totalWin > 0) {
-        this.TitansModel['setBalance'](this.TitansModel.getBalance() + result.totalWin);
-      }
 
       // 更新 Model 狀態（但不觸發 spinCompleted 事件）
       this.TitansModel['stateData'].lastResult = result;
@@ -1273,11 +1263,6 @@ export class TitansSlotApp extends SlotMachineApp {
   // 檢查是否在免費旋轉模式
   public isInFreeSpinsMode(): boolean {
     return this.TitansModel.isInFreeSpinsMode();
-  }
-
-  // 增加餘額（測試用）
-  public addBalance(amount: number): void {
-    this.TitansController.addBalance(amount);
   }
 
   // 獲取 Titans 配置

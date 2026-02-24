@@ -88,73 +88,6 @@ function updateLoadingProgress(progress: GameLoadProgress): void {
   progressBarEffect.style.width = width;
 }
 
-// 更新 UI 顯示
-function updateUI(): void {
-  if (!slotMachineApp) return;
-
-  const model = slotMachineApp.getModel();
-  const currentState = slotMachineApp.getCurrentState();
-  console.log('updateUI', model.getBalance());
-  
-  // 更新餘額和投注顯示
-  balanceDisplay.textContent = model.getBalance().toString();
-  betDisplay.textContent = model.getCurrentBet().toString();
-  stateDisplay.textContent = currentState || '未知';
-
-  // 更新按鈕狀態
-  const canSpin = model.canSpin() && currentState === 'idle';
-  spinButton.disabled = !canSpin;
-  betPlusButton.disabled = currentState !== 'idle';
-  betMinusButton.disabled = currentState !== 'idle';
-}
-
-// 設置事件監聽器
-function setupEventListeners(): void {
-  if (!slotMachineApp) return;
-
-  const model = slotMachineApp.getModel();
-  const stateMachine = slotMachineApp.getStateMachine();
-
-  // 監聽模型事件
-  model.on('balanceChanged', updateUI);
-  model.on('betChanged', updateUI);
-  model.on('spinStarted', updateUI);
-  model.on('spinCompleted', updateUI);
-  model.on('error', (error: string) => showError(error));
-
-  // 監聽狀態機變更
-  stateMachine.onStateChange(() => updateUI());
-
-  // 設置控制面板事件
-  spinButton.addEventListener('click', () => {
-    try {
-      slotMachineApp?.spin();
-    } catch (error) {
-      showError(`轉動失敗: ${error}`);
-    }
-  });
-
-  betPlusButton.addEventListener('click', () => {
-    const currentBet = model.getCurrentBet();
-    const newBet = Math.min(currentBet + 10, 100); // 最大投注 100
-    model.setBet(newBet);
-  });
-
-  betMinusButton.addEventListener('click', () => {
-    const currentBet = model.getCurrentBet();
-    const newBet = Math.max(currentBet - 10, 10); // 最小投注 10
-    model.setBet(newBet);
-  });
-
-  // 鍵盤事件
-  document.addEventListener('keydown', (event) => {
-    if (event.code === 'Space' && !spinButton.disabled) {
-      event.preventDefault();
-      slotMachineApp?.spin();
-    }
-  });
-}
-
 // 初始化應用程式
 async function initializeApp(): Promise<void> {
   try {
@@ -169,8 +102,6 @@ async function initializeApp(): Promise<void> {
         () => {
           console.log('載入完成');
           hideLoadingScreen();
-          setupEventListeners();
-          updateUI();
           
           // 啟動應用程式
           slotMachineApp?.start();
@@ -222,6 +153,5 @@ initializeApp().catch(error => {
 // 開發模式下的全域變數（便於除錯）
 if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
   (window as any).slotMachineApp = slotMachineApp;
-  (window as any).updateUI = updateUI;
   console.log('開發模式：可通過 window.slotMachineApp 存取應用程式實例');
 } 
