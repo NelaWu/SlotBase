@@ -515,6 +515,10 @@ export class MainGame extends PIXI.Container {
     return this.bigAnimationManager.showBigWinAsync(money, bet);
   }
 
+  public showJpWin(money: string, jpLevel: number): void {
+    this.bigAnimationManager.showJpWin(money, jpLevel);
+  }
+
   /**
    * 顯示 FreeEnd 動畫並返回 Promise（等待動畫完成）
    */

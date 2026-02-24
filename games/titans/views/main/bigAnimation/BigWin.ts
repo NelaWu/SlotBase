@@ -42,7 +42,7 @@ export class BigWin extends PIXI.Container {
             this.initBigWin(type, winAmount, bet, multiplier);
         } else {
             // JP_WIN 或其他類型的處理（保持原有邏輯）
-            this.initDefault(type, money);
+            this.initDefault(type, money,bet);
         }
     }
 
@@ -85,7 +85,8 @@ export class BigWin extends PIXI.Container {
         this.startStagedScrollAnimation(winAmount, bet, multiplier);
     }
 
-    private initDefault(type:BigWinType, money:string): void {
+    private initDefault(type:BigWinType, money:string ,jpLevel:number): void {
+        SoundManager.playBGM('btm_w_jp_loop_2');
         const bg = Spine.from({
             atlas: 'Prize_Win_Vfx_atlas',
             skeleton: 'Prize_Win_Vfx_skel',
@@ -100,9 +101,27 @@ export class BigWin extends PIXI.Container {
             skeleton: 'Prize_Win_skel',
         });
         winTitle.position.set(540, 900);
-        winTitle.skeleton.setSkinByName("JP_01");//JP_01 JP_02 JP_03 JP_04
+        // 使用對象映射替代多個 if-else
+        const jpSpineMap: Record<number, string> = {
+            1: 'JP_04',
+            2: 'JP_03',
+            3: 'JP_02',
+            4: 'JP_01'
+        };
+        const jpSpine = jpSpineMap[jpLevel] || '';
+        winTitle.skeleton.setSkinByName(jpSpine);
         winTitle.state.setAnimation(0, "Prize_Win_Idle", true);
-        console.log('winTitle', winTitle);
+        // 使用對象映射替代多個 if-else
+        const jpSoundMap: Record<number, string> = {
+            1: 'btm_w_grand_talk',
+            2: 'btm_w_major_talk',
+            3: 'btm_w_minor_talk',
+            4: 'btm_w_mini_talk'
+        };
+        const soundId = jpSoundMap[jpLevel];
+        if (soundId) {
+            SoundManager.playSound(soundId);
+        }
         
         this.addChild(winTitle);
 

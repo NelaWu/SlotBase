@@ -150,6 +150,41 @@ export class BigAnimationManager extends PIXI.Container {
     });
   }
 
+  public showJpWin(money: string, jpLevel: number): BigWin {
+    let type: BigWinType = BigWinType.JP_WIN;
+    this.showAnimation();
+    const bigWin = new BigWin(type, money.toString(), jpLevel);
+    this.bigAnimationContainer.addChild(bigWin);
+
+    bigWin.once(GameEventEnum.BIG_ANIMATION_BIG_WIN_COMPLETE, () => {
+      SoundManager.playBGM('mg_bgm');
+      this.bigAnimationContainer.removeChild(bigWin);
+      this.hideAnimation();
+    });
+    
+    // 添加點擊空白處跳過動畫功能
+    const onBackgroundClick = () => {
+      bigWin.skipToEnd();
+      this.backgroundMask.off('pointerdown', onBackgroundClick);
+    };
+    this.backgroundMask.on('pointerdown', onBackgroundClick);
+    
+    return bigWin;
+  }
+
+  /**
+   * 顯示 JpWin 動畫並返回 Promise（等待動畫完成）
+   */
+  public async showJpWinAsync(money: string, jpLevel: number): Promise<void> {
+    return new Promise((resolve) => {
+      const bigWin = this.showJpWin(money, jpLevel);
+      bigWin.once(GameEventEnum.BIG_ANIMATION_BIG_WIN_COMPLETE, () => {
+        this.bigAnimationContainer.removeChild(bigWin);
+        resolve();
+      });
+    });
+  }
+
 
   /**
    * 顯示動畫容器

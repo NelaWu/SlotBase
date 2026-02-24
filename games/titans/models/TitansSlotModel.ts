@@ -23,6 +23,12 @@ export interface WinLineInfo {
   Odds: number;
 }
 
+// JP 獲勝信息
+export interface WinJPInfo {
+  JPLevel: number;
+  Value: number;
+}
+
 // 服務器返回的 SpinInfo 結構
 export interface ServerSpinInfo {
   GameStateType: number;
@@ -68,8 +74,6 @@ export interface TitansSlotResult extends SpinResult {
   stage?: number; // Stage
   collection?: number; // Collection
   demoModeRound?: number; // DemoModeRound
-  
-  // 【新增】連鎖相關欄位
   WaitNGRespin?: boolean; // 是否需要連鎖 Spin
   newSymbols?: number[][]; // 連鎖時補充的新符號（可選）
 }
