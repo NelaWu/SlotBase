@@ -250,38 +250,6 @@
             border: none;
         }
 
-        /* 關閉按鈕 */
-        #popup-close-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.7);
-            border: 2px solid #fff;
-            border-radius: 50%;
-            color: #fff;
-            font-size: 24px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2001;
-            transition: all 0.3s ease;
-            padding: 0;
-            line-height: 1;
-        }
-
-        #popup-close-btn:hover {
-            background: rgba(255, 0, 0, 0.8);
-            transform: scale(1.1);
-        }
-
-        #popup-close-btn:active {
-            transform: scale(0.95);
-        }
-
         /* 打開按鈕 */
         #popup-open-btn {
             position: fixed;
@@ -316,7 +284,6 @@
         <!-- 彈窗 iframe -->
         <div id="popup-wrapper">
             <iframe id="popup" name="popup" scrolling="auto" frameborder="0" title="Game Info"></iframe>
-            <button id="popup-close-btn">×</button>
         </div>
 
         <!-- 載入畫面 -->
@@ -422,12 +389,7 @@
 
         // 綁定按鈕事件
         document.addEventListener('DOMContentLoaded', function() {
-            const closeBtn = document.getElementById('popup-close-btn');
             const openBtn = document.getElementById('popup-open-btn');
-
-            if (closeBtn) {
-                closeBtn.addEventListener('click', closePopup);
-            }
 
             if (openBtn) {
                 openBtn.addEventListener('click', function() {
