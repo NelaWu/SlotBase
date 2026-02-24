@@ -425,7 +425,7 @@ export class SoundManager {
    * @param bgmId 背景音樂ID
    * @param volume 音量
    */
-  private playBGMSeamless(bgmId: 'mg_bgm' | 'fg_bgm' | 'btm_fg_out_bgm', volume: number): void {
+  private playBGMSeamless(bgmId: 'mg_bgm' | 'fg_bgm' | 'btm_fg_out_bgm' | 'btm_w_win_loop' | 'btm_w_BSM_loop' | 'btm_w_lengendary_loop' | 'btm_w_ultra_loop' | 'btm_w_jp_loop_2', volume: number): void {
     try {
       const audioResource = this.resourceManager.getResource(bgmId);
       if (!audioResource || !(audioResource instanceof HTMLAudioElement)) {

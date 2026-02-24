@@ -9,7 +9,8 @@ import { Spine } from '@esotericsoftware/spine-pixi-v8';
 import { SoundManager } from '../../../core/SoundManager';
 
 export class FreeEnd extends PIXI.Container {
-    private winText?: BaseNumber
+    private winText?: BaseNumber;
+    private winTween?: gsap.core.Tween;
     constructor() {
         super();
         this.init();
@@ -74,11 +75,12 @@ export class FreeEnd extends PIXI.Container {
         this.addChild(this.winText);
     }
     public setWinText(text: string): void {
+        this.winTween?.kill();
         SoundManager.playBGM('btm_fg_out_bgm');
         let num:{money:number} = {money:0}
         let lastSoundTime = 0; // 記錄上次播放音效的時間
-        
-        gsap.to(num, { money: text, duration: 5,
+
+        this.winTween = gsap.to(num, { money: text, duration: 5,
             onStart: () => {
                 SoundManager.playSound('btm_fg_out');
                 lastSoundTime = performance.now(); // 記錄開始時間
@@ -95,6 +97,8 @@ export class FreeEnd extends PIXI.Container {
     }
 
     private onCloseBtnClicked(): void {
+        this.winTween?.kill();
+        this.winTween = undefined;
         SoundManager.playBGM('mg_bgm');
         this.emit(GameEventEnum.BIG_ANIMATION_CLOSE);
     }
