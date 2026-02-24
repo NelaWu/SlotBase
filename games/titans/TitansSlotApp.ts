@@ -30,7 +30,7 @@ export class TitansSlotApp extends SlotMachineApp {
   private freeTotalWin: number = 0; // 免費遊戲總獲勝金額
   private totalWin: number = 0; // 總獲勝金額(11011才重置) - 累積的是未乘以倍數的原始金額
   private jpOn: boolean = false;
-  private jpLevel: WinJPInfo;
+  private jpLevel?: WinJPInfo;
   private multiplier:number = 1; // 倍數
   private totalMultiplier: number = 1; // 累積的總倍數（所有倍數球的乘積）
   private useMockData: boolean = false; // 是否使用假資料測試
@@ -869,7 +869,6 @@ export class TitansSlotApp extends SlotMachineApp {
       stage: spinInfo.Stage,
       collection: spinInfo.Collection,
       demoModeRound: spinInfo.DemoModeRound,
-      WinJPInfo: data.WinJPInfo
     };
 
     // 檢查是否正在等待 respin，如果是則用新資料補空白（不清空牌面）
@@ -1158,7 +1157,7 @@ export class TitansSlotApp extends SlotMachineApp {
             // 显示 BigWin 动画，等待动画完成后再执行后续代码
             await this.TitansView.showBigWinAsync(totalWinAmount, this.TitansModel.getCurrentBet());
           }
-          else if(this.jpLevel.JPLevel > 0){
+          else if(this.jpLevel && this.jpLevel.JPLevel > 0){
             this.TitansView.showJpWin(this.jpLevel.Value, this.jpLevel.JPLevel);
           }
           else if (this.isFreeGameMode == true) {

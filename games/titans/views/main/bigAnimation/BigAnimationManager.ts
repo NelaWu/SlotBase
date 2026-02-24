@@ -63,15 +63,17 @@ export class BigAnimationManager extends PIXI.Container {
    * @param winAmount 獲勝金額
    */
   public showFreeEnd(winAmount: string): FreeEnd {
-    this.show();
+    this.showAnimation();
     const freeEnd = new FreeEnd();
     freeEnd.setWinText(winAmount);
     this.bigAnimationContainer.addChild(freeEnd);
     
     // 監聽關閉事件
     freeEnd.once(GameEventEnum.BIG_ANIMATION_CLOSE, () => {
-      this.bigAnimationContainer.removeChild(freeEnd);
-      this.hide();
+      this.hideAnimation();
+      setTimeout(() => {
+        this.bigAnimationContainer.removeChild(freeEnd);
+      }, 200);
     });
     
     return freeEnd;
@@ -84,9 +86,11 @@ export class BigAnimationManager extends PIXI.Container {
     return new Promise((resolve) => {
       const freeEnd = this.showFreeEnd(winAmount);
       freeEnd.once(GameEventEnum.BIG_ANIMATION_CLOSE, () => {
-        this.bigAnimationContainer.removeChild(freeEnd);
+        this.hideAnimation();
         resolve();
-        this.hide();
+        setTimeout(() => {
+          this.bigAnimationContainer.removeChild(freeEnd);
+        }, 200);
       });
     });
   }
@@ -223,7 +227,8 @@ export class BigAnimationManager extends PIXI.Container {
       duration: 0.2,
       ease: 'power2.in',
       onComplete: () => {
-      this.hide();
-    }});
+        this.hide();
+      }
+    });
   }
 }

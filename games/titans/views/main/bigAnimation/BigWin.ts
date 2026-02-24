@@ -224,7 +224,7 @@ export class BigWin extends PIXI.Container {
                         }else if(currentStageIndex === 4){
                             SoundManager.playSound('btm_w_ultrawin_talk');
                         }else if(currentStageIndex === 5){
-                            SoundManager.playSound('btm_w_superwin_talk');
+                            SoundManager.playSound('btm_w_legendarywin_talk');
                         }
                         this.winTitle.state.setAnimation(0, "Prize_Win_In", false);
                         this.winTitle.state.addAnimation(0, "Prize_Win_Idle", true, 0);
