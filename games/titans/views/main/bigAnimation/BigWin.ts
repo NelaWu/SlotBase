@@ -175,6 +175,7 @@ export class BigWin extends PIXI.Container {
 
         // 初始化為第一個階段
         if (this.winTitle) {
+            SoundManager.playSound('btm_w_win_talk');
             this.winTitle.skeleton.setSkinByName(BIG_WIN_STAGES[0].skin);
         }
 

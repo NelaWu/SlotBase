@@ -457,6 +457,9 @@ export class MainGame extends PIXI.Container {
   }
 
   public updateJpInfo(jpDataArray: JpData[]): void {
+    if (!this.jpInfo) {
+      this.createJpInfo();
+    }
     this.jpInfo.updateJpValues(jpDataArray);
   }
 
