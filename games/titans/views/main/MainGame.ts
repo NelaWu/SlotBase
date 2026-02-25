@@ -47,6 +47,7 @@ export class MainGame extends PIXI.Container {
   private getBetAmount?: () => number; // 獲取投注金額的函數（返回客戶端金額）
   private isFreeGame: boolean = false; // 是否為免費遊戲
   private bigMultiplier: number = 0; // 大倍數只在免費遊戲使用
+  private freeTotalWinForDisplay: number = 0; // 免費遊戲累計總贏（供 winText 顯示）
 
   constructor() {
     super();
@@ -520,6 +521,7 @@ export class MainGame extends PIXI.Container {
    */
   public startFreeGame(): void {
     this.isFreeGame = true;
+    this.freeTotalWinForDisplay = 0;
     // 播放 Transition 動畫
     const transition = this.bigAnimationManager.showTransition();
     this.gameScene.setFG();
@@ -536,6 +538,19 @@ export class MainGame extends PIXI.Container {
     this.gameScene.setMG();
     this.isFreeGame = false;
     this.bigMultiplier = 0;
+    this.freeTotalWinForDisplay = 0;
+  }
+
+  public getIsFreeGame(): boolean {
+    return this.isFreeGame;
+  }
+
+  public setFreeTotalWinForDisplay(value: number): void {
+    this.freeTotalWinForDisplay = value;
+  }
+
+  public getFreeTotalWinForDisplay(): number {
+    return this.freeTotalWinForDisplay;
   }
 
   public playMultiBallAnimation(): void {
@@ -610,7 +625,8 @@ export class MainGame extends PIXI.Container {
       // const extraMultiplier = this.isFreeGame && this.bigMultiplier > 0 ? this.bigMultiplier : 0;
       await this.gameScene.playBGWinTotal((money) => {
         // 同時更新 winText
-        this.winText.text = money.toFixed(2);
+        if(!this.isFreeGame) this.winText.text = money.toFixed(2);
+        else this.winText.text = this.freeTotalWinForDisplay.toFixed(2);
       });
       // 如果有等待的 resolve 回調，調用它
       if (this.multiBallAnimationResolve) {

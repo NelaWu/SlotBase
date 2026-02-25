@@ -251,22 +251,23 @@ export class TitansSlotView extends BaseView {
     this.mainGame.betText.text = this.formatAmount(bet);
   }
 
-  // 更新獲勝金額顯示（底部）
+  // 更新獲勝金額顯示（底部）；免費遊戲時 winText 顯示 freeTotalWin，playBGWinMoney 仍用 winAmount
   public updateWinAmount(winAmount: number): void {
+    const isFreeGame = this.mainGame.getIsFreeGame();
+    const displayTarget = isFreeGame ? this.mainGame.getFreeTotalWinForDisplay()+winAmount : winAmount;
     if (winAmount > 0) {
       const m: { money: number } = { money: Number(this.mainGame.winText.text) || 0 };
-      gsap.to(m, {
-        money: winAmount,
-        duration: 1,
-        onUpdate: () => {
-          const moneyValue = m.money.toFixed(2);
-          this.mainGame.winText.text = moneyValue;
-          this.mainGame.gameScene.playBGWinMoney(m.money);
-        }
-      });
+      const mBar: { money: number } = { money: Number(this.mainGame.winText.text) || 0 };
+      gsap.to(m, { money: displayTarget, duration: 1, onUpdate: () => {
+        this.mainGame.winText.text = m.money.toFixed(2);
+        console.log('🔄 updateWinAmount', m.money);
+      } });
+      gsap.to(mBar, { money: winAmount, duration: 1, onUpdate: () => {
+        this.mainGame.gameScene.playBGWinMoney(mBar.money);
+      } });
     } else {
-      this.mainGame.winText.text = '0';
-      this.mainGame.playBGWinMoney(winAmount);
+      this.mainGame.winText.text = displayTarget > 0 ? displayTarget.toFixed(2) : '0';
+      this.mainGame.gameScene.playBGWinMoney(winAmount);
     }
   }
 

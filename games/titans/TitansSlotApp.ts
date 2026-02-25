@@ -1125,12 +1125,14 @@ export class TitansSlotApp extends SlotMachineApp {
         case 11009:
           console.log('🎰 收到免費遊戲旋轉結果:', data);
           data.WaitNGRespin = data.SpinInfo.WinType === 1;
-          this.handleFreeGameSpinResult(data);
-          if(!data.WaitNGRespin){
-            console.log('🔄 免費遊戲 totalWin:'+this.freeTotalWin +'+'+this.totalWin*data.SpinInfo.Multiplier, this.totalWin, 'multiplier:', data.SpinInfo.Multiplier);
-            this.freeTotalWin += this.totalWin*data.SpinInfo.Multiplier;
+          if (!data.WaitNGRespin) {
+            const add = this.totalWin * data.SpinInfo.Multiplier;
+            console.log('🔄 免費遊戲 totalWin:' + this.freeTotalWin + '+' + add, this.totalWin, 'multiplier:', data.SpinInfo.Multiplier);
+            this.freeTotalWin += add;
+            this.TitansView.getMainGame().setFreeTotalWinForDisplay(this.freeTotalWin);
             this.totalWin = 0;
           }
+          this.handleFreeGameSpinResult(data);
           break;
 
         case 11015:
