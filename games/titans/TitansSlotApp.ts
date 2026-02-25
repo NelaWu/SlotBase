@@ -551,8 +551,10 @@ export class TitansSlotApp extends SlotMachineApp {
     }
 
     const reels: number[][] = SymbolMapper.serverToClientArray(serverReels);
-    const totalWin = this.convertMoneyServerToClient(spinInfo.Win || 0);
     const multiplier = spinInfo.Multiplier || 1;
+    const totalWin = this.convertMoneyServerToClient(spinInfo.Win || 0) / multiplier;
+    this.totalWin += totalWin;
+    console.log('🔄 免費遊戲 respin totalWin0:'+this.totalWin,totalWin);
 
     const winLineInfos = (spinInfo.WinLineInfos || []).map((info: any) => ({
       ...info,
@@ -630,11 +632,8 @@ export class TitansSlotApp extends SlotMachineApp {
         // 累計 totalWin（與 handleSpinResult 一致）
         // 累積未乘以倍數的原始 Win（服務器返回的 Win 可能已經包含倍數，需要除以當前倍數）
         const respinMultiplier = respinSpinInfo.Multiplier || 1;
-        const respinBaseWin = respinMultiplier > 1 ? (respinSpinInfo.Win / respinMultiplier) : respinSpinInfo.Win;
-        this.totalWin += respinBaseWin;
         // 更新總倍數（累積所有倍數球的乘積）
         this.totalMultiplier *= respinMultiplier;
-        const respinTotalWin = this.convertMoneyServerToClient(this.totalWin || 0);
 
         // 提取詳細的獲勝連線信息並轉換符號 ID 和金額
         const respinWinLineInfos = (respinSpinInfo.WinLineInfos || []).map((info: any) => ({
@@ -647,7 +646,7 @@ export class TitansSlotApp extends SlotMachineApp {
         const respinResult: TitansSlotResult = {
           reels: respinReels,
           winLines: respinWinLines,
-          totalWin: respinTotalWin,
+          totalWin: this.totalWin,
           multiplier: respinSpinInfo.Multiplier || 1,
           bonusTriggered: false,
           winLineInfos: respinWinLineInfos,
@@ -1127,7 +1126,11 @@ export class TitansSlotApp extends SlotMachineApp {
           console.log('🎰 收到免費遊戲旋轉結果:', data);
           data.WaitNGRespin = data.SpinInfo.WinType === 1;
           this.handleFreeGameSpinResult(data);
-          this.freeTotalWin += this.convertMoneyServerToClient(data.SpinInfo.Win)*this.multiplier;
+          if(!data.WaitNGRespin){
+            console.log('🔄 免費遊戲 totalWin:'+this.freeTotalWin +'+'+this.totalWin*data.SpinInfo.Multiplier, this.totalWin, 'multiplier:', data.SpinInfo.Multiplier);
+            this.freeTotalWin += this.totalWin*data.SpinInfo.Multiplier;
+            this.totalWin = 0;
+          }
           break;
 
         case 11015:

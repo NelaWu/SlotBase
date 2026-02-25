@@ -45,6 +45,8 @@ export class MainGame extends PIXI.Container {
   private isPlayingMultiBallAnimation: boolean = false; // 是否正在播放倍數球動畫
   private multiBallAnimationResolve?: () => void; // 動畫完成時的 resolve 回調
   private getBetAmount?: () => number; // 獲取投注金額的函數（返回客戶端金額）
+  private isFreeGame: boolean = false; // 是否為免費遊戲
+  private bigMultiplier: number = 0; // 大倍數只在免費遊戲使用
 
   constructor() {
     super();
@@ -517,6 +519,7 @@ export class MainGame extends PIXI.Container {
    * 開始免費遊戲流程
    */
   public startFreeGame(): void {
+    this.isFreeGame = true;
     // 播放 Transition 動畫
     const transition = this.bigAnimationManager.showTransition();
     this.gameScene.setFG();
@@ -531,6 +534,8 @@ export class MainGame extends PIXI.Container {
   public endFreeGame(): void {
     this.setBetButtonType('main');
     this.gameScene.setMG();
+    this.isFreeGame = false;
+    this.bigMultiplier = 0;
   }
 
   public playMultiBallAnimation(): void {
@@ -602,6 +607,7 @@ export class MainGame extends PIXI.Container {
     // 如果隊列為空，停止播放並 resolve Promise
     if (this.multiBallAnimationQueue.length === 0) {
       this.isPlayingMultiBallAnimation = false;
+      // const extraMultiplier = this.isFreeGame && this.bigMultiplier > 0 ? this.bigMultiplier : 0;
       await this.gameScene.playBGWinTotal((money) => {
         // 同時更新 winText
         this.winText.text = money.toFixed(2);
@@ -617,7 +623,12 @@ export class MainGame extends PIXI.Container {
 
     // 從隊列中取出第一個動畫
     const animation = this.multiBallAnimationQueue.shift()!;
+    // 此批第一個：尚未累加前先播一次大倍數（免費遊戲且 bigMultiplier > 0）
+    const isFirstInBatch = !this.isPlayingMultiBallAnimation;
     this.isPlayingMultiBallAnimation = true;
+    if (isFirstInBatch && this.isFreeGame && this.bigMultiplier > 0) {
+      this.gameScene.playBGWinMultiplier(this.bigMultiplier);
+    }
 
     const lv = this.getLevelFromSymbolId(animation.symbolId);
     this.multiBallSpine.skeleton.setSkinByName(lv);
@@ -631,6 +642,10 @@ export class MainGame extends PIXI.Container {
       const symbol = this.wheel.getSymbolAt(reel, row);
       if (symbol) {
         console.log('🎉 播放Collect',reel, row,symbol);
+        if(this.isFreeGame) {
+          this.bigMultiplier += getMultiplierFromSymbolId(animation.symbolId);
+          this.gameScene.setBigMultiplier(this.bigMultiplier);
+        }
         symbol.playCollect();
         this.gameScene.playBGWinMultiplier(getMultiplierFromSymbolId(animation.symbolId) || 0);
       }

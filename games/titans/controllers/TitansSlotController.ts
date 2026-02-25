@@ -117,7 +117,7 @@ export class TitansSlotController extends BaseController {
     // 【保留】在這裡播放獲勝動畫（延遲 1 秒）
     if (result.winLineInfos && result.winLineInfos.length > 0) {
       setTimeout(() => {
-        this.log('🎯 播放獲勝動畫');
+        this.log('🎯 播放獲勝動畫1',result.totalWin);
         this.view.updateWinAmount(result.totalWin);
         this.view.playWinAnimation(result.winLineInfos!);
       }, 1000);
@@ -135,8 +135,7 @@ export class TitansSlotController extends BaseController {
    * 【修改】在符號掉落完成後執行的邏輯 - 處理獲勝和連鎖
    */
   private async executeAfterDropComplete(result: TitansSlotResult): Promise<void> {
-    console.log('executeAfterDropComplete - 符號掉落完成', result);
-
+    console.log('🎯 播放獲勝動畫2', result.totalWin);
     this.view.updateWinAmount(result.totalWin);
     // 標記開始處理連鎖
     this.isProcessingCascade = true;
@@ -205,7 +204,7 @@ export class TitansSlotController extends BaseController {
 
       // 1. 播放獲勝動畫並等待完成（如果有獲勝）
       if (hasWin) {
-        this.log('🎯 播放獲勝動畫');
+        this.log('🎯 播放獲勝動畫3',result.totalWin);
         this.view.updateWinAmount(result.totalWin);
         this.view.playWinAnimation(result.winLineInfos!);
 

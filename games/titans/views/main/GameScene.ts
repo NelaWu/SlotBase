@@ -199,6 +199,7 @@ export class GameScene extends PIXI.Container {
     this.bgWinBarSpine!.visible = true;
     this.multiBallBigText!.visible = true;
     this.multiBallBigSpine!.visible = true;
+    this.multiBallBigText!.showText('0x');
     
     // 切換到免費遊戲背景音樂
     SoundManager.playBGM('fg_bgm', 0.5);
@@ -243,7 +244,7 @@ export class GameScene extends PIXI.Container {
     this.bgWinBarContainer!.visible = visible;
     this.logoSprite!.visible = !visible;
     this.bgWinBarMoneyText!.showText('0.00');
-    this.multiBallBigText!.showText('0x');
+    // this.multiBallBigText!.showText('0x');
     this.totalMultiplier = 0;
     this.bgWinBarMultiplierText!.showText('');
   }
@@ -253,15 +254,18 @@ export class GameScene extends PIXI.Container {
     this.bgWinBarMoneyText!.showText(money.toFixed(2));
   }
 
+  public setBigMultiplier(multiplier: number): void {
+    this.multiBallBigText!.showText(multiplier.toString()+'x');
+  }
+
   public playBGWinMultiplier(multiplier: number): void {
     console.log('🎉 播放BGWinMultiplier', multiplier);
-    
     if (multiplier == 0 )return;
     this.totalMultiplier += multiplier;
     this.bgWinBarMultiplierText!.visible = true;
     this.bgWinBarMultiplierText!.alpha = 1;
     this.bgWinBarMultiplierText!.showText('x'+this.totalMultiplier);
-    this.multiBallBigText!.showText(this.totalMultiplier.toString()+'x');
+    // this.multiBallBigText!.showText(this.totalMultiplier.toString()+'x');
     this.bgWinBarMultiplierText!.position.set(this.bgWinBarMoneyText!.width+this.bgWinBarMultiplierText!.width/2, -300);
     const m:{scale:number} = {scale:2};
     gsap.to(m, {scale:1, duration: 0.5, onUpdate: () => {
