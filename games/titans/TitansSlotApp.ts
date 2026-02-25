@@ -1072,7 +1072,6 @@ export class TitansSlotApp extends SlotMachineApp {
               const clientBalance = this.convertMoneyServerToClient(this.pendingServerBalance);
               this.TitansModel.setBalance(clientBalance);
               console.log('💰 設置客戶端餘額:', clientBalance, '(服務器餘額:', this.pendingServerBalance, ')');
-              this.pendingServerBalance = null; // 清除暫存
             }
 
             // 對 BetMultiples 進行換算：BetMultiples * betMultiple (BetUnit * Line / MoneyFractionMultiple)
@@ -1137,6 +1136,12 @@ export class TitansSlotApp extends SlotMachineApp {
 
         case 11015:
           console.log('🎰 收到購買免費遊戲結果 (11015):', data);
+          const clientBalance = this.convertMoneyServerToClient(this.pendingServerBalance);
+          const betPurchaseAmount = this.TitansModel.getCurrentBet() * this.betPurchaseCost;
+          this.TitansModel.setBalance(clientBalance - betPurchaseAmount);
+          this.freeTotalWin = this.convertMoneyServerToClient(data.SpinInfo.Win || 0);
+          this.TitansView.getMainGame().setFreeTotalWinForDisplay(this.freeTotalWin);
+
           // 處理 11015 結果，展示盤面，動畫完成後檢查是否中獎免費遊戲
           this.handleBuyFreeGameSpinResult(data);
           break;
@@ -1167,6 +1172,7 @@ export class TitansSlotApp extends SlotMachineApp {
           if (data.Balance !== null && data.Balance !== undefined) {
             const clientBalance = this.convertMoneyServerToClient(data.Balance);
             this.TitansModel.setBalance(clientBalance);
+            this.pendingServerBalance = data.Balance;
             this.TitansView.updateWinAmount(0);
           }
 

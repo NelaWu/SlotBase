@@ -521,7 +521,7 @@ export class MainGame extends PIXI.Container {
    */
   public startFreeGame(): void {
     this.isFreeGame = true;
-    this.freeTotalWinForDisplay = 0;
+    // this.freeTotalWinForDisplay = 0; 
     // 播放 Transition 動畫
     const transition = this.bigAnimationManager.showTransition();
     this.gameScene.setFG();
