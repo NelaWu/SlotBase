@@ -260,7 +260,6 @@ export class TitansSlotView extends BaseView {
       const mBar: { money: number } = { money: Number(this.mainGame.winText.text) || 0 };
       gsap.to(m, { money: displayTarget, duration: 1, onUpdate: () => {
         this.mainGame.winText.text = m.money.toFixed(2);
-        console.log('🔄 updateWinAmount', m.money);
       } });
       gsap.to(mBar, { money: winAmount, duration: 1, onUpdate: () => {
         this.mainGame.gameScene.playBGWinMoney(mBar.money);
