@@ -160,7 +160,6 @@ export class TitansSlotView extends BaseView {
   // 公開方法 - 開始旋轉動畫
   public startSpinAnimation(fastDrop?: boolean): void {
     this.setSpinButtonEnabled(false);
-    this.hideWinAmount();
     this.updateWinAmount(0);
     
     // 優先使用雙擊快速模式（pendingFastDrop），如果沒有則使用傳入的參數（通常是 Turbo 模式）
@@ -223,11 +222,6 @@ export class TitansSlotView extends BaseView {
 
   public playMultiBallAnimation():void{
     this.mainGame.playMultiBallAnimation();
-  }
-
-  // 隱藏獲勝金額
-  private hideWinAmount(): void {
-    this.mainGame.winAmountText.visible = false;
   }
 
   /**

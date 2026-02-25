@@ -29,7 +29,6 @@ export class MainGame extends PIXI.Container {
   public logoutButton!: BaseButton;
   public recordButton!: BaseButton;
   public infoButton!: BaseButton;
-  public winAmountText!: PIXI.Text;
   public balanceText!: PIXI.Text;
   public betText!: PIXI.Text;
   public winText!: PIXI.Text; // 獲勝金額顯示（底部）
@@ -384,21 +383,6 @@ export class MainGame extends PIXI.Container {
     this.roundCodeText.zIndex = 10; // 設置 zIndex 確保在 jpInfo 上層
     this.addChild(this.roundCodeText);
 
-    // 獲勝金額顯示
-    this.winAmountText = new PIXI.Text({
-      text: '',
-      style: {
-        ...textStyle,
-        fontSize: 72, // 原本 36px * 2
-        fill: 0xffff00
-      }
-    });
-    this.winAmountText.anchor.set(0.5);
-    this.winAmountText.x = 540;  // 原本 270px * 2
-    this.winAmountText.y = 800;  // 原本 400px * 2
-    this.winAmountText.visible = false;
-    this.winAmountText.zIndex = 20;
-    this.addChild(this.winAmountText);
 
   }
 
