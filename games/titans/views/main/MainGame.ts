@@ -13,6 +13,7 @@ import { GameEventEnum } from '../../enum/gameEnum';
 import { BaseNumber } from '@/views/components/BaseNumber';
 import { JpData, JpInfo } from './JpInfo';
 import { SoundManager } from '../../core/SoundManager';
+import { AutoPanel } from './autoPanel';
 
 export class MainGame extends PIXI.Container {
   public gameScene!: GameScene;
@@ -39,6 +40,7 @@ export class MainGame extends PIXI.Container {
   public settingsButtonContainer!: PIXI.Container;
   public bigAnimationManager!: BigAnimationManager;
   public betPanel!: BetPanel;
+  public autoPanel!: AutoPanel;
   public manualPage!: ManualPage;
   public multiBallSpine!: Spine;
   private multiBallAnimationQueue: Array<{ symbolId: number; pos: string }> = []; // 倍數球動畫隊列
@@ -48,6 +50,7 @@ export class MainGame extends PIXI.Container {
   private isFreeGame: boolean = false; // 是否為免費遊戲
   private bigMultiplier: number = 0; // 大倍數只在免費遊戲使用
   private freeTotalWinForDisplay: number = 0; // 免費遊戲累計總贏（供 winText 顯示）
+  private getRemainingAutoCount?: () => number; // 剩餘自動次數（autoTime），由外部設定；autoTime>0 時 isToggle 為 true
 
   constructor() {
     super();
@@ -80,6 +83,7 @@ export class MainGame extends PIXI.Container {
 
     // 創建說明書頁面
     this.createManualPage();
+    this.createAutoPanel();
 
     // 設置佈局
     this.setupLayout();
@@ -206,12 +210,14 @@ export class MainGame extends PIXI.Container {
     });
     this.betButtonContainer.addChild(this.turboButton);
 
-    // 自動旋轉按鈕
+    // 自動旋轉按鈕：需 isToggle 能力，顯示狀態依 autoTime 自己設定（autoTime>0 為 on，否則 off）
+    const autoTime = this.getRemainingAutoCount?.() ?? 0;
     this.autoButton = new BaseButton({
       baseName: 'auto_btn',
       anchor: 0.5,
       isToggle: true,
     });
+    this.autoButton.setToggleState(autoTime > 0);
     this.betButtonContainer.addChild(this.autoButton);
 
     // 加注按鈕
@@ -471,6 +477,16 @@ export class MainGame extends PIXI.Container {
     this.addChild(this.betPanel);
   }
 
+  public createAutoPanel(): void {
+    if (this.autoPanel) {
+      this.removeChild(this.autoPanel);
+      this.autoPanel.destroy();
+    }
+    this.autoPanel = new AutoPanel();
+    this.autoPanel.visible = false; // 初始狀態為隱藏
+    this.addChild(this.autoPanel);
+  }
+
   public createManualPage(): void {
     // 如果已經存在 manualPage，先移除
     if (this.manualPage) {
@@ -551,6 +567,17 @@ export class MainGame extends PIXI.Container {
 
   public getFreeTotalWinForDisplay(): number {
     return this.freeTotalWinForDisplay;
+  }
+
+  /** 設定剩餘自動次數 getter；用於 auto 按鈕 toggle 狀態（autoTime>0 為 true） */
+  public setGetRemainingAutoCount(fn: () => number): void {
+    this.getRemainingAutoCount = fn;
+  }
+
+  /** 依 getRemainingAutoCount 更新 auto 按鈕的 toggle 顯示 */
+  public updateAutoButtonState(): void {
+    const autoTime = this.getRemainingAutoCount?.() ?? 0;
+    this.autoButton.setToggleState(autoTime > 0);
   }
 
   public playMultiBallAnimation(): void {

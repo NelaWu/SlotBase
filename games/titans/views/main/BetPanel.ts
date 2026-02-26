@@ -4,7 +4,7 @@ import { BaseButton } from '@/views/components/BaseButton';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
 
 // 投注選項元件
-class BetItem extends PIXI.Container {
+export class BetItem extends PIXI.Container {
     private multipleText!: PIXI.Text;
     private betbgSprite!: PIXI.Sprite;
 

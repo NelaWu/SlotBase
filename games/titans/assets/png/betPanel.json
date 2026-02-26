@@ -1,0 +1,52 @@
+{"frames": {
+
+"auto_close.png":
+{
+	"frame": {"x":0,"y":0,"w":95,"h":99},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":95,"h":99},
+	"sourceSize": {"w":95,"h":99}
+},
+"auto_panel.png":
+{
+	"frame": {"x":0,"y":159,"w":410,"h":581},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":410,"h":581},
+	"sourceSize": {"w":410,"h":581}
+},
+"auto_title_cns.png":
+{
+	"frame": {"x":95,"y":0,"w":148,"h":75},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":148,"h":75},
+	"sourceSize": {"w":148,"h":75}
+},
+"auto_title_cnt.png":
+{
+	"frame": {"x":243,"y":0,"w":148,"h":75},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":148,"h":75},
+	"sourceSize": {"w":148,"h":75}
+},
+"auto_title_en.png":
+{
+	"frame": {"x":0,"y":99,"w":218,"h":60},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":218,"h":60},
+	"sourceSize": {"w":218,"h":60}
+}},
+"meta": {
+	"app": "https://www.codeandweb.com/texturepacker",
+	"version": "1.1",
+	"image": "betPanel.png",
+	"format": "RGBA8888",
+	"size": {"w":410,"h":740},
+	"scale": "1",
+	"smartupdate": "$TexturePacker:SmartUpdate:7bc144e004a0441e7ef2d2a9b4260a28:f6b9b81879cd544f20bec1abaa407418:8c7017c27e793ddbce99618499895d61$"
+}
+}

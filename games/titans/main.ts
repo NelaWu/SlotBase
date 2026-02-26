@@ -67,6 +67,7 @@ async function startTitansSlotGame() {
       // Sprite Sheet 資源（multipack，只需要載入第一個 JSON 文件）
       // PixiJS 會自動載入其他相關的 pack 文件
       { id: 'titans_spritesheet', url: asset('games/titans/assets/png/titans1-0.json'), type: 'spritesheet' },
+      { id: 'betPanel_spritesheet', url: asset('games/titans/assets/png/betPanel.json'), type: 'spritesheet' },
       
       // audio 音頻資源
       // 背景音樂（循環播放）

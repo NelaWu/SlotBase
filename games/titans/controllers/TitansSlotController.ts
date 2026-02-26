@@ -7,8 +7,9 @@ export class TitansSlotController extends BaseController {
   protected declare model: TitansSlotModel;
   protected declare view: TitansSlotView;
 
-  // 自動旋轉相關
+  // 自動旋轉相關（每 call 一次 11010 算一次，次數歸 0 停止）
   private isAutoSpinEnabled: boolean = false;
+  private remainingAutoCount: number = 0;
   private isTurboEnabled: boolean = false;
   private winAnimationPlayCount: number = 0;
   private winAnimationTimer?: NodeJS.Timeout;
@@ -495,15 +496,18 @@ export class TitansSlotController extends BaseController {
   }
 
   private onAutoButtonClicked(): void {
-    // 【新增】如果正在處理連鎖，禁止切換自動模式
     if (this.isProcessingCascade) {
-      this.isAutoSpinEnabled = !this.isAutoSpinEnabled;
       this.log('正在處理連鎖中，無法切換自動模式');
       return;
     }
-
-    // 切換自動旋轉狀態
-    this.setAutoSpinEnabled(!this.isAutoSpinEnabled);
+    // 已開始自動化：停止自動化且不開 panel
+    if (this.isAutoSpinEnabled) {
+      this.setAutoSpinEnabled(false);
+      return;
+    }
+    // 未自動化：打開 autoPanel 選次數（按鈕點擊會觸發 toggle，需強制維持 off 直到真的開始自動）
+    this.view.showAutoPanel();
+    this.view.autoButtonEnabled(false);
   }
 
   private onTurboButtonClicked(): void {
@@ -512,14 +516,14 @@ export class TitansSlotController extends BaseController {
   }
 
   /**
-   * 設置自動旋轉狀態
+   * 設置自動旋轉狀態；會同步 autoButton 樣式
    */
   private setAutoSpinEnabled(enabled: boolean): void {
     this.isAutoSpinEnabled = enabled;
+    this.view.autoButtonEnabled(enabled);
 
     if (enabled) {
-      this.log('自動旋轉已啟用');
-      // 如果當前可以旋轉，立即開始第一次自動旋轉
+      this.log('自動旋轉已啟用，剩餘次數:', this.remainingAutoCount);
       if (this.model.canSpin() || this.model.isInFreeSpinsMode()) {
         setTimeout(() => {
           this.log('自動旋轉：開始第一次旋轉');
@@ -527,12 +531,32 @@ export class TitansSlotController extends BaseController {
         }, 300);
       }
     } else {
+      this.remainingAutoCount = 0;
       this.log('自動旋轉已關閉');
-      // 清除計時器
       if (this.winAnimationTimer) {
         clearTimeout(this.winAnimationTimer);
         this.winAnimationTimer = undefined;
       }
+    }
+  }
+
+  /**
+   * 從 autoPanel 選定次數後開始自動化；每 call 一次 11010 扣一次，歸 0 停止
+   */
+  public startAutoWithCount(count: number): void {
+    this.remainingAutoCount = count;
+    this.setAutoSpinEnabled(true);
+  }
+
+  /**
+   * 每發送一次 11010 時由 App 呼叫；扣一次後若歸 0 則停止自動化
+   */
+  public onAutoRoundComplete(): void {
+    if (!this.isAutoSpinEnabled || this.remainingAutoCount <= 0) return;
+    this.remainingAutoCount -= 1;
+    this.log('自動旋轉剩餘次數:', this.remainingAutoCount);
+    if (this.remainingAutoCount <= 0) {
+      this.setAutoSpinEnabled(false);
     }
   }
 
@@ -616,6 +640,11 @@ export class TitansSlotController extends BaseController {
   // 獲取自動旋轉狀態
   public getAutoSpinEnabled(): boolean {
     return this.isAutoSpinEnabled;
+  }
+
+  /** 剩餘自動次數（autoTime）；供 MainGame 設定 auto 按鈕 toggle 狀態 */
+  public getRemainingAutoCount(): number {
+    return this.remainingAutoCount;
   }
 
   public getTurboEnabled(): boolean {

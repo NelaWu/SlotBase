@@ -9,7 +9,7 @@ export class ManualPage extends PIXI.Container {
   private totalPages: number = 7;
   private pageContainer: PIXI.Container;
   private backgroundSprite!: PIXI.Sprite;
-  private closeButton!: BaseButton;
+  private closeButton!: PIXI.Sprite;
   private prevButton!: BaseButton;
   private nextButton!: BaseButton;
   private pageSprites: Map<number, PIXI.Sprite[]> = new Map();
@@ -43,16 +43,18 @@ export class ManualPage extends PIXI.Container {
     this.loadAllPages();
 
     // 创建关闭按钮
-    this.closeButton = new BaseButton({
-      baseName: 'option_back_btn',
-      anchor: 0.5
-    });
-    this.closeButton.position.set(935, 290);
-    this.addChild(this.closeButton);
-    this.closeButton.on(ButtonEvent.BUTTON_CLICKED, () => {
-      SoundManager.playSound('btm_butt');
-      this.hide();
-    });
+    const closeTexture = resourceManager.getTexture('auto_close');
+    if (closeTexture) {
+      this.closeButton = new PIXI.Sprite(closeTexture);
+      this.closeButton.interactive = true;
+      this.closeButton.cursor = 'pointer';
+      this.closeButton.position.set(935, 260);
+      this.addChild(this.closeButton);
+      this.closeButton.on('click', ()=>{
+          SoundManager.playSound('btm_butt');
+          this.hide();
+      });
+    }
 
     // 创建上一页按钮
     this.prevButton = new BaseButton({

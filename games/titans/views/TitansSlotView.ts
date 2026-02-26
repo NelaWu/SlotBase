@@ -283,6 +283,14 @@ export class TitansSlotView extends BaseView {
     this.mainGame.autoButton.setToggleState(enabled);
   }
 
+  public showAutoPanel(): void {
+    this.mainGame.autoPanel?.show();
+  }
+
+  public hideAutoPanel(): void {
+    this.mainGame.autoPanel?.hide();
+  }
+
   // 設置旋轉按鈕啟用狀態
   public setSpinButtonEnabled(enabled: boolean): void {
     this.mainGame.spinButton.setEnabled(enabled);

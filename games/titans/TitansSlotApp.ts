@@ -105,6 +105,12 @@ export class TitansSlotApp extends SlotMachineApp {
         return this.TitansModel.getCurrentBet() * this.betPurchaseCost;
       });
 
+      this.TitansView.getMainGame().autoPanel.setOnAutoCountSelected((count: number) => {
+        this.TitansController.startAutoWithCount(count);
+      });
+      this.TitansView.getMainGame().setGetRemainingAutoCount(() => this.TitansController.getRemainingAutoCount());
+      this.TitansView.getMainGame().updateAutoButtonState();
+
       // 監聽購買免費遊戲事件
       this.TitansView.getMainGame().on('buyFreeGame', () => {
         this.handleBuyFreeGame();
@@ -1019,9 +1025,9 @@ export class TitansSlotApp extends SlotMachineApp {
    * @param errorType 錯誤類型
    */
   private showError(errorType: string): void {
-    const message = this.errorMessages[errorType] || this.errorMessages['ConnectClose'];
-    console.error(`❌ WebSocket 錯誤: ${errorType} - ${message}`);
-    this.TitansView.showErrorOverlay(message, this.exitUrl);
+    // const message = this.errorMessages[errorType] || this.errorMessages['ConnectClose'];
+    // console.error(`❌ WebSocket 錯誤: ${errorType} - ${message}`);
+    // this.TitansView.showErrorOverlay(message, this.exitUrl);
   }
 
   /**
@@ -1314,12 +1320,15 @@ export class TitansSlotApp extends SlotMachineApp {
    * 發送 WebSocket 消息
    */
   public sendWebSocketMessage(data: any): boolean {
-    if (this.wsManager && this.wsManager.isConnected()) {
-      return this.wsManager.send(data);
-    } else {
+    if (!this.wsManager || !this.wsManager.isConnected()) {
       console.warn('⚠️  WebSocket 未連接，無法發送消息');
       return false;
     }
+    const sent = this.wsManager.send(data);
+    if (sent && data && data.code === 11010) {
+      this.TitansController.onAutoRoundComplete();
+    }
+    return sent;
   }
 
   /**
