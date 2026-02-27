@@ -50,7 +50,7 @@ export class ManualPage extends PIXI.Container {
       this.closeButton.cursor = 'pointer';
       this.closeButton.position.set(935, 260);
       this.addChild(this.closeButton);
-      this.closeButton.on('click', ()=>{
+      this.closeButton.on('pointerup', ()=>{
           SoundManager.playSound('btm_butt');
           this.hide();
       });

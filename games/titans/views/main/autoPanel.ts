@@ -51,7 +51,7 @@ export class AutoPanel extends PIXI.Container {
             closeSprite.interactive = true;
             closeSprite.cursor = 'pointer';
             this.addChild(closeSprite);
-            closeSprite.on('click', ()=>{
+            closeSprite.on('pointerup', ()=>{
                 this.hide();
             });
           }

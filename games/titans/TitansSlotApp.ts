@@ -1025,9 +1025,9 @@ export class TitansSlotApp extends SlotMachineApp {
    * @param errorType 錯誤類型
    */
   private showError(errorType: string): void {
-    // const message = this.errorMessages[errorType] || this.errorMessages['ConnectClose'];
-    // console.error(`❌ WebSocket 錯誤: ${errorType} - ${message}`);
-    // this.TitansView.showErrorOverlay(message, this.exitUrl);
+    const message = this.errorMessages[errorType] || this.errorMessages['ConnectClose'];
+    console.error(`❌ WebSocket 錯誤: ${errorType} - ${message}`);
+    this.TitansView.showErrorOverlay(message, this.exitUrl);
   }
 
   /**
