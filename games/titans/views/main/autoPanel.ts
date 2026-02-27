@@ -12,7 +12,7 @@ export class AutoPanel extends PIXI.Container {
 
     constructor() {
         super();
-        this.init([5, 10, 25, 50, 100,200]);
+        this.init([10, 50, 100, 200, 500, -1]);
     }
     init(countList: number[]): void {
         this.countList = countList;

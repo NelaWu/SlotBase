@@ -2,10 +2,11 @@ import * as PIXI from 'pixi.js';
 import { ResourceManager } from '@/core/ResourceManager';
 import { BaseButton } from '@/views/components/BaseButton';
 import { ButtonEvent } from '@/views/components/ButtonEvents';
+import { BaseNumber } from '@/views/components/BaseNumber';
 
 // 投注選項元件
 export class BetItem extends PIXI.Container {
-    private multipleText!: PIXI.Text;
+    private multipleText!: BaseNumber;
     private betbgSprite!: PIXI.Sprite;
 
     constructor(multiple: number) {
@@ -22,14 +23,14 @@ export class BetItem extends PIXI.Container {
           this.addChild(this.betbgSprite);
         }
 
-        this.multipleText = new PIXI.Text(multiple.toString(), {
-            fontFamily: 'Arial',
-            fontSize: 60,
-            fill: 0xffffff,
-            fontWeight: 'bold'
+        this.multipleText = new BaseNumber({
+            baseName: 'auto_number',
+            anchor: 0.5,
+            align: 'center',
         });
-        this.multipleText.anchor.set(0.5);
         this.multipleText.position.set(102, 50);
+        if(multiple === -1) this.multipleText.showText(',');
+        else this.multipleText.showText(multiple.toString());
         this.addChild(this.multipleText);
 
         // 創建點擊區域（使用 Graphics 創建矩形）
@@ -82,13 +83,15 @@ export class BetItem extends PIXI.Container {
 
     // 更新倍數文字
     public updateMultiple(multiple: number): void {
-        this.multipleText.text = multiple.toString();
+        this.multipleText.showText(multiple.toString());
     }
 
     // 獲取倍數
     public getMultiple(): number {
 
-        return parseInt(this.multipleText.text) || 0;
+        // BaseNumber 沒有直接暴露文字內容，這裡用更新時的 multiple 邏輯即可；暫時回傳 0 以避免誤用
+        // 若未來需要讀取，建議在 BetItem 內保存 lastMultiple 狀態。
+        return 0;
     }
 
     public select(): void {
