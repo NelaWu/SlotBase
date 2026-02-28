@@ -1182,10 +1182,9 @@ export class TitansSlotApp extends SlotMachineApp {
             this.TitansView.updateWinAmount(0);
           }
 
-          // 自動模式且非免費遊戲模式：收到 11011 後觸發下一次 spin
+          // 自動模式且非免費遊戲模式：收到 11011 時判斷是否要自動下一局（開啟自動後再點一次 auto 會關閉，此時 getAutoSpinEnabled() 為 false 就不會 spin）
           if (this.TitansController.getAutoSpinEnabled() && !this.isFreeGameMode) {
-            console.log('🔄 自動模式（非免費遊戲）：收到 11011，觸發下一次 spin');
-            // 稍微延遲後自動旋轉，確保動畫完全結束
+            console.log('🔄 自動模式（非免費遊戲）：收到 11011，觸發下一次 spin',this.TitansController.getAutoSpinEnabled());
             setTimeout(() => {
               this.TitansModel.startSpin();
             }, 0);

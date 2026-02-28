@@ -210,14 +210,14 @@ export class MainGame extends PIXI.Container {
     });
     this.betButtonContainer.addChild(this.turboButton);
 
-    // 自動旋轉按鈕：需 isToggle 能力，顯示狀態依 autoTime 自己設定（autoTime>0 為 on，否則 off）
+    // 自動旋轉按鈕：需 isToggle 能力，顯示狀態依 autoTime（剩餘次數；-1=無限）為 on，0 為 off
     const autoTime = this.getRemainingAutoCount?.() ?? 0;
     this.autoButton = new BaseButton({
       baseName: 'auto_btn',
       anchor: 0.5,
       isToggle: true,
     });
-    this.autoButton.setToggleState(autoTime > 0);
+    this.autoButton.setToggleState(autoTime !== 0);
     this.betButtonContainer.addChild(this.autoButton);
 
     // 加注按鈕
@@ -574,10 +574,10 @@ export class MainGame extends PIXI.Container {
     this.getRemainingAutoCount = fn;
   }
 
-  /** 依 getRemainingAutoCount 更新 auto 按鈕的 toggle 顯示 */
+  /** 依 getRemainingAutoCount 更新 auto 按鈕的 toggle 顯示（-1=無限視為 on） */
   public updateAutoButtonState(): void {
     const autoTime = this.getRemainingAutoCount?.() ?? 0;
-    this.autoButton.setToggleState(autoTime > 0);
+    this.autoButton.setToggleState(autoTime !== 0);
   }
 
   public playMultiBallAnimation(): void {

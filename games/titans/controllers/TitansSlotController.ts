@@ -123,13 +123,6 @@ export class TitansSlotController extends BaseController {
         this.view.playWinAnimation(result.winLineInfos!);
       }, 1000);
     }
-
-    // 檢查並處理 Bonus
-    if (result.bonusFeature) {
-      setTimeout(() => {
-        this.handleBonusFeature(result.bonusFeature!);
-      }, 0);
-    }
   }
 
   /**
@@ -496,10 +489,6 @@ export class TitansSlotController extends BaseController {
   }
 
   private onAutoButtonClicked(): void {
-    if (this.isProcessingCascade) {
-      this.log('正在處理連鎖中，無法切換自動模式');
-      return;
-    }
     // 已開始自動化：停止自動化且不開 panel
     if (this.isAutoSpinEnabled) {
       this.setAutoSpinEnabled(false);
@@ -523,16 +512,13 @@ export class TitansSlotController extends BaseController {
     this.view.autoButtonEnabled(enabled);
 
     if (enabled) {
-      this.log('自動旋轉已啟用，剩餘次數:', this.remainingAutoCount);
       if (this.model.canSpin() || this.model.isInFreeSpinsMode()) {
         setTimeout(() => {
-          this.log('自動旋轉：開始第一次旋轉');
           this.model.startSpin();
         }, 300);
       }
     } else {
       this.remainingAutoCount = 0;
-      this.log('自動旋轉已關閉');
       if (this.winAnimationTimer) {
         clearTimeout(this.winAnimationTimer);
         this.winAnimationTimer = undefined;
@@ -541,38 +527,22 @@ export class TitansSlotController extends BaseController {
   }
 
   /**
-   * 從 autoPanel 選定次數後開始自動化；每 call 一次 11010 扣一次，歸 0 停止
+   * 從 autoPanel 選定次數後開始自動化；每 call 一次 11010 扣一次，歸 0 停止。-1 表示無限次，只有按取消才會停
    */
   public startAutoWithCount(count: number): void {
-    this.remainingAutoCount = count;
+    this.remainingAutoCount = count; // -1 = 無限
     this.setAutoSpinEnabled(true);
   }
 
   /**
-   * 每發送一次 11010 時由 App 呼叫；扣一次後若歸 0 則停止自動化
+   * 每發送一次 11010 時由 App 呼叫；扣一次後若歸 0 則停止。-1 為無限次不扣不停
    */
   public onAutoRoundComplete(): void {
-    if (!this.isAutoSpinEnabled || this.remainingAutoCount <= 0) return;
+    if (!this.isAutoSpinEnabled) return;
+    if (this.remainingAutoCount === -1) return; // 無限次，不扣次、不停止
     this.remainingAutoCount -= 1;
-    this.log('自動旋轉剩餘次數:', this.remainingAutoCount);
     if (this.remainingAutoCount <= 0) {
       this.setAutoSpinEnabled(false);
-    }
-  }
-
-  // ==================== 輔助方法 ====================
-
-  // 處理 Bonus 功能
-  private handleBonusFeature(bonusType: string): void {
-    switch (bonusType) {
-      case 'freeSpins':
-        this.log('進入免費旋轉模式');
-        break;
-      case 'jackpot':
-        this.log('觸發大獎！');
-        break;
-      default:
-        this.log('觸發特殊 Bonus:', bonusType);
     }
   }
 
