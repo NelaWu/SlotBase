@@ -136,6 +136,7 @@ export class MainGame extends PIXI.Container {
   public createJpInfo(): void {
     this.jpInfo = new JpInfo();
     this.addChild(this.jpInfo);
+    this.jpInfo.visible = false;
   }
 
   // 創建捲軸
@@ -450,9 +451,9 @@ export class MainGame extends PIXI.Container {
   }
 
   public updateJpInfo(jpDataArray: JpData[]): void {
-    if (!this.jpInfo) {
-      this.createJpInfo();
-    }
+    // if (!this.jpInfo) {
+    //   this.createJpInfo();
+    // }
     this.jpInfo.updateJpValues(jpDataArray);
   }
 

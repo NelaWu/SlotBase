@@ -128,6 +128,7 @@ export class JpInfo extends PIXI.Container {
      * JPLevel: 1=Grand, 2=Major, 3=Minor, 4=Mini
      */
     public updateJpValues(jpDataArray: JpData[]): void {
+        this.visible = true;
         jpDataArray.forEach((jpData) => {
             const value = jpData.Value.toString();
             
