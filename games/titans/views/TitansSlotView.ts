@@ -550,7 +550,7 @@ export class TitansSlotView extends BaseView {
     this.errorOverlay.addChild(buttonText);
 
     // 將錯誤覆蓋層添加到舞台最上層
-    this.addChild(this.errorOverlay);
+    // this.addChild(this.errorOverlay);
     // 設置 z-index（確保在最上層）
     this.errorOverlay.zIndex = 9999;
   }

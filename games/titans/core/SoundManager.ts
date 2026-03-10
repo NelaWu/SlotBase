@@ -69,6 +69,11 @@ export class SoundManager {
   private isPausedByVisibility: boolean = false; // 是否因為分頁隱藏而暫停
   private isPausedByDisconnect: boolean = false; // 是否因為斷線而暫停
 
+  // 總音效開關（關閉時 BGM + 所有音效皆靜音）
+  private masterMuted: boolean = false;
+  private savedBgmVolume: number = 0.5;
+  private savedSoundVolume: number = 1;
+
   private constructor() {
     this.resourceManager = ResourceManager.getInstance();
     this.setupUserInteractionListener();
@@ -239,7 +244,8 @@ export class SoundManager {
       // iOS 優化：使用 Web Audio API
       if (this.isIOSDevice && this.webAudioManager) {
         if (this.webAudioManager.isLoaded(soundId)) {
-          this.webAudioManager.play(soundId, options?.loop || false, options?.volume);
+          const vol = this.masterMuted ? 0 : options?.volume;
+          this.webAudioManager.play(soundId, options?.loop || false, vol);
           // Web Audio API 不需要返回 SoundPlayer，返回 null 表示成功
           return null;
         } else {
@@ -258,9 +264,10 @@ export class SoundManager {
       // 如果已經有播放器實例，複製音頻元素以避免衝突
       const audio = audioResource.cloneNode(true) as HTMLAudioElement;
       
+      const vol = this.masterMuted ? 0 : (options?.volume !== undefined ? options.volume : 1.0);
       const player = new SoundPlayer(audio, {
         loop: options?.loop || false,
-        volume: options?.volume !== undefined ? options.volume : 1.0
+        volume: vol
       });
 
       // 存儲播放器（用於後續控制）
@@ -369,6 +376,7 @@ export class SoundManager {
    * @param waitForInteraction 是否等待用戶交互（默認 true，如果用戶未交互則延遲播放）
    */
   private playBGM(bgmId: 'mg_bgm' | 'fg_bgm' | 'btm_fg_out_bgm' | 'btm_w_win_loop' | 'btm_w_BSM_loop' | 'btm_w_lengendary_loop' | 'btm_w_ultra_loop' | 'btm_w_jp_loop_2', volume: number = 0.5, waitForInteraction: boolean = true): void {
+    const effectiveVolume = this.masterMuted ? 0 : volume;
     // iOS 優化：使用 Web Audio API
     if (this.isIOSDevice && this.webAudioManager) {
       // 如果正在播放相同的BGM，不重複播放
@@ -389,7 +397,7 @@ export class SoundManager {
 
       // 使用 Web Audio API 播放（支持循環）
       if (this.webAudioManager.isLoaded(bgmId)) {
-        this.webAudioManager.play(bgmId, true, volume); // loop = true
+        this.webAudioManager.play(bgmId, true, effectiveVolume); // loop = true
         this.currentBgmId = bgmId;
         this.bgmVolume = volume;
         console.log(`[SoundManager] iOS: BGM ${bgmId} 開始播放（Web Audio API）`);
@@ -417,7 +425,7 @@ export class SoundManager {
     this.stopBGM();
 
     // 使用無縫循環播放（提前0.1秒）
-    this.playBGMSeamless(bgmId, volume);
+    this.playBGMSeamless(bgmId, effectiveVolume);
   }
 
   /**
@@ -687,6 +695,44 @@ export class SoundManager {
         player.setVolume(volume);
       }
     });
+  }
+
+  /**
+   * 總音效開關：關閉時所有聲音（BGM + 音效）靜音，開啟時還原
+   * @param muted true=關閉所有聲音，false=開啟
+   */
+  public static setMasterMute(muted: boolean): void {
+    SoundManager.getInstance().setMasterMute(muted);
+  }
+
+  /**
+   * 總音效開關（實例方法）
+   */
+  private setMasterMute(muted: boolean): void {
+    if (this.masterMuted === muted) return;
+    this.masterMuted = muted;
+    if (muted) {
+      this.savedBgmVolume = this.bgmVolume;
+      this.setBGMVolume(0);
+      this.setSoundVolume(0);
+    } else {
+      this.setBGMVolume(this.savedBgmVolume);
+      this.setSoundVolume(this.savedSoundVolume);
+    }
+  }
+
+  /**
+   * 是否已關閉總音效（實例方法）
+   */
+  public getMasterMuted(): boolean {
+    return this.masterMuted;
+  }
+
+  /**
+   * 是否已關閉總音效（靜態方法）
+   */
+  public static isMasterMuted(): boolean {
+    return SoundManager.getInstance().getMasterMuted();
   }
 
   /**

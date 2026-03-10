@@ -29,6 +29,11 @@ export class MainGame extends PIXI.Container {
   public buyFreeSpinsButton!: BaseButton;
   public logoutButton!: BaseButton;
   public recordButton!: BaseButton;
+  public soundButton!: BaseButton; // 保留相容；實際為 soundButtonContainer
+  private soundButtonContainer!: PIXI.Container;
+  private soundButtonOff!: BaseButton;
+  private soundButtonOn!: BaseButton;
+  private soundOn: boolean = true; // 總聲音開關，true=開啟
   public infoButton!: BaseButton;
   public balanceText!: PIXI.Text;
   public betText!: PIXI.Text;
@@ -304,6 +309,24 @@ export class MainGame extends PIXI.Container {
         this.manualPage.show();
       }
     });
+    
+    this.soundButtonContainer = new PIXI.Container();
+    this.soundButtonOff = new BaseButton({ baseName: 'audiooff_btn', anchor: 0.5 });
+    this.soundButtonOn = new BaseButton({ baseName: 'audioon_btn', anchor: 0.5 });
+    this.soundButtonContainer.addChild(this.soundButtonOff);
+    this.soundButtonContainer.addChild(this.soundButtonOn);
+    this.soundButtonOff.visible = !this.soundOn;
+    this.soundButtonOn.visible = this.soundOn;
+    const toggleSound = (): void => {
+      this.soundOn = !this.soundOn;
+      SoundManager.setMasterMute(!this.soundOn);
+      this.soundButtonOff.visible = !this.soundOn;
+      this.soundButtonOn.visible = this.soundOn;
+    };
+    this.soundButtonOff.on(ButtonEvent.BUTTON_CLICKED, toggleSound);
+    this.soundButtonOn.on(ButtonEvent.BUTTON_CLICKED, toggleSound);
+    this.settingsButtonContainer.addChild(this.soundButtonContainer);
+    this.soundButton = this.soundButtonOn; // 相容用
   }
 
   // 創建金額相關
@@ -424,11 +447,13 @@ export class MainGame extends PIXI.Container {
     this.buyFreeSpinsButton.y = 1492;
 
     //settings_btn位置
-    this.logoutButton.x = 309;
+    this.logoutButton.x = 186+71;
     this.logoutButton.y = 1775;
-    this.recordButton.x = 550;
+    this.recordButton.x = 381+71;
     this.recordButton.y = 1775;
-    this.infoButton.x = 792;
+    this.soundButtonContainer.x = 576+71;
+    this.soundButtonContainer.y = 1775;
+    this.infoButton.x = 772+71;
     this.infoButton.y = 1775;
   }
 
