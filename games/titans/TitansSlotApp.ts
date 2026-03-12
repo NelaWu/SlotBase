@@ -1157,7 +1157,7 @@ export class TitansSlotApp extends SlotMachineApp {
           this.TitansView.setSpinButtonEnabled(true);
 
           // 使用累積的總倍數（所有倍數球的乘積）乘以累積的總 Win
-          const totalWinAmount = this.convertMoneyServerToClient(this.totalWin) * this.totalMultiplier;
+          const totalWinAmount = this.convertMoneyServerToClient(this.totalWin) * this.multiplier;
           const isBigWin = totalWinAmount / this.TitansModel.getCurrentBet() > 20;
           if (isBigWin && this.isFreeGameMode == false) {
             // 显示 BigWin 动画，等待动画完成后再执行后续代码
