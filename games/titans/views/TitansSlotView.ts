@@ -297,6 +297,8 @@ export class TitansSlotView extends BaseView {
     this.mainGame.buyFreeSpinsButton.setEnabled(enabled);
     this.mainGame.plusButton.setEnabled(enabled);
     this.mainGame.minusButton.setEnabled(enabled);
+    this.mainGame.turboButton.setEnabled(enabled);
+    this.mainGame.settingsButton.setEnabled(enabled);
   }
 
   // 設置所有按鈕啟用狀態
