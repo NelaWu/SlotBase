@@ -48,6 +48,21 @@ deploy-testing:
   only:
     - master
 
+deploy-staging:
+  stage: deploy
+  before_script:
+    - *init_rsync
+    - *change_file_owner
+  script:
+    - rsync
+      -av
+      --delete
+      --password-file=/etc/rsync.secret
+      ./dist/ root@${RSYNC_HOST_STAGING}::${RSYNC_MODULE}
+  when: manual
+  only:
+    - master
+
 deploy-production:
   stage: deploy
   before_script:
