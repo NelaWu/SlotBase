@@ -316,6 +316,19 @@ export class BaseButton extends PIXI.Container {
    * 切換按鈕狀態
    */
   private setState(state: ButtonState): void {
+    if (state === ButtonState.DISABLED) {
+      this.normalSprite.visible = false;
+      if (this.hoverSprite) this.hoverSprite.visible = false;
+      if (this.pressedSprite) this.pressedSprite.visible = false;
+      if (this.disabledSprite) {
+        this.disabledSprite.visible = true;
+      } else {
+        this.normalSprite.visible = true;
+      }
+      this.currentState = ButtonState.DISABLED;
+      return;
+    }
+
     // 如果是開關按鈕，根據 on/off 狀態來決定顯示
     if (this.isToggle) {
       this.updateToggleState();

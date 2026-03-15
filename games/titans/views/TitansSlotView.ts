@@ -157,9 +157,9 @@ export class TitansSlotView extends BaseView {
 
   // ==================== 公開方法 - 供 Controller 調用 ====================
 
-  // 公開方法 - 開始旋轉動畫
-  public startSpinAnimation(fastDrop?: boolean): void {
-    this.setSpinButtonEnabled(false);
+  // 公開方法 - 開始旋轉動畫（keepAutoEnabled：auto 模式下傳 true，不關閉 auto 按鈕）
+  public startSpinAnimation(fastDrop?: boolean, keepAutoEnabled?: boolean): void {
+    this.setSpinButtonEnabled(false, keepAutoEnabled);
     this.updateWinAmount(0);
     
     // 優先使用雙擊快速模式（pendingFastDrop），如果沒有則使用傳入的參數（通常是 Turbo 模式）
@@ -291,14 +291,21 @@ export class TitansSlotView extends BaseView {
     this.mainGame.autoPanel?.hide();
   }
 
-  // 設置旋轉按鈕啟用狀態
-  public setSpinButtonEnabled(enabled: boolean): void {
+  /**
+   * 設置旋轉與周邊按鈕的啟用狀態。
+   * @param enabled 是否啟用
+   * @param keepAutoEnabled 若為 true，不變更 auto 按鈕（給 auto 模式用，讓玩家仍可點 auto 取消）
+   */
+  public setSpinButtonEnabled(enabled: boolean, keepAutoEnabled?: boolean): void {
     this.mainGame.spinButton.setEnabled(enabled);
     this.mainGame.buyFreeSpinsButton.setEnabled(enabled);
     this.mainGame.plusButton.setEnabled(enabled);
     this.mainGame.minusButton.setEnabled(enabled);
     this.mainGame.turboButton.setEnabled(enabled);
     this.mainGame.settingsButton.setEnabled(enabled);
+    if (!keepAutoEnabled) {
+      this.mainGame.autoButton.setEnabled(enabled);
+    }
   }
 
   // 設置所有按鈕啟用狀態

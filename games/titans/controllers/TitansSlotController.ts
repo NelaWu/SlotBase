@@ -79,7 +79,8 @@ export class TitansSlotController extends BaseController {
     this.log('開始旋轉');
     // 開始新的 spin 時重置累計值（確保每次新的 spin 流程都從零開始）
     this.accumulatedTotalWin = 0;
-    this.view.startSpinAnimation(this.isTurboEnabled);
+    // auto 模式時傳 keepAutoEnabled: true，不關閉 auto 按鈕（讓玩家可點擊取消）
+    this.view.startSpinAnimation(this.isTurboEnabled, this.isAutoSpinEnabled);
   }
 
   /**
